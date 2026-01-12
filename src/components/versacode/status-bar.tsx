@@ -1,16 +1,18 @@
 
 'use client';
 
-import { GitBranch, XCircle, AlertTriangle, Sparkles, Bell } from 'lucide-react';
+import { GitBranch, XCircle, AlertTriangle, Sparkles, Bell, Check } from 'lucide-react';
 import type { FileSystemNode } from '@/hooks/useFileSystem';
 import type { Problem } from './ide-layout';
+import { formatDistanceToNow } from 'date-fns';
 
 interface StatusBarProps {
   activeFile: (FileSystemNode & { type: 'file' }) | null;
   problems: Problem[];
+  lastSaved: Date | null;
 }
 
-export function StatusBar({ activeFile, problems }: StatusBarProps) {
+export function StatusBar({ activeFile, problems, lastSaved }: StatusBarProps) {
   const errorCount = problems.filter(p => p.severity === 'error').length;
   const warningCount = problems.filter(p => p.severity === 'warning').length;
   
@@ -48,6 +50,12 @@ export function StatusBar({ activeFile, problems }: StatusBarProps) {
         </div>
       </div>
       <div className="flex items-center gap-4">
+        {lastSaved && (
+            <div className="flex items-center gap-1">
+                <Check className="h-3.5 w-3.5" />
+                <span>Saved {formatDistanceToNow(lastSaved, { addSuffix: true })}</span>
+            </div>
+        )}
         <span>{activeFile ? getLanguageName(activeFile.name) : ''}</span>
         <div className="flex items-center gap-1 cursor-pointer hover:text-foreground">
             <Sparkles className="h-3.5 w-3.5" />
@@ -60,3 +68,5 @@ export function StatusBar({ activeFile, problems }: StatusBarProps) {
     </footer>
   );
 }
+
+    

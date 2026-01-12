@@ -79,6 +79,7 @@ function IdeLayoutContent({}: IdeLayoutProps) {
   const [terminalSessions, setTerminalSessions] = useState<TerminalSession[]>([]);
   const [activeTerminalId, setActiveTerminalId] = useState<string | null>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   // Refs for managing complex components and state
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -124,6 +125,11 @@ function IdeLayoutContent({}: IdeLayoutProps) {
     importFromLocal,
     resetAll,
   } = useFileSystem();
+  
+  const handleUpdateFileContent = useCallback((fileId: string, content: string) => {
+    updateFileContent(fileId, content);
+    setLastSaved(new Date());
+  }, [updateFileContent]);
 
   // Load and save UI state
   useEffect(() => {
@@ -257,7 +263,7 @@ function IdeLayoutContent({}: IdeLayoutProps) {
           
           const disposable = model.onDidChangeContent(() => {
             const currentContent = model.getValue();
-            updateFileContent(fileId, currentContent);
+            handleUpdateFileContent(fileId, currentContent);
           });
           
           disposables.set(fileId, disposable);
@@ -277,7 +283,7 @@ function IdeLayoutContent({}: IdeLayoutProps) {
     return () => {
       disposables.forEach(d => d.dispose());
     };
-  }, [openFileIds, findNodeById, updateFileContent, isLoaded]);
+  }, [openFileIds, findNodeById, handleUpdateFileContent, isLoaded]);
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -360,6 +366,7 @@ function IdeLayoutContent({}: IdeLayoutProps) {
       const id = { major: 1, minor: 1 };
       const op = {identifier: id, range: range, text: result.suggestedCode, forceMoveMarkers: true};
       currentModel.pushEditOperations([], [op], () => null);
+      setLastSaved(new Date());
 
       logToOutput(`AI suggestion applied to ${activeFile.path}.`);
       toast({
@@ -387,6 +394,7 @@ function IdeLayoutContent({}: IdeLayoutProps) {
     setIsFormatting(true);
     try {
       await editor.getAction('editor.action.formatDocument')?.run();
+      setLastSaved(new Date());
       logToOutput(`Document formatted successfully.`);
       toast({
         title: "Code Formatted",
@@ -815,6 +823,7 @@ function IdeLayoutContent({}: IdeLayoutProps) {
           <StatusBar 
             activeFile={activeFile}
             problems={problems}
+            lastSaved={lastSaved}
           />
         </div>
       </div>
@@ -838,3 +847,5 @@ export function IdeLayout(props: IdeLayoutProps) {
   
   return <IdeLayoutContent {...props} />;
 }
+
+    
