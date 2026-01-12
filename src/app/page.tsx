@@ -45,19 +45,19 @@ export default function HomePage() {
               <span className="text-lg font-semibold">VersaCode</span>
             </Link>
             <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-              <Link href="#" className="hover:text-primary">
+              <Link href="/docs" className="hover:text-primary">
                 Docs
               </Link>
-              <Link href="#" className="hover:text-primary">
+              <Link href="/updates" className="hover:text-primary">
                 Updates
               </Link>
-              <Link href="#" className="hover:text-primary">
+              <Link href="/blog" className="hover:text-primary">
                 Blog
               </Link>
-              <Link href="#" className="hover:text-primary">
+              <Link href="/api" className="hover:text-primary">
                 API
               </Link>
-              <Link href="#" className="hover:text-primary">
+              <Link href="/extensions" className="hover:text-primary">
                 Extensions
               </Link>
             </nav>
@@ -79,7 +79,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl">
           <div className="mb-4">
             <Link
-              href="#"
+              href="/updates"
               className="inline-block rounded-full bg-secondary px-4 py-1 text-sm text-secondary-foreground"
             >
               Version 1.0 is now available!
