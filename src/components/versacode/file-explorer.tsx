@@ -2,7 +2,7 @@
 "use client";
 
 import { Folder, File as FileIcon, ChevronRight, ChevronDown, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2 } from "lucide-react";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { cn } from "@/lib/utils";
 import type { FileSystemNode } from "@/hooks/useFileSystem";
 import { Button } from "../ui/button";
@@ -182,8 +182,26 @@ function EditNode({
   );
 }
 
+interface FileExplorerProps {
+    files: FileSystemNode[];
+    activeFileId: string | null;
+    onSelectFile: (id: string) => void;
+    createFile: (name: string, parentId: string | null, content?: string) => string | null;
+    createFolder: (name: string, parentId: string | null) => void;
+    expandedFolders: Set<string>;
+    onToggleFolder: (folderId: string) => void;
+    renameNode: (id: string, newName: string) => void;
+    deleteNode: (id: string) => void;
+    getTargetFolder: (id: string | null) => FileSystemNode | null;
+    onOpenFile: (id: string) => void;
+}
 
-export function FileExplorer({ files, activeFileId, onSelectFile, createFile, createFolder, expandedFolders, onToggleFolder, renameNode, deleteNode, getTargetFolder, onOpenFile }) {
+export type FileExplorerRef = {
+    startCreate: (type: 'create_file' | 'create_folder') => void;
+};
+
+
+export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ files, activeFileId, onSelectFile, createFile, createFolder, expandedFolders, onToggleFolder, renameNode, deleteNode, getTargetFolder, onOpenFile }, ref) => {
   const [deleteOperation, setDeleteOperation] = useState<DeleteOperation>(null);
   const [generateOperation, setGenerateOperation] = useState<GenerateOperation>(null);
   const [generatePrompt, setGeneratePrompt] = useState('');
@@ -267,6 +285,10 @@ export function FileExplorer({ files, activeFileId, onSelectFile, createFile, cr
       onCancel: () => setEditState(null),
     });
   };
+
+  useImperativeHandle(ref, () => ({
+      startCreate,
+  }));
 
   const startRename = (id: string) => {
     const node = findNode(id);
@@ -412,4 +434,6 @@ export function FileExplorer({ files, activeFileId, onSelectFile, createFile, cr
       </Dialog>
     </div>
   );
-}
+});
+
+FileExplorer.displayName = 'FileExplorer';

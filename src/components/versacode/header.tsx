@@ -1,5 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarTrigger,
+  MenubarCheckboxItem,
+} from "@/components/ui/menubar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Play, Sparkles, LoaderCircle, Code } from "lucide-react";
 
@@ -7,9 +16,21 @@ interface HeaderProps {
   onRun: () => void;
   onSuggest: () => void;
   isSuggesting: boolean;
+  onNewFile: () => void;
+  onNewFolder: () => void;
+  onToggleMinimap: (checked: boolean) => void;
+  isMinimapVisible: boolean;
 }
 
-export function Header({ onRun, onSuggest, isSuggesting }: HeaderProps) {
+export function Header({
+  onRun,
+  onSuggest,
+  isSuggesting,
+  onNewFile,
+  onNewFolder,
+  onToggleMinimap,
+  isMinimapVisible,
+}: HeaderProps) {
   return (
     <header className="flex items-center justify-between h-16 px-4 border-b bg-card">
       <div className="flex items-center gap-4">
@@ -17,22 +38,66 @@ export function Header({ onRun, onSuggest, isSuggesting }: HeaderProps) {
           <Code className="h-7 w-7 text-primary" />
           <h1 className="text-xl font-bold tracking-tight">VersaCode</h1>
         </div>
-        <Select defaultValue="nodejs">
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select environment" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="nodejs">Node.js</SelectItem>
-            <SelectItem value="python">Python</SelectItem>
-            <SelectItem value="go">Go</SelectItem>
-            <SelectItem value="web">Web (HTML/CSS/JS)</SelectItem>
-          </SelectContent>
-        </Select>
+        <Menubar className="border-none bg-transparent">
+          <MenubarMenu>
+            <MenubarTrigger>File</MenubarTrigger>
+            <MenubarContent>
+              <MenubarItem onClick={onNewFile}>
+                New File <MenubarShortcut>Ctrl+N</MenubarShortcut>
+              </MenubarItem>
+              <MenubarItem onClick={onNewFolder}>New Folder</MenubarItem>
+              <MenubarSeparator />
+              <MenubarItem disabled>Save</MenubarItem>
+              <MenubarItem disabled>Save As...</MenubarItem>
+              <MenubarSeparator />
+              <MenubarItem disabled>Close Editor</MenubarItem>
+            </MenubarContent>
+          </MenubarMenu>
+          <MenubarMenu>
+            <MenubarTrigger>Edit</MenubarTrigger>
+            <MenubarContent>
+              <MenubarItem disabled>Undo</MenubarItem>
+              <MenubarItem disabled>Redo</MenubarItem>
+              <MenubarSeparator />
+              <MenubarItem disabled>Cut</MenubarItem>
+              <MenubarItem disabled>Copy</MenubarItem>
+              <MenubarItem disabled>Paste</MenubarItem>
+            </MenubarContent>
+          </MenubarMenu>
+          <MenubarMenu>
+            <MenubarTrigger>View</MenubarTrigger>
+            <MenubarContent>
+              <MenubarCheckboxItem
+                checked={isMinimapVisible}
+                onCheckedChange={onToggleMinimap}
+              >
+                Show Minimap
+              </MenubarCheckboxItem>
+              <MenubarSeparator />
+              <MenubarItem disabled>Explorer</MenubarItem>
+              <MenubarItem disabled>Terminal</MenubarItem>
+            </MenubarContent>
+          </MenubarMenu>
+          <MenubarMenu>
+            <MenubarTrigger>Run</MenubarTrigger>
+            <MenubarContent>
+              <MenubarItem onClick={onRun}>Run Code</MenubarItem>
+              <MenubarItem disabled>Run With Debugger</MenubarItem>
+            </MenubarContent>
+          </MenubarMenu>
+          <MenubarMenu>
+            <MenubarTrigger>Help</MenubarTrigger>
+            <MenubarContent>
+              <MenubarItem disabled>Welcome</MenubarItem>
+              <MenubarItem disabled>Documentation</MenubarItem>
+            </MenubarContent>
+          </MenubarMenu>
+        </Menubar>
       </div>
       <div className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={onSuggest} disabled={isSuggesting} title="AI Code Suggestion">
+            <Button variant="ghost" size="icon" onClick={onSuggest} disabled={isSuggesting} title="AI Code Suggestion (Ctrl+Space)">
               {isSuggesting ? (
                 <LoaderCircle className="h-5 w-5 animate-spin" />
               ) : (

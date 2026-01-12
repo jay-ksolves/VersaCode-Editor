@@ -33,6 +33,7 @@ function IdeLayoutContent() {
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
   const [editorSettings, setEditorSettings] = useState(defaultEditorSettings);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const fileExplorerRef = useRef<{ startCreate: (type: 'create_file' | 'create_folder') => void }>(null);
 
   const { toast } = useToast();
 
@@ -150,6 +151,9 @@ function IdeLayoutContent() {
   const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;
   };
+  
+  const handleNewFile = () => fileExplorerRef.current?.startCreate('create_file');
+  const handleNewFolder = () => fileExplorerRef.current?.startCreate('create_folder');
 
   const handleGoToProblem = useCallback((problem: Problem) => {
     const targetNode = findNodeByPath(problem.file);
@@ -175,6 +179,7 @@ function IdeLayoutContent() {
     switch (activePanel) {
       case "files":
         return <FileExplorer 
+          ref={fileExplorerRef}
           files={files} 
           activeFileId={activeFileId} 
           onSelectFile={openFile}
@@ -211,6 +216,10 @@ function IdeLayoutContent() {
             onRun={handleRun} 
             onSuggest={handleSuggest} 
             isSuggesting={isSuggesting}
+            onNewFile={handleNewFile}
+            onNewFolder={handleNewFolder}
+            isMinimapVisible={editorSettings.minimap}
+            onToggleMinimap={(checked) => handleSettingsChange({ minimap: checked })}
           />
           <main className="flex-1 flex overflow-hidden">
             {activePanel !== "none" && (
