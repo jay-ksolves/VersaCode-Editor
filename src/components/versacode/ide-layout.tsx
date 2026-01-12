@@ -248,20 +248,22 @@ function IdeLayoutContent({}: IdeLayoutProps) {
   useEffect(() => {
     const monaco = monacoRef.current;
     if (!monaco || !isLoaded) return;
-
+  
     const openFilesSet = new Set(openFileIds);
     const disposables = new Map<string, monaco.IDisposable>();
-
+  
     openFilesSet.forEach(fileId => {
-      if (!modelsRef.current.has(fileId)) {
-        const file = findNodeById(fileId, false);
-        if (file?.type === 'file') {
+      const file = findNodeById(fileId, false);
+      if (file?.type === 'file') {
+        const modelUri = monaco.Uri.parse(`file:///${file.path}`);
+        
+        if (!monaco.editor.getModel(modelUri)) {
           const model = monaco.editor.createModel(
             file.content,
             getFileLanguage(file.name),
-            monaco.Uri.parse(`file:///${file.path}`)
+            modelUri
           );
-          
+  
           const disposable = model.onDidChangeContent(() => {
             const currentContent = model.getValue();
             handleUpdateFileContent(fileId, currentContent);
@@ -269,18 +271,26 @@ function IdeLayoutContent({}: IdeLayoutProps) {
           
           disposables.set(fileId, disposable);
           modelsRef.current.set(fileId, model);
+        } else if (!modelsRef.current.has(fileId)) {
+          // Model exists but is not in our ref map, so let's add it.
+          const model = monaco.editor.getModel(modelUri);
+          if (model) {
+            modelsRef.current.set(fileId, model);
+          }
         }
       }
     });
-
+  
+    // Clean up models for closed files
     modelsRef.current.forEach((model, fileId) => {
       if (!openFilesSet.has(fileId)) {
         disposables.get(fileId)?.dispose();
-        model.dispose();
+        // The model itself is not disposed here to preserve undo history
+        // in case the file is reopened. Monaco handles memory management.
         modelsRef.current.delete(fileId);
       }
     });
-
+  
     return () => {
       disposables.forEach(d => d.dispose());
     };
