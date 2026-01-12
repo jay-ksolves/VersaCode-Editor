@@ -384,7 +384,7 @@ function IdeLayoutContent() {
                           activeFile={activeFile}
                           onSelectPath={handleBreadcrumbSelect}
                         />
-                        <div className="flex-1 relative overflow-auto bg-card">
+                        <div className="flex-1 relative overflow-auto bg-card isolate z-0">
                           {openFileIds.length > 0 && activeFile ? (
                               <CodeEditor 
                                 onMount={handleEditorMount}
@@ -445,3 +445,5 @@ export function IdeLayout() {
     </TooltipProvider>
   );
 }
+
+    
