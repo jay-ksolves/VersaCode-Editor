@@ -39,6 +39,7 @@ function IdeLayoutContent() {
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
   const [editorSettings, setEditorSettings] = useState(defaultEditorSettings);
+  const [dirtyFiles, setDirtyFiles] = useState<Set<string>>(new Set());
   
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);
@@ -64,7 +65,7 @@ function IdeLayoutContent() {
     toggleFolder,
     openFile,
     openFileIds,
-    closeFile,
+    closeFile: closeFileFromHook,
     findNodeById,
     findNodeByPath,
   } = useFileSystem();
@@ -101,6 +102,7 @@ function IdeLayoutContent() {
     if (!monaco) return;
 
     const openFilesSet = new Set(openFileIds);
+    const disposables = new Map<string, monaco.IDisposable>();
 
     // Create models for newly opened files
     openFilesSet.forEach(fileId => {
@@ -112,43 +114,62 @@ function IdeLayoutContent() {
             getFileLanguage(file.name),
             monaco.Uri.parse(`file:///${file.path}`)
           );
-          
-          model.onDidChangeContent(() => {
-            const newContent = model.getValue();
-            const currentNode = findNodeById(fileId);
-            if (currentNode && currentNode.type === 'file' && newContent !== currentNode.content) {
-              updateFileContent(fileId, newContent);
+
+          // Listen for content changes to update both the main state and the dirty state
+          const disposable = model.onDidChangeContent(() => {
+            const currentContent = model.getValue();
+            const savedContent = findNodeById(fileId)?.content;
+            
+            // Sync content with the main state
+            if (currentContent !== savedContent) {
+              updateFileContent(fileId, currentContent);
             }
+            
+            // Update dirty status
+            setDirtyFiles(prev => {
+              const newDirty = new Set(prev);
+              const originalContent = findNodeById(fileId, true)?.content; // Get original from non-React state
+              if (currentContent !== originalContent) {
+                newDirty.add(fileId);
+              } else {
+                newDirty.delete(fileId);
+              }
+              return newDirty;
+            });
           });
           
+          disposables.set(fileId, disposable);
           modelsRef.current.set(fileId, model);
         }
       }
     });
 
     // Clean up models for closed files
-    modelsRef.current.forEach((model, fileId) => {
-      if (!openFilesSet.has(fileId)) {
-        model.dispose();
-        modelsRef.current.delete(fileId);
-      }
-    });
+    return () => {
+        modelsRef.current.forEach((model, fileId) => {
+            if (!openFilesSet.has(fileId)) {
+                model.dispose();
+                modelsRef.current.delete(fileId);
+                disposables.get(fileId)?.dispose();
+                disposables.delete(fileId);
+                setDirtyFiles(prev => {
+                  const newDirty = new Set(prev);
+                  newDirty.delete(fileId);
+                  return newDirty;
+                });
+            }
+        });
+    };
 
   }, [openFileIds, findNodeById, updateFileContent]);
 
   // Effect for switching the editor's active model
   useEffect(() => {
     const editor = editorRef.current;
-    if (!editor) return;
+    const model = activeFileId ? modelsRef.current.get(activeFileId) : null;
     
-    if (activeFileId) {
-      const model = modelsRef.current.get(activeFileId);
-      if (model && editor.getModel() !== model) {
-        editor.setModel(model);
-      }
-    } else {
-      // If no file is active, clear the editor by setting model to null
-      editor.setModel(null);
+    if (editor && editor.getModel() !== model) {
+      editor.setModel(model || null);
     }
   }, [activeFileId]);
 
@@ -267,6 +288,15 @@ function IdeLayoutContent() {
     }
   }
 
+  const handleCloseTab = (fileId: string) => {
+    if (dirtyFiles.has(fileId)) {
+        if (!window.confirm("You have unsaved changes. Are you sure you want to close this file?")) {
+            return;
+        }
+    }
+    closeFileFromHook(fileId);
+  }
+
   const renderPanel = () => {
     switch (activePanel) {
       case "files":
@@ -329,8 +359,9 @@ function IdeLayoutContent() {
                   openFileIds={openFileIds}
                   activeFileId={activeFileId}
                   onSelectTab={setActiveFileId}
-                  onCloseTab={closeFile}
+                  onCloseTab={handleCloseTab}
                   findNodeById={findNodeById}
+                  dirtyFileIds={dirtyFiles}
               />
               <div className="flex-1 relative overflow-auto bg-card">
                  {openFileIds.length > 0 && activeFile ? (

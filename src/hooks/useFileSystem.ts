@@ -30,6 +30,20 @@ const initialFileSystem: FileSystemNode[] = [
   { id: '4', name: 'package.json', type: 'file', content: '{ "name": "versacode-app" }', path: 'package.json' },
 ];
 
+// This non-hook version is for getting original content without triggering React updates
+let originalFiles: FileSystemNode[] = [];
+function findNodeByIdInOriginal(nodes: FileSystemNode[], id: string): FileSystemNode | null {
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    if (node.type === 'folder') {
+      const found = findNodeByIdInOriginal(node.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+
 function findNodeById(nodes: FileSystemNode[], id: string): FileSystemNode | null {
   for (const node of nodes) {
     if (node.id === id) return node;
@@ -164,6 +178,7 @@ export function useFileSystem() {
 
       const parsedFiles = storedFiles ? JSON.parse(storedFiles) : initialFileSystem;
       setFiles(parsedFiles);
+      originalFiles = JSON.parse(JSON.stringify(parsedFiles)); // Deep copy for original state
 
       if (storedExpanded) {
         setExpandedFolders(new Set(JSON.parse(storedExpanded)));
@@ -185,6 +200,7 @@ export function useFileSystem() {
     } catch (error) {
       console.error("Failed to parse from localStorage", error);
       setFiles(initialFileSystem);
+      originalFiles = JSON.parse(JSON.stringify(initialFileSystem));
       setExpandedFolders(new Set(['1']));
     }
   }, []);
@@ -423,9 +439,10 @@ export function useFileSystem() {
     openFile,
     openFileIds,
     closeFile,
-    findNodeById: (id: string) => findNodeById(files, id),
+    findNodeById: (id: string, useOriginal = false) => {
+      const source = useOriginal ? originalFiles : files;
+      return findNodeByIdInOriginal(source, id);
+    },
     findNodeByPath: (path: string) => findNodeByPath(files, path),
   };
 }
-
-    

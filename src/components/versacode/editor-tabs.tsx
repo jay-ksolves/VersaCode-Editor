@@ -12,6 +12,7 @@ interface EditorTabsProps {
   onSelectTab: (id: string) => void;
   onCloseTab: (id: string) => void;
   findNodeById: (id: string) => FileSystemNode | null;
+  dirtyFileIds: Set<string>;
 }
 
 export function EditorTabs({
@@ -20,6 +21,7 @@ export function EditorTabs({
   onSelectTab,
   onCloseTab,
   findNodeById,
+  dirtyFileIds,
 }: EditorTabsProps) {
   if (openFileIds.length === 0) {
     return (
@@ -34,13 +36,14 @@ export function EditorTabs({
         if (!file || file.type !== 'file') return null;
 
         const isActive = id === activeFileId;
+        const isDirty = dirtyFileIds.has(id);
 
         return (
           <div
             key={id}
             onClick={() => onSelectTab(id)}
             className={cn(
-              'flex items-center gap-2 px-4 py-2 border-r cursor-pointer text-sm',
+              'flex items-center gap-2 pl-4 pr-2 py-2 border-r cursor-pointer text-sm group',
               isActive
                 ? 'bg-background text-foreground'
                 : 'bg-card text-muted-foreground hover:bg-muted'
@@ -51,14 +54,22 @@ export function EditorTabs({
             <Button
               variant="ghost"
               size="icon"
-              className="h-5 w-5 rounded-full"
+              className={cn(
+                'h-5 w-5 rounded-full',
+                !isDirty && 'group-hover:opacity-100 opacity-0',
+                isDirty && 'opacity-100'
+              )}
               onClick={(e) => {
                 e.stopPropagation();
                 onCloseTab(id);
               }}
               title={`Close ${file.name}`}
             >
-              <X className="h-3 w-3" />
+              {isDirty ? (
+                 <div className="w-2 h-2 rounded-full bg-foreground" />
+              ) : (
+                <X className="h-3 w-3" />
+              )}
             </Button>
           </div>
         );
