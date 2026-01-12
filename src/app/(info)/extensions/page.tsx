@@ -3,6 +3,7 @@ import { Puzzle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { extensions } from '@/lib/extensions';
+import Link from 'next/link';
 
 export default function ExtensionsPage() {
   return (
@@ -31,8 +32,10 @@ export default function ExtensionsPage() {
               </div>
             </div>
             <div className="mt-4 flex justify-end gap-2">
-                <Button variant="outline" size="sm">Manage</Button>
-                <Button variant="secondary" size="sm">Install</Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/editor">Manage</Link>
+                </Button>
+                <Button variant="secondary" size="sm" disabled>Install</Button>
             </div>
           </div>
         ))}

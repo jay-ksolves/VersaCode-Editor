@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Puzzle, CheckCircle } from "lucide-react";
 import { extensions } from '@/lib/extensions';
+import Link from "next/link";
 
 export function ExtensionsPanel() {
   return (
@@ -29,7 +30,9 @@ export function ExtensionsPanel() {
         </div>
       </div>
        <div className="p-4 border-t">
-        <Button className="w-full bg-accent hover:bg-accent/90">Browse Marketplace</Button>
+        <Button className="w-full bg-accent hover:bg-accent/90" asChild>
+          <Link href="/extensions">Browse Marketplace</Link>
+        </Button>
       </div>
     </div>
   );
