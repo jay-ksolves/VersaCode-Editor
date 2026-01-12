@@ -7,6 +7,17 @@ import {
   Wand2,
   Laptop,
   Github,
+  Database,
+  GitBranch,
+  Shield,
+  Zap,
+  Box,
+  Terminal,
+  Cpu,
+  Server,
+  Users,
+  Search,
+  BarChart,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback } from 'react';
@@ -15,6 +26,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useOPFS } from '@/hooks/useOPFS';
 import type { FileSystemNode } from '@/hooks/useFileSystem';
 import { posts } from '@/lib/blog-posts';
+
+const icons = [
+    Users, GitBranch, Cpu, Server, Shield, Zap, Box, Search, BarChart, Terminal, Database
+];
 
 export default function HomePage() {
   const { toast } = useToast();
@@ -120,6 +135,36 @@ export default function HomePage() {
             </div>
         </div>
       </section>
+
+      <section className="relative z-10 bg-background py-24 sm:py-32 border-t">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="text-center mb-16">
+                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Integrates with Your Favorite Tools</h2>
+                <p className="mt-2 text-lg leading-8 text-muted-foreground">
+                    Built to be extensible and compatible with the tools you already use.
+                </p>
+            </div>
+            <div className="relative flex flex-col gap-4 overflow-hidden">
+                <div className="flex min-w-full flex-shrink-0 animate-scroll-left gap-4">
+                    {[...icons, ...icons].map((Icon, index) => (
+                        <div key={`top-${index}`} className="flex aspect-square w-24 flex-shrink-0 items-center justify-center rounded-lg bg-card p-4 text-muted-foreground">
+                            <Icon className="h-10 w-10" />
+                        </div>
+                    ))}
+                </div>
+                <div className="flex min-w-full flex-shrink-0 animate-scroll-right gap-4">
+                     {[...icons, ...icons].map((Icon, index) => (
+                        <div key={`bottom-${index}`} className="flex aspect-square w-24 flex-shrink-0 items-center justify-center rounded-lg bg-card p-4 text-muted-foreground">
+                            <Icon className="h-10 w-10" />
+                        </div>
+                    ))}
+                </div>
+                 <div className="pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-background to-transparent"></div>
+                <div className="pointer-events-none absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l from-background to-transparent"></div>
+            </div>
+        </div>
+      </section>
+
 
        <section className="relative z-10 bg-background py-24 sm:py-32 border-t">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
