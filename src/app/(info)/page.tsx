@@ -47,7 +47,7 @@ export default function HomePage() {
         scale: 1.00,
         scaleMobile: 1.00,
         color: 0x4caf50, // Parrot green
-        backgroundColor: theme === 'dark' ? 0x141e14 : 0xf0f8f0, // Dark and light green
+        backgroundColor: theme === 'dark' ? 0x202429 : 0xf0f8f0, // Dark slate and light green
     });
 
     // Cleanup function to destroy the instance on component unmount
@@ -145,15 +145,15 @@ export default function HomePage() {
       <div className="container mx-auto px-4 py-24">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <div className="card-hover-effect rounded-lg bg-card p-6 text-left animate-slide-up" style={{ animationDelay: '0.6s' }}>
-            <h3 className="font-semibold text-lg">AI-Powered</h3>
+            <h3 className="text-lg font-semibold">AI-Powered</h3>
             <p className="mt-2 text-sm text-muted-foreground">Leverage generative AI for code suggestions, generation, and formatting to boost your productivity.</p>
           </div>
           <div className="card-hover-effect rounded-lg bg-card p-6 text-left animate-slide-up" style={{ animationDelay: '0.7s' }}>
-            <h3 className="font-semibold text-lg">Fully Featured</h3>
+            <h3 className="text-lg font-semibold">Fully Featured</h3>
             <p className="mt-2 text-sm text-muted-foreground">A complete IDE experience with a file explorer, multi-tab editor, and integrated terminal.</p>
           </div>
           <div className="card-hover-effect rounded-lg bg-card p-6 text-left animate-slide-up" style={{ animationDelay: '0.8s' }}>
-            <h3 className="font-semibold text-lg">Open Source</h3>
+            <h3 className="text-lg font-semibold">Open Source</h3>
             <p className="mt-2 text-sm text-muted-foreground">Built on modern, open-source technologies like Next.js, Monaco, and Genkit. Contributions are welcome.</p>
           </div>
         </div>
