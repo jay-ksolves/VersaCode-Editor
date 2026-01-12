@@ -38,19 +38,6 @@ const initialFileSystem: FileSystemNode[] = [
   { id: '4', name: 'package.json', type: 'file', content: '{ "name": "versacode-app" }', path: 'package.json' },
 ];
 
-let originalFiles: FileSystemNode[] = [];
-function findNodeByIdInOriginal(nodes: FileSystemNode[], id: string): FileSystemNode | null {
-  for (const node of nodes) {
-    if (node.id === id) return node;
-    if (node.type === 'folder') {
-      const found = findNodeByIdInOriginal(node.children, id);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-
 function findNodeById(nodes: FileSystemNode[], id: string): FileSystemNode | null {
   for (const node of nodes) {
     if (node.id === id) return node;
@@ -66,7 +53,7 @@ function findNodeByPath(nodes: FileSystemNode[], path: string): FileSystemNode |
   if (!path) return null;
   for (const node of nodes) {
     if (node.path === path) return node;
-    if (node.type === 'folder' && path.startsWith(node.path + '/')) {
+    if (node.type === 'folder' && path && path.startsWith(node.path + '/')) {
       const found = findNodeByPath(node.children, path);
       if (found) return found;
     }
@@ -170,7 +157,7 @@ const EXPANDED_FOLDERS_LOCAL_STORAGE_KEY = 'versacode_expanded_folders';
 const OPEN_FILES_LOCAL_STORAGE_KEY = 'versacode_open_files';
 const ACTIVE_FILE_LOCAL_STORAGE_KEY = 'versacode_active_file';
 
-export function useFileSystem() {
+export function useFileSystem({ autoSave }: { autoSave: boolean }) {
   const [files, setFiles] = useState<FileSystemNode[]>([]);
   const [activeFileId, setActiveFileId] = useState<string | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['1']));
@@ -187,7 +174,6 @@ export function useFileSystem() {
 
       const parsedFiles = storedFiles ? JSON.parse(storedFiles) : initialFileSystem;
       setFiles(parsedFiles);
-      originalFiles = JSON.parse(JSON.stringify(parsedFiles));
 
       if (storedExpanded) {
         setExpandedFolders(new Set(JSON.parse(storedExpanded)));
@@ -209,7 +195,6 @@ export function useFileSystem() {
     } catch (error) {
       console.error("Failed to parse from localStorage", error);
       setFiles(initialFileSystem);
-      originalFiles = JSON.parse(JSON.stringify(initialFileSystem));
       setExpandedFolders(new Set(['1']));
     }
   }, []);
@@ -218,35 +203,31 @@ export function useFileSystem() {
     loadFromLocalStorage();
   }, [loadFromLocalStorage]);
 
-  const hasUnsavedChanges = useRef(false);
-
-  useEffect(() => {
-    if (files.length > 0) {
-        try {
-            if (hasUnsavedChanges.current) {
-                localStorage.setItem(FS_LOCAL_STORAGE_KEY, JSON.stringify(files));
-                hasUnsavedChanges.current = false;
-            }
-            localStorage.setItem(EXPANDED_FOLDERS_LOCAL_STORAGE_KEY, JSON.stringify(Array.from(expandedFolders)));
-            localStorage.setItem(OPEN_FILES_LOCAL_STORAGE_KEY, JSON.stringify(openFileIds));
-            if (activeFileId) {
-                localStorage.setItem(ACTIVE_FILE_LOCAL_STORAGE_KEY, activeFileId);
-            } else {
-                localStorage.removeItem(ACTIVE_FILE_LOCAL_STORAGE_KEY);
-            }
-        } catch (error) {
-            console.error("Failed to save to localStorage", error);
-        }
+  const saveToLocalStorage = useCallback(() => {
+    try {
+      localStorage.setItem(FS_LOCAL_STORAGE_KEY, JSON.stringify(files));
+      localStorage.setItem(EXPANDED_FOLDERS_LOCAL_STORAGE_KEY, JSON.stringify(Array.from(expandedFolders)));
+      localStorage.setItem(OPEN_FILES_LOCAL_STORAGE_KEY, JSON.stringify(openFileIds));
+      if (activeFileId) {
+          localStorage.setItem(ACTIVE_FILE_LOCAL_STORAGE_KEY, activeFileId);
+      } else {
+          localStorage.removeItem(ACTIVE_FILE_LOCAL_STORAGE_KEY);
+      }
+    } catch (error) {
+      console.error("Failed to save to localStorage", error);
     }
   }, [files, expandedFolders, openFileIds, activeFileId]);
 
+  useEffect(() => {
+    if (autoSave) {
+        saveToLocalStorage();
+    }
+  }, [files, autoSave, saveToLocalStorage]);
+
   const activeFile = activeFileId ? findNodeById(files, activeFileId) : null;
 
-  const updateFileContent = useCallback((id: string, content: string, fromEditor = false) => {
+  const updateFileContent = useCallback((id: string, content: string) => {
     setFiles(prevFiles => updateNodeContentInTree(prevFiles, id, content));
-    if (!fromEditor) {
-        originalFiles = updateNodeContentInTree(originalFiles, id, content);
-    }
   }, []);
   
   const getTargetFolder = useCallback((selectedNodeId: string | null) => {
@@ -290,16 +271,11 @@ export function useFileSystem() {
         content: content || `// ${name}\n`,
         path: '', 
     };
-    setFiles(prevFiles => {
-        const newTree = addNodeToTree(prevFiles, parentId, newFile);
-        hasUnsavedChanges.current = true;
-        originalFiles = JSON.parse(JSON.stringify(newTree));
-        return newTree;
-    });
+    setFiles(prevFiles => addNodeToTree(prevFiles, parentId, newFile));
     if (parentId) setExpandedFolders(prev => new Set(prev).add(parentId));
     toast({ title: "File Created", description: `${name} was added.` });
     return newFile.id;
-  }, [files, toast]);
+  }, [toast]);
 
   const createFolder = useCallback((name: string, parentId: string | null) => {
     const validationError = validateName(name, parentId);
@@ -314,15 +290,10 @@ export function useFileSystem() {
         children: [],
         path: '',
     };
-    setFiles(prevFiles => {
-        const newTree = addNodeToTree(prevFiles, parentId, newFolder);
-        hasUnsavedChanges.current = true;
-        originalFiles = JSON.parse(JSON.stringify(newTree));
-        return newTree;
-    });
+    setFiles(prevFiles => addNodeToTree(prevFiles, parentId, newFolder));
     if (parentId) setExpandedFolders(prev => new Set(prev).add(parentId));
     toast({ title: "Folder Created", description: `${name} was added.` });
-  }, [files, toast]);
+  }, [toast]);
 
   const renameNode = useCallback((id: string, newName: string) => {
     const node = findNodeById(files, id);
@@ -336,12 +307,7 @@ export function useFileSystem() {
         return;
     }
     
-    setFiles(prevFiles => {
-        const newTree = renameNodeInTree(prevFiles, id, newName);
-        hasUnsavedChanges.current = true;
-        originalFiles = JSON.parse(JSON.stringify(newTree));
-        return newTree;
-    });
+    setFiles(prevFiles => renameNodeInTree(prevFiles, id, newName));
     toast({ title: "Renamed", description: `Renamed to ${newName}.` });
   }, [files, toast]);
 
@@ -367,10 +333,6 @@ export function useFileSystem() {
     setFiles(prevFiles => {
       const { tree, removedNode } = removeNodeFromTree(prevFiles, id);
       nodeToDelete = removedNode;
-      if (removedNode) {
-          hasUnsavedChanges.current = true;
-          originalFiles = JSON.parse(JSON.stringify(tree));
-      }
       return tree;
     });
 
@@ -425,8 +387,6 @@ export function useFileSystem() {
 
         if (movedNode) {
             newFiles = addNodeToTree(newFiles, dropTargetId, movedNode);
-            hasUnsavedChanges.current = true;
-            originalFiles = JSON.parse(JSON.stringify(newFiles));
         }
         return newFiles;
     });
@@ -511,10 +471,7 @@ export function useFileSystem() {
     openFileIds,
     setOpenFileIds,
     closeFile,
-    findNodeById: (id: string, useOriginal = false) => {
-      const source = useOriginal ? originalFiles : files;
-      return findNodeByIdInOriginal(source, id);
-    },
+    findNodeById: (id: string) => findNodeById(files, id),
     findNodeByPath: (path: string | null) => {
       if (!path) return null;
       return findNodeByPath(files, path);

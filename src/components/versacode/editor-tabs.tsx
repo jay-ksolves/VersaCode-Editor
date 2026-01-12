@@ -24,7 +24,6 @@ interface EditorTabsProps {
   onCloseOtherTabs: (id: string) => void;
   onReorderTabs: (reorderedIds: string[]) => void;
   findNodeById: (id: string) => FileSystemNode | null;
-  dirtyFileIds: Set<string>;
   onNewUntitled: () => void;
 }
 
@@ -37,7 +36,6 @@ export function EditorTabs({
   onCloseOtherTabs,
   onReorderTabs,
   findNodeById,
-  dirtyFileIds,
   onNewUntitled,
 }: EditorTabsProps) {
   const dragTabId = useRef<string | null>(null);
@@ -86,7 +84,6 @@ export function EditorTabs({
           if (!file || file.type !== 'file') return null;
 
           const isActive = id === activeFileId;
-          const isDirty = dirtyFileIds.has(id);
 
           return (
             <DropdownMenu key={id}>
@@ -115,12 +112,7 @@ export function EditorTabs({
                     onClick={(e) => handleClose(e, id)}
                     title={`Close ${file.name}`}
                   >
-                    {isDirty ? (
-                      <div className="group-hover:hidden w-2 h-2 rounded-full bg-foreground/50" />
-                    ) : (
-                      <div className="w-4 h-4 opacity-0 group-hover:opacity-100" />
-                    )}
-                    <X className="h-4 w-4 hidden group-hover:block" />
+                    <X className="h-4 w-4 opacity-0 group-hover:opacity-100" />
                   </div>
                 </div>
               </DropdownMenuTrigger>

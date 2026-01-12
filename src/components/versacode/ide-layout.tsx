@@ -23,12 +23,14 @@ import { ActivityBar, type ActivePanel } from "./activity-bar";
 import { StatusBar } from "./status-bar";
 import { CommandPalette } from "./command-palette";
 import { AiAssistantPanel } from "./ai-assistant-panel";
+import JSZip from 'jszip';
 
 export type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
 
 const defaultEditorSettings = {
   minimap: true,
   fontSize: 14,
+  autoSave: true,
 };
 
 function createNewTerminalSession(): TerminalSession {
@@ -64,7 +66,6 @@ function IdeLayoutContent() {
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
   const [isFormatting, setIsFormatting] = useState<boolean>(false);
   const [editorSettings, setEditorSettings] = useState(defaultEditorSettings);
-  const [dirtyFiles, setDirtyFiles] = useState<Set<string>>(new Set());
   const [bottomPanelSize, setBottomPanelSize] = useState(25);
   const [isBottomPanelOpen, setIsBottomPanelOpen] = useState(true);
   const [terminalSessions, setTerminalSessions] = useState<TerminalSession[]>([]);
@@ -102,7 +103,7 @@ function IdeLayoutContent() {
     findNodeByPath,
     searchFiles,
     refreshFileSystem,
-  } = useFileSystem();
+  } = useFileSystem({ autoSave: editorSettings.autoSave });
 
   useHotkeys('ctrl+n, cmd+n', (e) => {
     e.preventDefault();
@@ -111,7 +112,7 @@ function IdeLayoutContent() {
   
   useHotkeys('ctrl+s, cmd+s', (e) => {
     e.preventDefault();
-    toast({ title: "Save (Placeholder)", description: "Save functionality is not yet implemented."});
+    toast({ title: "Auto-Save Enabled", description: "Your changes are saved automatically."});
   }, []);
 
   useHotkeys('ctrl+alt+f, cmd+alt+f', (e) => {
@@ -160,7 +161,7 @@ function IdeLayoutContent() {
 
     openFilesSet.forEach(fileId => {
       if (!modelsRef.current.has(fileId)) {
-        const file = findNodeById(fileId, true);
+        const file = findNodeById(fileId, false);
         if (file?.type === 'file') {
           const model = monaco.editor.createModel(
             file.content,
@@ -170,19 +171,7 @@ function IdeLayoutContent() {
           
           const disposable = model.onDidChangeContent(() => {
             const currentContent = model.getValue();
-            const originalContent = findNodeById(fileId, true)?.content;
-            
-            updateFileContent(fileId, currentContent, true);
-            
-            setDirtyFiles(prev => {
-              const newDirty = new Set(prev);
-              if (currentContent !== originalContent) {
-                newDirty.add(fileId);
-              } else {
-                newDirty.delete(fileId);
-              }
-              return newDirty;
-            });
+            updateFileContent(fileId, currentContent);
           });
           
           disposables.set(fileId, disposable);
@@ -196,11 +185,6 @@ function IdeLayoutContent() {
         disposables.get(fileId)?.dispose();
         model.dispose();
         modelsRef.current.delete(fileId);
-        setDirtyFiles(prev => {
-          const newDirty = new Set(prev);
-          newDirty.delete(fileId);
-          return newDirty;
-        });
       }
     });
 
@@ -389,7 +373,7 @@ function IdeLayoutContent() {
       const newId = handleNewTerminal();
       setActiveTerminalId(newId);
     }
-  }, []);
+  }, [handleNewTerminal, terminalSessions.length]);
 
   const handleToggleTerminal = () => {
     setIsBottomPanelOpen(prev => !prev);
@@ -434,28 +418,16 @@ function IdeLayoutContent() {
     }
   }
 
-  const confirmClose = (fileIds: string[]): boolean => {
-    const dirtyToClose = fileIds.filter(id => dirtyFiles.has(id));
-    if (dirtyToClose.length === 0) return true;
-    
-    const fileNames = dirtyToClose.map(id => findNodeById(id)?.name).filter(Boolean).join(', ');
-    return window.confirm(`You have unsaved changes in: ${fileNames}. Are you sure you want to close?`);
-  }
-
   const handleCloseTab = (fileId: string) => {
-    if (!confirmClose([fileId])) return;
     closeFileFromHook(fileId);
   }
 
   const handleCloseAllTabs = () => {
-    if (!confirmClose(openFileIds)) return;
     setOpenFileIds([]);
     setActiveFileId(null);
   };
 
   const handleCloseOtherTabs = (fileId: string) => {
-    const otherFileIds = openFileIds.filter(id => id !== fileId);
-    if (!confirmClose(otherFileIds)) return;
     setOpenFileIds([fileId]);
   };
   
@@ -479,6 +451,41 @@ function IdeLayoutContent() {
             break;
       }
   };
+  
+  const handleDownloadZip = useCallback(async () => {
+    toast({ title: 'Zipping project...', description: 'Please wait while we prepare your download.' });
+    const zip = new JSZip();
+
+    function addFilesToZip(zipFolder: JSZip, nodes: FileSystemNode[]) {
+      for (const node of nodes) {
+        if (node.type === 'file') {
+          zipFolder.file(node.name, node.content);
+        } else if (node.type === 'folder') {
+          const newFolder = zipFolder.folder(node.name);
+          if (newFolder) {
+            addFilesToZip(newFolder, node.children);
+          }
+        }
+      }
+    }
+
+    addFilesToZip(zip, files);
+
+    try {
+      const content = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = 'versacode-project.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+      toast({ title: 'Download Started', description: 'Your project zip file is downloading.' });
+    } catch (error) {
+      console.error('Failed to create zip file', error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not create the zip file.' });
+    }
+  }, [files, toast]);
 
   const renderPanel = () => {
     switch (activePanel) {
@@ -541,6 +548,7 @@ function IdeLayoutContent() {
             onToggleTerminal={handleToggleTerminal}
             logOutput={logToOutput}
             onCommandPalette={() => setIsCommandPaletteOpen(true)}
+            onDownloadZip={handleDownloadZip}
           />
           <main className="flex-1 flex overflow-hidden">
             <ResizablePanelGroup direction="horizontal">
@@ -564,7 +572,6 @@ function IdeLayoutContent() {
                             onCloseOtherTabs={handleCloseOtherTabs}
                             onReorderTabs={setOpenFileIds}
                             findNodeById={findNodeById}
-                            dirtyFileIds={dirtyFiles}
                             onNewUntitled={handleNewUntitledFile}
                         />
                         <Breadcrumbs

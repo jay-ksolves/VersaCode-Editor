@@ -27,6 +27,7 @@ interface HeaderProps {
   onToggleTerminal: () => void;
   logOutput: (message: string) => void;
   onCommandPalette: () => void;
+  onDownloadZip: () => void;
 }
 
 export function Header({
@@ -43,6 +44,7 @@ export function Header({
   onToggleTerminal,
   logOutput,
   onCommandPalette,
+  onDownloadZip,
 }: HeaderProps) {
   
   const handleRun = () => {
@@ -81,10 +83,7 @@ export function Header({
                 Open Folder...
               </MenubarItem>
               <MenubarSeparator />
-              <MenubarItem disabled>
-                Save <MenubarShortcut>Ctrl+S</MenubarShortcut>
-              </MenubarItem>
-              <MenubarItem disabled>Save As...</MenubarItem>
+              <MenubarItem onClick={onDownloadZip}>Download Project (.zip)</MenubarItem>
               <MenubarSeparator />
               <MenubarItem disabled>Close Editor</MenubarItem>
             </MenubarContent>
