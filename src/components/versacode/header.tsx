@@ -10,7 +10,7 @@ import {
   MenubarCheckboxItem,
 } from "@/components/ui/menubar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Play, Sparkles, LoaderCircle, Code } from "lucide-react";
+import { Play, Sparkles, LoaderCircle } from "lucide-react";
 
 interface HeaderProps {
   onRun: () => void;
@@ -34,10 +34,6 @@ export function Header({
   return (
     <header className="flex items-center justify-between h-16 px-4 border-b bg-card">
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <Code className="h-7 w-7 text-primary" />
-          <h1 className="text-xl font-bold tracking-tight">VersaCode</h1>
-        </div>
         <Menubar className="border-none bg-transparent">
           <MenubarMenu>
             <MenubarTrigger>File</MenubarTrigger>

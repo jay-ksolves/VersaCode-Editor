@@ -17,18 +17,12 @@ interface Problem {
 
 interface TerminalProps {
   output: string[];
+  problems: Problem[];
   onClear: () => void;
   onGoToProblem: (problem: Problem) => void;
 }
 
-const problems: Problem[] = [
-  { severity: "error", message: "Property 'lenght' does not exist on type 'string[]'. Did you mean 'length'?", file: "src/app.tsx", line: 2 },
-  { severity: "warning", message: "'Button' is declared but its value is never read.", file: "src/styles.css", line: 1 },
-  { severity: "error", message: "Cannot find name 'React'.", file: "package.json", line: 1 },
-];
-
-
-export function Terminal({ output, onClear, onGoToProblem }: TerminalProps) {
+export function Terminal({ output, problems, onClear, onGoToProblem }: TerminalProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -89,6 +83,7 @@ export function Terminal({ output, onClear, onGoToProblem }: TerminalProps) {
                   <div>
                     <p className="text-foreground">{problem.message}</p>
                     <p className="text-muted-foreground">{problem.file} (line {problem.line})</p>
+
                   </div>
                 </div>
               ))}

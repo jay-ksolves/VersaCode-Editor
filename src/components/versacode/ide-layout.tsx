@@ -22,6 +22,13 @@ import { Breadcrumbs } from "./breadcrumbs";
 type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "none";
 type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
 
+const mockProblems: Problem[] = [
+  { severity: "error", message: "Property 'lenght' does not exist on type 'string[]'. Did you mean 'length'?", file: "src/app.tsx", line: 2 },
+  { severity: "warning", message: "'Button' is declared but its value is never read.", file: "src/styles.css", line: 1 },
+  { severity: "error", message: "Cannot find name 'React'.", file: "package.json", line: 1 },
+];
+
+
 const defaultEditorSettings = {
   minimap: true,
   fontSize: 14,
@@ -124,16 +131,6 @@ function IdeLayoutContent() {
       if (!openFilesSet.has(fileId)) {
         model.dispose();
         modelsRef.current.delete(fileId);
-      }
-    });
-
-    // Also update paths for existing models in case of renames/moves
-    modelsRef.current.forEach((model, fileId) => {
-      const file = findNodeById(fileId);
-      if (file?.type === 'file' && model.uri.path !== `/${file.path}`) {
-          // A model's URI is immutable, but this is where you'd handle path changes if needed.
-          // For this app, since URI is mainly for language detection hints, we can ignore it.
-          // In a more complex app, you might dispose and recreate the model.
       }
     });
 
@@ -351,7 +348,7 @@ function IdeLayoutContent() {
                  )}
               </div>
               <div className="h-1/3 border-t border-border flex flex-col">
-                <Terminal output={terminalOutput} onClear={clearTerminal} onGoToProblem={handleGoToProblem} />
+                <Terminal output={terminalOutput} problems={mockProblems} onClear={clearTerminal} onGoToProblem={handleGoToProblem} />
               </div>
             </div>
           </main>

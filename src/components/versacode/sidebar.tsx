@@ -4,7 +4,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { FileCode, Puzzle, Settings, Sun, Moon, CheckSquare } from "lucide-react";
+import { FileCode, Puzzle, Settings, Code, CheckSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "none";
@@ -33,6 +33,11 @@ export function Sidebar({ activePanel, onSelectPanel }: SidebarProps) {
 
   return (
     <aside className="w-16 flex flex-col items-center py-4 gap-4 bg-card border-r">
+       <div className="flex flex-col items-center gap-2 mb-4">
+          <Code className="h-7 w-7 text-primary" />
+          <h1 className="text-xs font-bold tracking-tight">VersaCode</h1>
+        </div>
+
       <div className="flex-1 flex flex-col items-center gap-4">
         {navItems.map((item) => (
           <Tooltip key={item.id}>
