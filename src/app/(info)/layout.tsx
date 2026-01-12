@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Download, Github, Moon, Rss, Twitter, Youtube } from 'lucide-react';
 import Link from 'next/link';
@@ -40,20 +41,20 @@ export default function InfoLayout({
               </svg>
               <span className="text-lg font-semibold">VersaCode</span>
             </Link>
-            <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-              <Link href="/docs" className="hover:text-primary">
+            <nav className="hidden items-center gap-6 text-sm md:flex">
+              <Link href="/docs" className="text-muted-foreground transition-colors hover:text-foreground">
                 Docs
               </Link>
-              <Link href="/updates" className="hover:text-primary">
+              <Link href="/updates" className="text-muted-foreground transition-colors hover:text-foreground">
                 Updates
               </Link>
-              <Link href="/blog" className="hover:text-primary">
+              <Link href="/blog" className="text-muted-foreground transition-colors hover:text-foreground">
                 Blog
               </Link>
-              <Link href="/api" className="hover:text-primary">
+              <Link href="/api" className="text-muted-foreground transition-colors hover:text-foreground">
                 API
               </Link>
-              <Link href="/extensions" className="hover:text-primary">
+              <Link href="/extensions" className="text-muted-foreground transition-colors hover:text-foreground">
                 Extensions
               </Link>
             </nav>
@@ -62,10 +63,8 @@ export default function InfoLayout({
             <Button variant="ghost" size="icon">
               <Moon className="h-5 w-5" />
             </Button>
-            <Link href="/editor">
-              <Button>
-                <Download className="mr-2 h-4 w-4" /> Go to Editor
-              </Button>
+            <Link href="/editor" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+              Go to Editor
             </Link>
           </div>
         </div>
