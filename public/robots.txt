@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /editor
+
+Sitemap: https://versacode.dev/sitemap.xml

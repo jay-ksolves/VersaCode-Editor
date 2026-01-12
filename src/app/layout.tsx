@@ -6,6 +6,8 @@ import { Toaster } from '@/components/ui/toaster';
 import React from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeProvider } from '@/context/theme-context';
+import Script from 'next/script';
+
 
 export default function RootLayout({
   children,
@@ -28,12 +30,21 @@ export default function RootLayout({
       <head>
         <title>VersaCode - The AI-Native Web IDE</title>
         <meta name="description" content="A free, open-source, and AI-native web-based IDE for the modern developer. Built with Next.js and Monaco." />
+        {/* Google Site Verification - Replace with your own verification code */}
+        <meta name="google-site-verification" content="YOUR_GOOGLE_SITE_VERIFICATION_CODE" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
           rel="stylesheet"
+        />
+        {/* Google AdSense - Replace with your own client ID */}
+        <Script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_ADSENSE_CLIENT_ID"
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
         />
       </head>
       <body className="font-body antialiased h-full" suppressHydrationWarning>
