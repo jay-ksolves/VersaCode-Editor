@@ -2,32 +2,27 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Download, Github, Moon, Rss, Sun, Twitter, Youtube } from 'lucide-react';
+import { Github, Moon, Rss, Sun, Twitter, Youtube } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { IdeLayout } from '@/components/versacode/ide-layout';
+import { useTheme } from '@/context/theme-context';
 
 interface InfoLayoutProps {
   children: React.ReactNode;
-  theme: string;
-  setTheme: (theme: string) => void;
 }
 
-export default function InfoLayout({
-  children,
-  theme,
-  setTheme,
-}: InfoLayoutProps) {
+export default function InfoLayout({ children }: InfoLayoutProps) {
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
 
   if (pathname === '/editor') {
-    return <IdeLayout theme={theme} setTheme={setTheme} />;
+    return <IdeLayout />;
   }
   
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    localStorage.setItem('versacode-theme', newTheme);
   };
   
   return (

@@ -22,10 +22,11 @@ import { ActivityBar, type ActivePanel } from "./activity-bar";
 import { StatusBar } from "./status-bar";
 import { CommandPalette } from "./command-palette";
 import { AiAssistantPanel } from "./ai-assistant-panel";
-import JSZip from 'jszip';
 import { LoaderCircle } from "lucide-react";
 import { SourceControlPanel } from "./source-control-panel";
 import { RunDebugPanel } from "./run-debug-panel";
+import { useTheme } from "@/context/theme-context";
+import JSZip from "jszip";
 
 export type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
 
@@ -62,11 +63,10 @@ function createNewTerminalSession(): TerminalSession {
 }
 
 interface IdeLayoutProps {
-  theme: string;
-  setTheme: (theme: string) => void;
 }
 
-function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
+function IdeLayoutContent({}: IdeLayoutProps) {
+  const { theme, setTheme } = useTheme();
   const [activePanel, setActivePanel] = useState<ActivePanel>("files");
   const [output, setOutput] = useState<React.ReactNode[]>([]);
   const [problems, setProblems] = useState<Problem[]>([]);
@@ -85,14 +85,12 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
   const modelsRef = useRef<Map<string, monaco.editor.ITextModel>>(new Map());
   const mainPanelGroupRef = useRef<any>(null);
   const sidePanelGroupRef = useRef<any>(null);
-  const folderUploadRef = useRef<HTMLInputElement | null>(null);
 
 
   const { toast } = useToast();
 
   const {
     files,
-    setFiles,
     activeFile,
     activeFileId,
     setActiveFileId,
@@ -104,7 +102,6 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
     moveNode,
     getTargetFolder,
     expandedFolders,
-    setExpandedFolders,
     toggleFolder,
     openFile,
     openFileIds,
@@ -121,6 +118,7 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
     commitChanges,
     isLoaded,
     importFromLocal,
+    setExpandedFolders,
   } = useFileSystem();
 
   // Load and save UI state
@@ -435,7 +433,6 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
   const handleToggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    localStorage.setItem('versacode-theme', newTheme);
   };
 
 
@@ -617,15 +614,6 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
 
   return (
       <div className="flex h-screen bg-background text-foreground font-body">
-        <input 
-            type="file" 
-            ref={folderUploadRef}
-            onChange={() => {}}
-            className="hidden"
-            // @ts-ignore
-            webkitdirectory="true" 
-            directory="true"
-        />
         <CommandPalette open={isCommandPaletteOpen} onOpenChange={setIsCommandPaletteOpen} onCommand={handleCommand} />
         <ActivityBar activePanel={activePanel} onSelectPanel={setActivePanel} />
         <div className="flex flex-1 flex-col overflow-hidden">
