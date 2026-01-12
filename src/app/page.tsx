@@ -13,7 +13,7 @@ import Link from 'next/link';
 
 export default function HomePage() {
   return (
-    <div className="bg-background text-foreground">
+    <div className="bg-background text-foreground flex flex-col min-h-screen">
       <header className="border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-8">
@@ -64,7 +64,7 @@ export default function HomePage() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon">
+             <Button variant="ghost" size="icon" title="Toggle Theme (coming soon)">
               <Moon className="h-5 w-5" />
             </Button>
             <Link href="/editor" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
@@ -74,108 +74,110 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-16 text-center">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-4">
-            <Link
-              href="/updates"
-              className="inline-block rounded-full bg-secondary px-4 py-1 text-sm text-secondary-foreground"
-            >
-              Version 1.0 is now available!
-            </Link>
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
-            VersaCode
-          </h1>
-          <p className="mt-6 text-lg text-muted-foreground md:text-xl">
-            Free and built on open source. An AI-native, web-based IDE for the modern developer.
-          </p>
+      <main className="flex-1">
+        <div className="container mx-auto px-4 py-16 text-center">
+          <div className="mx-auto max-w-4xl">
+            <div className="mb-4">
+              <Link
+                href="/updates"
+                className="inline-block rounded-full bg-secondary px-4 py-1 text-sm text-secondary-foreground"
+              >
+                Version 1.0 is now available!
+              </Link>
+            </div>
+            <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
+              VersaCode
+            </h1>
+            <p className="mt-6 text-lg text-muted-foreground md:text-xl">
+              Free and built on open source. An AI-native, web-based IDE for the modern developer.
+            </p>
 
-          <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button size="lg" className="w-full sm:w-auto">
-              <Download className="mr-2 h-5 w-5" />
-              Download for Windows
-              <span className="ml-2 text-xs text-primary-foreground/50">
-                Stable Build
-              </span>
-            </Button>
-            <Button variant="ghost" size="icon">
-              <ChevronDown />
-            </Button>
-          </div>
+            <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Button size="lg" className="w-full sm:w-auto">
+                <Download className="mr-2 h-5 w-5" />
+                Download for Windows
+                <span className="ml-2 text-xs text-primary-foreground/50">
+                  Stable Build
+                </span>
+              </Button>
+              <Button variant="ghost" size="icon" title="More download options">
+                <ChevronDown />
+              </Button>
+            </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-3">
-            <div className="rounded-lg bg-card p-4 text-left">
-              <h3 className="font-semibold">Windows</h3>
-              <p className="text-sm text-muted-foreground">Windows 10, 11</p>
-              <div className="mt-4 flex flex-wrap gap-2 text-sm">
-                <Link href="#" className="text-primary hover:underline">
-                  User Installer
-                </Link>
-                <Link href="#" className="text-primary hover:underline">
-                  System Installer
-                </Link>
-                <Link href="#" className="text-primary hover:underline">
-                  .zip
-                </Link>
-                <Link href="#" className="text-primary hover:underline">
-                  CLI
-                </Link>
+            <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-3">
+              <div className="rounded-lg bg-card p-4 text-left">
+                <h3 className="font-semibold">Windows</h3>
+                <p className="text-sm text-muted-foreground">Windows 10, 11</p>
+                <div className="mt-4 flex flex-wrap gap-2 text-sm">
+                  <Link href="#" className="text-primary hover:underline">
+                    User Installer
+                  </Link>
+                  <Link href="#" className="text-primary hover:underline">
+                    System Installer
+                  </Link>
+                  <Link href="#" className="text-primary hover:underline">
+                    .zip
+                  </Link>
+                  <Link href="#" className="text-primary hover:underline">
+                    CLI
+                  </Link>
+                </div>
+              </div>
+              <div className="rounded-lg bg-card p-4 text-left">
+                <h3 className="font-semibold">Linux</h3>
+                <p className="text-sm text-muted-foreground">Debian, Ubuntu, Red Hat, Fedora, SUSE</p>
+                <div className="mt-4 flex flex-wrap gap-2 text-sm">
+                  <Link href="#" className="text-primary hover:underline">
+                    .deb
+                  </Link>
+                  <Link href="#" className="text-primary hover:underline">
+                    .rpm
+                  </Link>
+                  <Link href="#" className="text-primary hover:underline">
+                    .tar.gz
+                  </Link>
+                  <Link href="#" className="text-primary hover:underline">
+                    Snap Store
+                  </Link>
+                  <Link href="#" className="text-primary hover:underline">
+                    CLI
+                  </Link>
+                </div>
+              </div>
+              <div className="rounded-lg bg-card p-4 text-left">
+                <h3 className="font-semibold">Mac</h3>
+                <p className="text-sm text-muted-foreground">macOS 11.0+</p>
+                <div className="mt-4 flex flex-wrap gap-2 text-sm">
+                  <Link href="#" className="text-primary hover:underline">
+                    Intel chip
+                  </Link>
+                  <Link href="#" className="text-primary hover:underline">
+                    Apple silicon
+                  </Link>
+                  <Link href="#" className="text-primary hover:underline">
+                    Universal
+                  </Link>
+                  <Link href="#" className="text-primary hover:underline">
+                    CLI
+                  </Link>
+                </div>
               </div>
             </div>
-            <div className="rounded-lg bg-card p-4 text-left">
-              <h3 className="font-semibold">Linux</h3>
-              <p className="text-sm text-muted-foreground">Debian, Ubuntu, Red Hat, Fedora, SUSE</p>
-              <div className="mt-4 flex flex-wrap gap-2 text-sm">
-                <Link href="#" className="text-primary hover:underline">
-                  .deb
-                </Link>
-                <Link href="#" className="text-primary hover:underline">
-                  .rpm
-                </Link>
-                <Link href="#" className="text-primary hover:underline">
-                  .tar.gz
-                </Link>
-                <Link href="#" className="text-primary hover:underline">
-                  Snap Store
-                </Link>
-                 <Link href="#" className="text-primary hover:underline">
-                  CLI
-                </Link>
-              </div>
-            </div>
-            <div className="rounded-lg bg-card p-4 text-left">
-              <h3 className="font-semibold">Mac</h3>
-              <p className="text-sm text-muted-foreground">macOS 11.0+</p>
-               <div className="mt-4 flex flex-wrap gap-2 text-sm">
-                <Link href="#" className="text-primary hover:underline">
-                  Intel chip
-                </Link>
-                <Link href="#" className="text-primary hover:underline">
-                  Apple silicon
-                </Link>
-                 <Link href="#" className="text-primary hover:underline">
-                  Universal
-                </Link>
-                <Link href="#" className="text-primary hover:underline">
-                  CLI
-                </Link>
-              </div>
-            </div>
+            <p className="mt-8 text-xs text-muted-foreground">
+              By using VersaCode, you agree to the license terms and privacy statement.
+            </p>
           </div>
-           <p className="mt-8 text-xs text-muted-foreground">
-            By using VersaCode, you agree to the license terms and privacy statement.
-          </p>
         </div>
       </main>
       
       <footer className="border-t">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-8 text-sm md:flex-row">
             <div className="flex items-center gap-4 text-muted-foreground">
-                <a href="#" className="hover:text-foreground"><Github className="h-5 w-5" /></a>
-                <a href="#" className="hover:text-foreground"><Twitter className="h-5 w-5" /></a>
-                <a href="#" className="hover:text-foreground"><Youtube className="h-5 w-5" /></a>
-                <a href="#" className="hover:text-foreground"><Rss className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-foreground" title="GitHub"><Github className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-foreground" title="Twitter"><Twitter className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-foreground" title="YouTube"><Youtube className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-foreground" title="RSS Feed"><Rss className="h-5 w-5" /></a>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-4">
                 <Link href="#" className="hover:text-primary">Support</Link>

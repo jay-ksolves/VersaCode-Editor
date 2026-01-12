@@ -25,15 +25,18 @@ This document tracks the implementation status of core IDE features. All feature
 - [x] Empty state for file explorer
 - [x] Drag-and-drop files and folders
 - [x] Folder icons change on expand/collapse
+- [x] File-specific icons based on extension
 
 ## Search Panel (`search`)
 
 - [x] UI for global search
-- [ ] Implement search logic
+- [ ] Implement search logic (deferred for future release)
 
 ## Code Editor
 
 - [x] Monaco Editor integration with stable model management
+- [x] Multi-tab support with advanced context menus (Close, Close All, etc.)
+- [x] Scrollable editor tabs
 - [x] AI Code Suggestion (`Ctrl+Space` or button click)
 - [x] Displays content of selected file
 - [x] Syntax Highlighting
@@ -42,30 +45,27 @@ This document tracks the implementation status of core IDE features. All feature
 - [x] Show/Hide Minimap setting
 - [x] Code Formatting (via AI)
 - [x] AI Code Generation from Prompt
+- [x] z-index fix for editor suggestion pop-ups
 
 ## Terminal / Output Panel
 
-- [x] Basic Terminal UI with Tabs
-- [x] Mock Code Execution Output
-- [x] "Problems" tab with dynamic data
+- [x] Functional Terminal UI with Tabs
+- [x] Client-side JavaScript code execution
+- [x] "Problems" tab with dynamic data from editor diagnostics
+- [x] "Output" tab for logging IDE actions
 - [x] Clear terminal output
 - [x] Link problems to lines in the code editor
 - [x] Close/hide bottom panel
-- [ ] Implement actual code execution environment (e.g., using WebContainers)
+- [x] Multi-terminal support with tabs
 
 ## Extensions Panel (`extensions`)
 
 - [x] Mock list of installed extensions
-- [ ] Connect to an extension marketplace
-- [ ] Install / Uninstall extensions
+- [ ] Connect to an extension marketplace (deferred for future release)
+- [ ] Install / Uninstall extensions (deferred for future release)
 
 ## Settings Panel (`settings`)
 
-- [x] Mock UI for theme and editor settings
+- [x] UI for theme and editor settings
 - [x] Implement setting logic (font size, minimap)
 - [x] Reset settings to default
-
-## Tasks Panel (`tasks`)
-
-- [x] Initial UI with mock feature/bug lists
-- [x] Link tasks to progress/bug tracker docs

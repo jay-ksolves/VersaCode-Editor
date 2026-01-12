@@ -9,7 +9,7 @@ export default function InfoLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-background text-foreground">
+    <div className="bg-background text-foreground flex flex-col min-h-screen">
       <header className="border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-8">
@@ -60,7 +60,7 @@ export default function InfoLayout({
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" title="Toggle Theme (coming soon)">
               <Moon className="h-5 w-5" />
             </Button>
             <Link href="/editor" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
@@ -69,14 +69,14 @@ export default function InfoLayout({
           </div>
         </div>
       </header>
-      <main className="container mx-auto px-4 py-16">{children}</main>
+      <main className="container mx-auto px-4 py-16 flex-1">{children}</main>
       <footer className="border-t">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-8 text-sm md:flex-row">
           <div className="flex items-center gap-4 text-muted-foreground">
-            <a href="#" className="hover:text-foreground"><Github className="h-5 w-5" /></a>
-            <a href="#" className="hover:text-foreground"><Twitter className="h-5 w-5" /></a>
-            <a href="#" className="hover:text-foreground"><Youtube className="h-5 w-5" /></a>
-            <a href="#" className="hover:text-foreground"><Rss className="h-5 w-5" /></a>
+            <a href="#" className="hover:text-foreground" title="GitHub"><Github className="h-5 w-5" /></a>
+            <a href="#" className="hover:text-foreground" title="Twitter"><Twitter className="h-5 w-5" /></a>
+            <a href="#" className="hover:text-foreground" title="YouTube"><Youtube className="h-5 w-5" /></a>
+            <a href="#" className="hover:text-foreground" title="RSS Feed"><Rss className="h-5 w-5" /></a>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link href="#" className="hover:text-primary">

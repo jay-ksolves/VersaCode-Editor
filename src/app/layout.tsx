@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'VersaCode',
-  description: 'A customizable code editor for any environment.',
+  title: 'VersaCode - The AI-Native Web IDE',
+  description: 'A free, open-source, and AI-native web-based IDE for the modern developer. Built with Next.js and Monaco.',
 };
 
 export default function RootLayout({
