@@ -13,8 +13,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import Script from 'next/script';
+import JSZip from 'jszip';
+import { useToast } from '@/hooks/use-toast';
+import { useFileSystem } from '@/hooks/useFileSystem';
 
 declare global {
     interface Window {
@@ -25,6 +28,8 @@ declare global {
 export default function HomePage({ theme }: { theme: string }) {
   const [vantaEffect, setVantaEffect] = useState<any>(null);
   const vantaRef = useRef(null);
+  const { toast } = useToast();
+  const { files } = useFileSystem({ autoSave: false }); // We don't need autoSave here
 
   useEffect(() => {
     let effect: any;
@@ -49,7 +54,46 @@ export default function HomePage({ theme }: { theme: string }) {
     return () => {
       if (effect) effect.destroy();
     };
-  }, [theme, vantaEffect]);
+  }, [theme]); // Removed vantaEffect from dependencies to prevent re-triggering
+
+    const handleDownloadZip = useCallback(async () => {
+    if (files.length === 0) {
+        toast({ variant: 'destructive', title: 'Empty Project', description: 'There are no files to download.' });
+        return;
+    }
+    toast({ title: 'Zipping project...', description: 'Please wait while we prepare your download.' });
+    const zip = new JSZip();
+
+    function addFilesToZip(zipFolder: JSZip, nodes: any[]) {
+      for (const node of nodes) {
+        if (node.type === 'file') {
+          zipFolder.file(node.name, node.content);
+        } else if (node.type === 'folder') {
+          const newFolder = zipFolder.folder(node.name);
+          if (newFolder) {
+            addFilesToZip(newFolder, node.children);
+          }
+        }
+      }
+    }
+
+    addFilesToZip(zip, files);
+
+    try {
+      const content = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = 'versacode-project.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+      toast({ title: 'Download Started', description: 'Your project zip file is downloading.' });
+    } catch (error) {
+      console.error('Failed to create zip file', error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not create the zip file.' });
+    }
+  }, [files, toast]);
   
   return (
     <>
@@ -81,21 +125,10 @@ export default function HomePage({ theme }: { theme: string }) {
                   Launch Editor
                 </Link>
               </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                    <Download className="mr-2 h-5 w-5" />
-                    Download
-                    <ChevronDown className="ml-2 h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                  <DropdownMenuItem>Windows</DropdownMenuItem>
-                  <DropdownMenuItem>macOS (Intel)</DropdownMenuItem>
-                  <DropdownMenuItem>macOS (Apple Silicon)</DropdownMenuItem>
-                  <DropdownMenuItem>Linux (deb)</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button variant="outline" size="lg" className="w-full sm:w-auto" onClick={handleDownloadZip}>
+                <Download className="mr-2 h-5 w-5" />
+                Download Project
+              </Button>
             </div>
           </div>
         </div>

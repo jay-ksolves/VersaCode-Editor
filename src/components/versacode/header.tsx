@@ -144,7 +144,6 @@ export function Header({
                     Dark Mode
                 </MenubarCheckboxItem>
                 <MenubarSeparator />
-                <MenubarItem disabled>Explorer</MenubarItem>
                 <MenubarItem onClick={onToggleTerminal}>Terminal</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
@@ -152,21 +151,20 @@ export function Header({
             <MenubarTrigger>Run</MenubarTrigger>
             <MenubarContent>
               <MenubarItem onClick={handleRun}>Run Code</MenubarItem>
-              <MenubarItem disabled>Run With Debugger</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
           <MenubarMenu>
             <MenubarTrigger>Terminal</MenubarTrigger>
             <MenubarContent>
               <MenubarItem onClick={onNewTerminal}>New Terminal</MenubarItem>
-              <MenubarItem disabled>Split Terminal</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
           <MenubarMenu>
             <MenubarTrigger>Help</MenubarTrigger>
             <MenubarContent>
-              <MenubarItem disabled>Welcome</MenubarItem>
-              <MenubarItem disabled>Documentation</MenubarItem>
+               <MenubarItem onClick={() => window.open('https://github.com/FirebaseExtended/firebase-studio', '_blank')}>
+                Source Code
+              </MenubarItem>
             </MenubarContent>
           </MenubarMenu>
         </Menubar>

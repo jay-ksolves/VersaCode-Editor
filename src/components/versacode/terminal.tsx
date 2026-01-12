@@ -55,9 +55,13 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
 
         let resultNode: React.ReactNode;
         try {
-            // Use a safer eval
-            const result = new Function(`return ${command}`)();
-            resultNode = <div className="text-muted-foreground whitespace-pre-wrap">{`<- ${JSON.stringify(result, null, 2)}`}</div>;
+            // A slightly safer way to evaluate JS
+            const result = new Function(`return (function() { try { return ${command}; } catch(e) { return e; } })()`)();
+            if (result instanceof Error) {
+                 resultNode = <div className="text-destructive whitespace-pre-wrap">{result.toString()}</div>;
+            } else {
+                 resultNode = <div className="text-muted-foreground whitespace-pre-wrap">{`<- ${JSON.stringify(result, null, 2)}`}</div>;
+            }
         } catch (error: any) {
             resultNode = <div className="text-destructive whitespace-pre-wrap">{error.toString()}</div>;
         }
@@ -115,10 +119,13 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
             }
         } else if (e.key === 'ArrowDown') {
             e.preventDefault();
-            if (historyIndex >= 0) {
+            if (historyIndex > 0) {
                 const newIndex = historyIndex - 1;
                 setHistoryIndex(newIndex);
-                inputElement.textContent = newIndex >= 0 ? history[newIndex] || '' : '';
+                inputElement.textContent = history[newIndex] || '';
+            } else {
+                setHistoryIndex(-1);
+                inputElement.textContent = '';
             }
         }
     };
@@ -139,7 +146,10 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
 
     // This effect runs only once to set up the initial terminal state
     useEffect(() => {
-        if (session.output.length <= 1) { // Only if not already populated
+        // Find if there's an editable span already
+        const hasEditable = session.output.some(node => (React.isValidElement(node)) && node.props?.children?.props?.contentEditable);
+
+        if (!hasEditable) {
              const welcomeMessage = (
                 <div className="whitespace-pre-wrap">
                     Welcome to the VersaCode client-side terminal! You can run JavaScript code here.
@@ -304,5 +314,3 @@ export function Terminal({
     </Tabs>
   );
 }
-
-    
