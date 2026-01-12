@@ -87,7 +87,9 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
         </div>
       </header>
       <main className="container mx-auto flex-1 px-4 py-8">
-        {children}
+        <div className="max-w-4xl mx-auto">
+          {children}
+        </div>
       </main>
       <footer className="border-t">
         <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 py-12">
