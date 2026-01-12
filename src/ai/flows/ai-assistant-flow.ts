@@ -11,6 +11,7 @@
 
 import { genkit, z } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
+import { ai } from '@/ai/genkit';
 
 const AiAssistantInputSchema = z.object({
   prompt: z.string().describe('The user\'s request or question.'),
@@ -28,10 +29,10 @@ export async function runAiAssistant(input: AiAssistantInput): Promise<AiAssista
   return aiAssistantFlow(input);
 }
 
-const prompt = genkit.definePrompt({
+const prompt = ai.definePrompt({
   name: 'aiAssistantPrompt',
-  inputSchema: AiAssistantInputSchema,
-  outputSchema: AiAssistantOutputSchema,
+  input: { schema: AiAssistantInputSchema },
+  output: { schema: AiAssistantOutputSchema },
   prompt: `You are an expert AI pair programmer. Your purpose is to help users with their coding tasks.
   
   You will be given a prompt from a user. You may also be given a context of one or more files from the user's project.
@@ -55,7 +56,7 @@ const prompt = genkit.definePrompt({
   `,
 });
 
-const aiAssistantFlow = genkit.defineFlow(
+const aiAssistantFlow = ai.defineFlow(
   {
     name: 'aiAssistantFlow',
     inputSchema: AiAssistantInputSchema,
@@ -69,10 +70,13 @@ const aiAssistantFlow = genkit.defineFlow(
           apiKey: input.apiKey || process.env.GOOGLE_GENAI_API_KEY,
         }),
       ],
-      model: 'googleai/gemini-pro',
     });
 
-    const { output } = await userAi.run(prompt, input);
-    return output!;
+    const { output } = await userAi.generate({
+      model: 'googleai/gemini-pro',
+      prompt: (await prompt.render(input)).prompt,
+    });
+    
+    return output as AiAssistantOutput;
   }
 );
