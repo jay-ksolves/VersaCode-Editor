@@ -27,7 +27,6 @@ export function CodeEditor({
     fontFamily: "JetBrains Mono, monospace",
     scrollBeyondLastLine: false,
     minimap: { enabled: true },
-    readOnly: false,
     automaticLayout: true,
   };
 
