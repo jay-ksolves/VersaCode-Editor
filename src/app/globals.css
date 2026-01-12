@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -84,4 +85,62 @@
       from { transform: translateY(30px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
   }
+
+  .aurora-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background:
+      radial-gradient(ellipse 50% 50% at 20% 40%, hsl(210 40% 98% / 0.08), transparent),
+      radial-gradient(ellipse 50% 50% at 80% 60%, hsl(280 65% 60% / 0.08), transparent);
+    animation: aurora 10s ease-in-out infinite alternate;
+  }
+
+  @keyframes aurora {
+    from {
+      background-position: 0% 50%, 0% 50%;
+      opacity: 0.8;
+    }
+    to {
+      background-position: 100% 50%, 100% 50%;
+      opacity: 1;
+    }
+  }
+
+  .card-hover-effect {
+      position: relative;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .card-hover-effect::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: inherit;
+      background: radial-gradient(300px circle at var(--x) var(--y), hsl(var(--primary) / 0.1), transparent 40%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      z-index: 1;
+  }
+  .card-hover-effect:hover {
+      transform: translateY(-4px);
+  }
+  .card-hover-effect:hover::before {
+      opacity: 1;
+  }
 }
+
+@layer components {
+    .card-hover-effect {
+        --x: 50%;
+        --y: 50%;
+    }
+}
+
+    
