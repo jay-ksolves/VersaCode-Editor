@@ -66,6 +66,9 @@ function IdeLayoutContent() {
     openFile,
     openFileIds,
     closeFile: closeFileFromHook,
+    closeAllFiles,
+    closeOtherFiles,
+    closeToTheRight,
     findNodeById,
     findNodeByPath,
   } = useFileSystem();
@@ -382,14 +385,38 @@ function IdeLayoutContent() {
     }
   }
 
+  const confirmClose = (fileIds: string[]): boolean => {
+    const dirtyToClose = fileIds.filter(id => dirtyFiles.has(id));
+    if (dirtyToClose.length === 0) return true;
+    
+    const fileNames = dirtyToClose.map(id => findNodeById(id)?.name).filter(Boolean).join(', ');
+    return window.confirm(`You have unsaved changes in: ${fileNames}. Are you sure you want to close?`);
+  }
+
   const handleCloseTab = (fileId: string) => {
-    if (dirtyFiles.has(fileId)) {
-        if (!window.confirm("You have unsaved changes. Are you sure you want to close this file?")) {
-            return;
-        }
-    }
+    if (!confirmClose([fileId])) return;
     closeFileFromHook(fileId);
   }
+  
+  const handleCloseAllTabs = () => {
+    if (!confirmClose(openFileIds)) return;
+    closeAllFiles();
+  }
+
+  const handleCloseOtherTabs = (fileId: string) => {
+    const otherFileIds = openFileIds.filter(id => id !== fileId);
+    if (!confirmClose(otherFileIds)) return;
+    closeOtherFiles(fileId);
+  }
+  
+  const handleCloseToTheRight = (fileId: string) => {
+    const fileIndex = openFileIds.indexOf(fileId);
+    if (fileIndex === -1) return;
+    const filesToTheRight = openFileIds.slice(fileIndex + 1);
+    if (!confirmClose(filesToTheRight)) return;
+    closeToTheRight(fileId);
+  }
+
 
   const renderPanel = () => {
     switch (activePanel) {
@@ -457,6 +484,9 @@ function IdeLayoutContent() {
                             activeFileId={activeFileId}
                             onSelectTab={setActiveFileId}
                             onCloseTab={handleCloseTab}
+                            onCloseAllTabs={handleCloseAllTabs}
+                            onCloseOtherTabs={handleCloseOtherTabs}
+                            onCloseToTheRight={handleCloseToTheRight}
                             findNodeById={findNodeById}
                             dirtyFileIds={dirtyFiles}
                         />

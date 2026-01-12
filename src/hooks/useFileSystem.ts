@@ -348,6 +348,24 @@ export function useFileSystem() {
     });
   }, [activeFileId]);
 
+  const closeAllFiles = useCallback(() => {
+    setOpenFileIds([]);
+    setActiveFileId(null);
+  }, []);
+  
+  const closeOtherFiles = useCallback((fileId: string) => {
+    setOpenFileIds([fileId]);
+    setActiveFileId(fileId);
+  }, []);
+  
+  const closeToTheRight = useCallback((fileId: string) => {
+    setOpenFileIds(prev => {
+      const fileIndex = prev.indexOf(fileId);
+      if (fileIndex === -1) return prev;
+      return prev.slice(0, fileIndex + 1);
+    });
+  }, []);
+
   const deleteNode = useCallback((id: string) => {
     let nodeToDelete: FileSystemNode | null = null;
     setFiles(prevFiles => {
@@ -467,6 +485,9 @@ export function useFileSystem() {
     openFile,
     openFileIds,
     closeFile,
+    closeAllFiles,
+    closeOtherFiles,
+    closeToTheRight,
     findNodeById: (id: string, useOriginal = false) => {
       const source = useOriginal ? originalFiles : files;
       return findNodeByIdInOriginal(source, id);
