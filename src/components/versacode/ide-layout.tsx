@@ -124,6 +124,7 @@ function IdeLayoutContent({}: IdeLayoutProps) {
     isLoading,
     importFromLocal,
     resetAll,
+    readFileContent
   } = useFileSystem();
   
   const handleUpdateFileContent = useCallback((fileId: string, content: string) => {
@@ -655,7 +656,7 @@ function IdeLayoutContent({}: IdeLayoutProps) {
           onGoToResult={handleGoToSearchResult}
         />;
       case "ai-assistant":
-        return <AiAssistantPanel allFiles={files} />;
+        return <AiAssistantPanel allFiles={files} getFileContent={readFileContent} />;
       case 'source-control':
         return <SourceControlPanel 
           changedFiles={changedFiles}
@@ -847,5 +848,3 @@ export function IdeLayout(props: IdeLayoutProps) {
   
   return <IdeLayoutContent {...props} />;
 }
-
-    

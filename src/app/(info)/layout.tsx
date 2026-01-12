@@ -29,7 +29,6 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
   const [isThreeLoaded, setIsThreeLoaded] = useState(false);
 
   useEffect(() => {
-    // Ensure cleanup happens reliably
     const cleanup = () => {
       if (vantaEffectRef.current) {
         vantaEffectRef.current.destroy();
@@ -38,7 +37,7 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
     };
 
     if (isHomePage && isThreeLoaded && window.VANTA && vantaRef.current && vantaRef.current.clientHeight > 0) {
-      cleanup(); // Clean up previous instance before creating a new one
+      cleanup(); 
 
       const vantaColor = theme === 'dark' ? 0x15a07c : 0x15a07c;
       const bgColor = theme === 'dark' ? 0x1a1a2e : 0xf0f2f5;
@@ -59,7 +58,7 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
       cleanup();
     }
 
-    return cleanup; // This is the cleanup function for the effect
+    return cleanup;
   }, [theme, isThreeLoaded, isHomePage]);
 
   if (pathname === '/editor') {

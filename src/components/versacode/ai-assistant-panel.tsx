@@ -19,6 +19,7 @@ const API_KEY_STORAGE_KEY = 'versacode_google_api_key';
 
 interface AiAssistantPanelProps {
     allFiles: FileSystemNode[];
+    getFileContent: (fileId: string) => Promise<string>;
 }
 
 function FileContextSelector({ 
@@ -97,7 +98,7 @@ function FileContextSelector({
     );
 }
 
-export function AiAssistantPanel({ allFiles }: AiAssistantPanelProps) {
+export function AiAssistantPanel({ allFiles, getFileContent }: AiAssistantPanelProps) {
     const [apiKey, setApiKey] = useState('');
     const [prompt, setPrompt] = useState('');
     const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
@@ -133,17 +134,21 @@ export function AiAssistantPanel({ allFiles }: AiAssistantPanelProps) {
         });
     };
     
-    const getFileContent = useCallback((nodes: FileSystemNode[], ids: Set<string>): { path: string, content: string }[] => {
-        let results: { path: string, content: string }[] = [];
+    const buildContextString = useCallback(async (nodes: FileSystemNode[], ids: Set<string>): Promise<string> => {
+        let contextParts: string[] = [];
         for (const node of nodes) {
             if (node.type === 'file' && ids.has(node.id)) {
-                results.push({ path: node.path, content: node.content });
-            } else if (node.type === 'folder') {
-                results = results.concat(getFileContent(node.children, ids));
+                const content = await getFileContent(node.id);
+                contextParts.push(`// FILE: ${node.path}\n\n${content}`);
+            } else if (node.type === 'folder' && node.children) {
+                const childContext = await buildContextString(node.children, ids);
+                if (childContext) {
+                    contextParts.push(childContext);
+                }
             }
         }
-        return results;
-    }, []);
+        return contextParts.join('\n\n---\n\n');
+    }, [getFileContent]);
 
     const handleGenerate = async () => {
         if (!apiKey) {
@@ -158,8 +163,7 @@ export function AiAssistantPanel({ allFiles }: AiAssistantPanelProps) {
         setIsGenerating(true);
         setAiResponse('');
         try {
-            const fileContexts = getFileContent(allFiles, selectedFileIds);
-            const contextString = fileContexts.map(f => `// FILE: ${f.path}\n\n${f.content}`).join('\n\n---\n\n');
+            const contextString = await buildContextString(allFiles, selectedFileIds);
 
             const result = await runAiAssistant({
                 prompt,

@@ -25,11 +25,14 @@ export interface SearchResult {
     lineContent: string;
 }
 
-const OPEN_FILES_LOCAL_STORAGE_KEY = 'versacode_opfs_open_files';
-const ACTIVE_FILE_LOCAL_STORAGE_KEY = 'versacode_opfs_active_file';
-const STAGED_FILES_LOCAL_STORAGE_KEY = 'versacode_opfs_staged_files';
-const EXPANDED_FOLDERS_LOCAL_STORAGE_KEY = 'versacode_opfs_expanded_folders';
+const UI_STATE_FILE_PATH = '.versacode/state.json';
 
+interface UiState {
+    openFileIds: string[];
+    activeFileId: string | null;
+    stagedFiles: string[];
+    expandedFolders: string[];
+}
 
 export function useFileSystem() {
   const [files, setFiles] = useState<FileSystemNode[]>([]);
@@ -52,57 +55,50 @@ export function useFileSystem() {
       resetDirty,
       resetAll,
    } = useOPFS();
+
+  const saveUiState = useCallback(async () => {
+      try {
+        const state: UiState = {
+            openFileIds,
+            activeFileId,
+            stagedFiles: Array.from(stagedFiles),
+            expandedFolders: Array.from(expandedFolders),
+        };
+        await writeFile(UI_STATE_FILE_PATH, JSON.stringify(state, null, 2));
+      } catch (e) {
+          console.error("Failed to save UI state to OPFS", e);
+      }
+  }, [activeFileId, expandedFolders, openFileIds, stagedFiles, writeFile]);
+
+  const loadUiState = useCallback(async () => {
+    try {
+        const stateContent = await readFile(UI_STATE_FILE_PATH);
+        const state: UiState = JSON.parse(stateContent);
+        setOpenFileIds(state.openFileIds || []);
+        setActiveFileId(state.activeFileId || null);
+        setStagedFiles(new Set(state.stagedFiles || []));
+        setExpandedFolders(new Set(state.expandedFolders || []));
+    } catch (e) {
+        // State file doesn't exist or is invalid, which is fine on first load.
+    }
+  }, [readFile]);
   
   const loadFileSystem = useCallback(async () => {
     if (!isLoaded) return;
     const tree = await readDirectory('');
     setFiles(tree);
-
-     try {
-      const storedExpanded = localStorage.getItem(EXPANDED_FOLDERS_LOCAL_STORAGE_KEY);
-      const storedOpenFiles = localStorage.getItem(OPEN_FILES_LOCAL_STORAGE_KEY);
-      const storedActiveFile = localStorage.getItem(ACTIVE_FILE_LOCAL_STORAGE_KEY);
-      const storedStagedFiles = localStorage.getItem(STAGED_FILES_LOCAL_STORAGE_KEY);
-      
-      if (storedExpanded) setExpandedFolders(new Set(JSON.parse(storedExpanded)));
-      if (storedStagedFiles) setStagedFiles(new Set(JSON.parse(storedStagedFiles)));
-
-      if (storedOpenFiles) {
-        const parsedOpenFiles = JSON.parse(storedOpenFiles);
-        setOpenFileIds(parsedOpenFiles);
-
-        if (storedActiveFile && parsedOpenFiles.includes(storedActiveFile)) {
-            setActiveFileId(storedActiveFile);
-        } else if (parsedOpenFiles.length > 0) {
-            setActiveFileId(parsedOpenFiles[0]);
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load UI state from local storage", e);
-    }
-
-  }, [isLoaded, readDirectory]);
+    await loadUiState();
+  }, [isLoaded, readDirectory, loadUiState]);
 
   useEffect(() => {
     loadFileSystem();
   }, [loadFileSystem]);
 
-  const saveUIState = useCallback(() => {
-    localStorage.setItem(EXPANDED_FOLDERS_LOCAL_STORAGE_KEY, JSON.stringify(Array.from(expandedFolders)));
-    localStorage.setItem(OPEN_FILES_LOCAL_STORAGE_KEY, JSON.stringify(openFileIds));
-    localStorage.setItem(STAGED_FILES_LOCAL_STORAGE_KEY, JSON.stringify(Array.from(stagedFiles)));
-    if (activeFileId) {
-      localStorage.setItem(ACTIVE_FILE_LOCAL_STORAGE_KEY, activeFileId);
-    } else {
-      localStorage.removeItem(ACTIVE_FILE_LOCAL_STORAGE_KEY);
-    }
-  }, [expandedFolders, openFileIds, stagedFiles, activeFileId]);
-
   useEffect(() => {
     if(isLoaded) {
-      saveUIState();
+      saveUiState();
     }
-  }, [isLoaded, saveUIState]);
+  }, [isLoaded, saveUiState, openFileIds, activeFileId, stagedFiles, expandedFolders]);
   
   const findNodeById = useCallback((id: string, searchInside: boolean = true): FileSystemNode | null => {
     const find = (nodes: FileSystemNode[]): FileSystemNode | null => {
@@ -160,10 +156,19 @@ export function useFileSystem() {
 
 
   const activeFile = activeFileId ? findNodeById(activeFileId) : null;
+  
+  const readFileContent = useCallback(async (fileId: string): Promise<string> => {
+      const node = findNodeById(fileId);
+      if (node && node.type === 'file') {
+          return await readFile(node.path);
+      }
+      return '';
+  }, [findNodeById, readFile]);
+
 
   const updateFileContent = useCallback(async (id: string, content: string) => {
     const node = findNodeById(id);
-    if (node?.type === 'file' && node.content !== content) {
+    if (node?.type === 'file') {
         await writeFile(node.path, content);
         setFiles(prev => {
             const updateContent = (nodes: FileSystemNode[]): FileSystemNode[] => {
@@ -446,7 +451,6 @@ export function useFileSystem() {
     isLoading,
     importFromLocal: handleImportFromLocal,
     resetAll,
+    readFileContent,
   };
 }
-
-    
