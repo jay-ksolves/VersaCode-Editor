@@ -14,20 +14,24 @@ export const coreFeaturesExtension: VersaCodeExtension = {
     version: '1.0.0',
 
     activate: (context: ExtensionContext) => {
-        // Here we would register commands.
-        // For now, these are deeply integrated into the IdeLayout component.
-        // This serves as a placeholder for future refactoring where the command
-        // logic would be centralized and callable from here.
         console.log("Activating VersaCode Core Features...");
 
-        // Example of how a command would be registered:
-        // context.registerCommand('file.new', () => {
-        //   context.ide?.handleNewFile();
-        // });
-        //
-        // context.registerCommand('theme.toggle', () => {
-        //   context.ide?.handleToggleTheme();
-        // });
+        // In a real implementation, the callbacks would be more complex
+        // and would likely call methods on a more abstract `ide` API
+        // rather than being deeply coupled to the IdeLayout component.
+        // For now, these are placeholder implementations.
+        
+        context.registerCommand('file:new', () => {
+            // This command is handled by a ref in IdeLayout for now.
+            // In a more robust system, this would call an API like:
+            // context.ide.workspace.newFile();
+            console.log("file:new command executed via extension");
+        });
+        
+        context.registerCommand('theme:toggle', () => {
+             // This command is handled by a function in IdeLayout for now.
+             console.log("theme:toggle command executed via extension");
+        });
     },
 
     deactivate: () => {

@@ -27,6 +27,8 @@ import { SourceControlPanel } from "./source-control-panel";
 import { RunDebugPanel } from "./run-debug-panel";
 import { useTheme } from "@/context/theme-context";
 import JSZip from "jszip";
+import type { ExtensionContext } from "@/lib/extensions-api";
+import { extensions } from "@/lib/extensions";
 
 export type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
 
@@ -85,6 +87,7 @@ function IdeLayoutContent({}: IdeLayoutProps) {
   const modelsRef = useRef<Map<string, monaco.editor.ITextModel>>(new Map());
   const mainPanelGroupRef = useRef<any>(null);
   const sidePanelGroupRef = useRef<any>(null);
+  const commandRegistryRef = useRef<Map<string, () => void>>(new Map());
 
 
   const { toast } = useToast();
@@ -154,6 +157,38 @@ function IdeLayoutContent({}: IdeLayoutProps) {
   useEffect(() => {
     saveUiState();
   }, [saveUiState]);
+
+  // Activate extensions on mount
+  useEffect(() => {
+    const extensionContext: ExtensionContext = {
+      registerCommand: (commandId, callback) => {
+        console.log(`Registering command: ${commandId}`);
+        commandRegistryRef.current.set(commandId, callback);
+        return {
+          dispose: () => {
+            commandRegistryRef.current.delete(commandId);
+          }
+        };
+      },
+      ide: null, // This would be a more fleshed-out API object in a real scenario
+    };
+
+    const disposables: (() => void)[] = [];
+    extensions.forEach(extension => {
+      try {
+        extension.activate(extensionContext);
+        if (extension.deactivate) {
+          disposables.push(extension.deactivate);
+        }
+      } catch (error) {
+        console.error(`Failed to activate extension "${extension.id}":`, error);
+      }
+    });
+
+    return () => {
+      disposables.forEach(dispose => dispose());
+    };
+  }, []);
 
   // Hotkeys
   useHotkeys('ctrl+n, cmd+n', (e) => { e.preventDefault(); handleNewFile(); }, { preventDefault: true });
@@ -511,19 +546,19 @@ function IdeLayoutContent({}: IdeLayoutProps) {
   };
 
   const handleCommand = (commandId: string) => {
-      switch (commandId) {
-          case 'theme:toggle':
-              handleToggleTheme();
+      const commandCallback = commandRegistryRef.current.get(commandId);
+      if (commandCallback) {
+          commandCallback();
+      } else {
+        // Fallback for built-in editor actions
+        switch (commandId) {
+            case 'editor:format':
+                handleFormatCode();
+                break;
+            default:
+              handleTriggerEditorAction(commandId);
               break;
-          case 'file:new':
-              handleNewFile();
-              break;
-          case 'editor:format':
-              handleFormatCode();
-              break;
-          default:
-            handleTriggerEditorAction(commandId);
-            break;
+        }
       }
   };
   
@@ -781,5 +816,3 @@ export function IdeLayout(props: IdeLayoutProps) {
   
   return <IdeLayoutContent {...props} />;
 }
-
-    
