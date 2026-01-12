@@ -20,6 +20,8 @@ import { Breadcrumbs } from "./breadcrumbs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { SearchPanel } from "./search-panel";
 import { cn } from "@/lib/utils";
+import { formatCode } from "@/ai/flows/format-code";
+import { useHotkeys } from "react-hotkeys-hook";
 
 
 type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "search" | "none";
@@ -41,6 +43,7 @@ function IdeLayoutContent() {
   const [activePanel, setActivePanel] = useState<ActivePanel>("files");
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
+  const [isFormatting, setIsFormatting] = useState<boolean>(false);
   const [editorSettings, setEditorSettings] = useState(defaultEditorSettings);
   const [dirtyFiles, setDirtyFiles] = useState<Set<string>>(new Set());
   const [bottomPanelSize, setBottomPanelSize] = useState(33);
@@ -73,6 +76,21 @@ function IdeLayoutContent() {
     findNodeById,
     findNodeByPath,
   } = useFileSystem();
+
+  useHotkeys('ctrl+n, cmd+n', (e) => {
+    e.preventDefault();
+    handleNewFile();
+  }, [files]);
+  
+  useHotkeys('ctrl+s, cmd+s', (e) => {
+    e.preventDefault();
+    toast({ title: "Save (Placeholder)", description: "Save functionality is not yet implemented."});
+  }, []);
+
+  useHotkeys('ctrl+alt+f, cmd+alt+f', (e) => {
+    e.preventDefault();
+    handleFormatCode();
+  });
   
   const clearTerminal = useCallback(() => {
     setTerminalOutput([]);
@@ -244,6 +262,47 @@ function IdeLayoutContent() {
       setIsSuggesting(false);
     }
   }, [activeFile, toast]);
+
+  const handleFormatCode = useCallback(async () => {
+    if (!activeFile || !editorRef.current) {
+      toast({
+        variant: "destructive",
+        title: "No active file",
+        description: "Please select a file to format.",
+      });
+      return;
+    }
+
+    setIsFormatting(true);
+    try {
+      const currentModel = editorRef.current.getModel();
+      if (!currentModel) return;
+      
+      const result = await formatCode({
+        code: currentModel.getValue(),
+        language: getFileLanguage(activeFile.name),
+      });
+
+      const fullRange = currentModel.getFullModelRange();
+      const op = { range: fullRange, text: result.formattedCode };
+      currentModel.pushEditOperations([], [op], () => null);
+
+      toast({
+        title: "Code Formatted",
+        description: `${activeFile.name} has been formatted.`,
+      });
+
+    } catch(error) {
+       console.error("AI formatting failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to format code.",
+      });
+    } finally {
+      setIsFormatting(false);
+    }
+  }, [activeFile, toast]);
   
   const handleSettingsChange = (newSettings: Partial<typeof editorSettings>) => {
     setEditorSettings(prev => ({...prev, ...newSettings}));
@@ -353,8 +412,10 @@ function IdeLayoutContent() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header 
             onRun={handleRun} 
-            onSuggest={handleSuggest} 
+            onSuggest={handleSuggest}
+            onFormat={handleFormatCode}
             isSuggesting={isSuggesting}
+            isFormatting={isFormatting}
             onNewFile={handleNewFile}
             onNewFolder={handleNewFolder}
             isMinimapVisible={editorSettings.minimap}
@@ -445,5 +506,3 @@ export function IdeLayout() {
     </TooltipProvider>
   );
 }
-
-    

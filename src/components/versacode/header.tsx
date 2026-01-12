@@ -10,12 +10,14 @@ import {
   MenubarCheckboxItem,
 } from "@/components/ui/menubar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Play, Sparkles, LoaderCircle } from "lucide-react";
+import { Play, Sparkles, LoaderCircle, Indent } from "lucide-react";
 
 interface HeaderProps {
   onRun: () => void;
   onSuggest: () => void;
+  onFormat: () => void;
   isSuggesting: boolean;
+  isFormatting: boolean;
   onNewFile: () => void;
   onNewFolder: () => void;
   onToggleMinimap: (checked: boolean) => void;
@@ -27,7 +29,9 @@ interface HeaderProps {
 export function Header({
   onRun,
   onSuggest,
+  onFormat,
   isSuggesting,
+  isFormatting,
   onNewFile,
   onNewFolder,
   onToggleMinimap,
@@ -47,7 +51,9 @@ export function Header({
               </MenubarItem>
               <MenubarItem onClick={onNewFolder}>New Folder</MenubarItem>
               <MenubarSeparator />
-              <MenubarItem disabled>Save</MenubarItem>
+              <MenubarItem disabled>
+                Save <MenubarShortcut>Ctrl+S</MenubarShortcut>
+              </MenubarItem>
               <MenubarItem disabled>Save As...</MenubarItem>
               <MenubarSeparator />
               <MenubarItem disabled>Close Editor</MenubarItem>
@@ -62,6 +68,10 @@ export function Header({
               <MenubarItem disabled>Cut</MenubarItem>
               <MenubarItem disabled>Copy</MenubarItem>
               <MenubarItem disabled>Paste</MenubarItem>
+              <MenubarSeparator />
+              <MenubarItem onClick={onFormat}>
+                Format Document <MenubarShortcut>Ctrl+Alt+F</MenubarShortcut>
+              </MenubarItem>
             </MenubarContent>
           </MenubarMenu>
           <MenubarMenu>
@@ -101,6 +111,20 @@ export function Header({
         </Menubar>
       </div>
       <div className="flex items-center gap-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+             <Button variant="ghost" size="icon" onClick={onFormat} disabled={isFormatting} title="Format Code (Ctrl+Alt+F)">
+              {isFormatting ? (
+                <LoaderCircle className="h-5 w-5 animate-spin" />
+              ) : (
+                <Indent className="h-5 w-5" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Format Document</p>
+          </TooltipContent>
+        </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" onClick={onSuggest} disabled={isSuggesting} title="AI Code Suggestion (Ctrl+Space)">
