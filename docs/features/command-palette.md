@@ -1,4 +1,3 @@
-
 # Feature: Command Palette
 
 **ID:** `feature-command-palette`

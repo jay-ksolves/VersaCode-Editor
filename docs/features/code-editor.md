@@ -27,7 +27,7 @@ The Code Editor is the centerpiece of VersaCode, providing a professional-grade 
 - **`ITextModel` Caching:** This is the most critical aspect of the editor's state management. The `IdeLayout` component maintains a `Map` (`modelsRef`) that caches a unique Monaco `ITextModel` for each opened file ID.
   - **Benefit:** This approach is highly efficient and robust. By keeping the model alive even when a tab is inactive, we preserve the entire editor state for that file, including the **undo/redo history**, cursor position, and scroll position.
 - **Active File:** The `activeFileId` state in the `useFileSystem` hook determines which file (and therefore which model) is currently displayed in the editor.
-- **Auto-Saving:** The editor is configured to automatically save changes. When the content of a model changes (i.e., the user types), an `onDidChangeContent` listener fires, which calls `updateFileContent` in the `useFileSystem` hook. This hook then immediately persists the entire file system state to `localStorage`, ensuring no work is lost.
+- **Auto-Saving:** The editor is configured to automatically save changes. When the content of a model changes (i.e., the user types), an `onDidChangeContent` listener fires, which calls `updateFileContent` in the `useFileSystem` hook. This hook then immediately persists the entire file system state to the OPFS, ensuring no work is lost.
 
 ## 4. AI Integration Details
 

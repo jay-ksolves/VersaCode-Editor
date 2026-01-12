@@ -21,7 +21,7 @@ The frontend is built using the **Next.js App Router**, which allows for a clear
 ### State Management
 
 - **Local Component State:** For state confined to a single component, we use React's built-in hooks: `useState`, `useReducer`, and `useEffect`.
-- **File System State:** All file system operations (CRUD, moving, renaming) and state are encapsulated in the `useFileSystem` custom hook (`src/hooks/useFileSystem.ts`). This hook also handles persistence to `localStorage`.
+- **File System State:** All file system operations (CRUD, moving, renaming) and state are encapsulated in the `useFileSystem` custom hook (`src/hooks/useFileSystem.ts`). This hook also handles persistence to the browser's high-performance Origin Private File System (OPFS).
 - **Editor State (Monaco Models):** The `IdeLayout` component manages the lifecycle of Monaco Editor `ITextModel` instances. A `Map` caches one model per opened file, preserving undo/redo history and editor state across tab switches.
 
 ## 3. Directory Structure
