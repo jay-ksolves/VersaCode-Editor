@@ -13,11 +13,50 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useEffect, useState, useRef } from 'react';
+import Script from 'next/script';
 
-export default function HomePage() {
+declare global {
+    interface Window {
+        VANTA: any;
+    }
+}
+
+export default function HomePage({ theme }: { theme: string }) {
+  const [vantaEffect, setVantaEffect] = useState<any>(null);
+  const vantaRef = useRef(null);
+
+  useEffect(() => {
+    let effect: any;
+    if (window.VANTA && theme === 'dark' && vantaRef.current) {
+      effect = window.VANTA.RINGS({
+        el: vantaRef.current,
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.00,
+        minWidth: 200.00,
+        scale: 1.00,
+        scaleMobile: 1.00,
+        color: 0x88ff00,
+        backgroundColor: 0x202428,
+      });
+      setVantaEffect(effect);
+    } else {
+        if (vantaEffect) vantaEffect.destroy();
+    }
+
+    return () => {
+      if (effect) effect.destroy();
+    };
+  }, [theme, vantaEffect]);
+  
   return (
     <>
-      <div id="vanta-target" className="relative isolate overflow-hidden -mt-16 h-screen">
+       <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" strategy="lazyOnload" />
+       <Script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.rings.min.js" strategy="lazyOnload" />
+       
+      <div ref={vantaRef} id="vanta-target" className="relative isolate overflow-hidden -mt-16 h-screen">
         <div className="vanta-background"></div>
         <div className="container mx-auto px-4 py-24 text-center flex items-center justify-center h-full">
           <div className="mx-auto max-w-4xl animate-fade-in">
