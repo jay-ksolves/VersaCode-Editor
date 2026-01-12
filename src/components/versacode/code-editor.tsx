@@ -5,17 +5,20 @@ import { cn } from "@/lib/utils";
 import React, { useState, useEffect } from "react";
 
 interface CodeEditorProps {
-  value: string;
+  value: string | undefined;
   onChange: (value: string) => void;
+  isReadOnly: boolean;
 }
 
-export function CodeEditor({ value, onChange }: CodeEditorProps) {
+export function CodeEditor({ value, onChange, isReadOnly }: CodeEditorProps) {
   const [lineCount, setLineCount] = useState(1);
 
+  const safeValue = value ?? "";
+
   useEffect(() => {
-    const count = value.split("\n").length;
+    const count = safeValue.split("\n").length;
     setLineCount(count);
-  }, [value]);
+  }, [safeValue]);
 
   const lineNumbers = Array.from({ length: lineCount }, (_, i) => i + 1);
 
@@ -30,9 +33,14 @@ export function CodeEditor({ value, onChange }: CodeEditorProps) {
         ))}
       </div>
       <Textarea
-        value={value}
+        value={safeValue}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Write your code here..."
+        placeholder={
+          isReadOnly
+            ? "Select a file to start editing."
+            : "Write your code here..."
+        }
+        readOnly={isReadOnly}
         className={cn(
           "h-full flex-1 resize-none rounded-none border-0 bg-background p-4 focus-visible:ring-0 font-code",
           "leading-normal"

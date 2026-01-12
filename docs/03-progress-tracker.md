@@ -11,15 +11,17 @@ This document tracks the implementation status of core IDE features.
 
 ## File Explorer Panel (`files`)
 
-- [x] Mock File System Display
-- [ ] Implement Dynamic File Tree from a real source
-- [ ] File selection and opening in editor
+- [x] Dynamic File Tree from an in-memory source
+- [x] File selection and opening in editor
+- [x] Persist file system state in `localStorage`
 - [ ] Create, rename, and delete file actions
+- [ ] Context menu for file operations
 
 ## Code Editor
 
 - [x] Basic Text Area with Line Numbers
 - [x] AI Code Suggestion (`Ctrl+Space` or button click)
+- [x] Displays content of selected file
 - [ ] Syntax Highlighting
 - [ ] Code Formatting (via Prettier extension)
 - [ ] Show Minimap

@@ -1,87 +1,89 @@
 "use client";
 
-import { Folder, File as FileIcon, ChevronRight, ChevronDown } from "lucide-react";
+import { Folder, File as FileIcon, ChevronRight, ChevronDown, FolderPlus, FilePlus } from "lucide-react";
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
+import type { FileSystemNode } from "@/hooks/useFileSystem";
+import { Button } from "../ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
-type FileSystemNode = {
-  name: string;
-  type: 'folder' | 'file';
-  children?: FileSystemNode[];
-};
+interface FileExplorerProps {
+  files: FileSystemNode[];
+  activeFileId: string | null;
+  onSelectFile: (id: string) => void;
+  onCreateFile: () => void;
+  onCreateFolder: () => void;
+}
 
-const fileSystem: FileSystemNode[] = [
-  {
-    name: "src",
-    type: "folder",
-    children: [
-      { name: "app.tsx", type: "file" },
-      { name: "components", type: "folder", children: [
-        { name: "button.tsx", type: "file"},
-        { name: "card.tsx", type: "file"}
-      ]},
-      { name: "lib", type: "folder", children: [
-        { name: "utils.ts", type: "file" }
-      ]},
-    ],
-  },
-  { name: "public", type: "folder", children: [
-    { name: "logo.svg", type: "file" }
-  ]},
-  { name: "package.json", type: "file" },
-  { name: "tailwind.config.ts", type: "file" },
-  { name: "README.md", type: "file" },
-];
+function FileNode({ node, level = 0, onSelectFile, activeFileId }: { node: FileSystemNode; level?: number; onSelectFile: (id: string) => void; activeFileId: string | null; }) {
+  const [isOpen, setIsOpen] = useState(true);
+  const isFolder = node.type === 'folder';
+  const isActive = activeFileId === node.id;
 
-function FileNode({ node, level = 0 }: { node: FileSystemNode; level?: number }) {
-  const [isOpen, setIsOpen] = useState(node.type === "folder");
-
-  if (node.type === 'folder') {
-    return (
-      <div>
-        <div
-          className="flex items-center space-x-2 py-1.5 px-2 rounded-md hover:bg-muted cursor-pointer"
-          onClick={() => setIsOpen(!isOpen)}
-          style={{ paddingLeft: `${level * 1.5 + 0.5}rem` }}
-        >
-          {isOpen ? <ChevronDown className="w-4 h-4 flex-shrink-0" /> : <ChevronRight className="w-4 h-4 flex-shrink-0" />}
-          <Folder className="w-4 h-4 text-accent" />
-          <span className="truncate text-sm">{node.name}</span>
-        </div>
-        {isOpen && node.children && (
-          <div>
-            {node.children.map((child) => (
-              <FileNode key={child.name} node={child} level={level + 1} />
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
+  const handleNodeClick = () => {
+    if (isFolder) {
+      setIsOpen(!isOpen);
+    } else {
+      onSelectFile(node.id);
+    }
+  };
 
   return (
-    <div
-      className="flex items-center space-x-2 py-1.5 px-2 rounded-md hover:bg-muted"
-      style={{ paddingLeft: `${level * 1.5 + 0.5}rem` }}
-    >
-        <div style={{ width: '1rem' }} />
-        <FileIcon className="w-4 h-4 text-muted-foreground" />
-        <span className="truncate text-sm">{node.name}</span>
+    <div>
+      <div
+        className={cn("flex items-center space-x-2 py-1.5 px-2 rounded-md hover:bg-muted cursor-pointer", {
+          "bg-muted": isActive,
+        })}
+        onClick={handleNodeClick}
+        style={{ paddingLeft: `${level * 1.25 + 0.5}rem` }}
+      >
+        {isFolder ? (
+          isOpen ? <ChevronDown className="w-4 h-4 flex-shrink-0" /> : <ChevronRight className="w-4 h-4 flex-shrink-0" />
+        ) : (
+          <div style={{ width: '1rem' }} /> /* Spacer for alignment */
+        )}
+        {isFolder ? <Folder className="w-4 h-4 text-accent" /> : <FileIcon className="w-4 h-4 text-muted-foreground" />}
+        <span className="truncate text-sm select-none">{node.name}</span>
+      </div>
+      {isFolder && isOpen && node.children && (
+        <div>
+          {node.children.map((child) => (
+            <FileNode key={child.id} node={child} level={level + 1} onSelectFile={onSelectFile} activeFileId={activeFileId} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-
-export function FileExplorer() {
+export function FileExplorer({ files, activeFileId, onSelectFile, onCreateFile, onCreateFolder }: FileExplorerProps) {
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold tracking-tight">Explorer</h2>
+      <div className="p-2 border-b flex items-center justify-between">
+        <h2 className="text-lg font-semibold tracking-tight px-2">Explorer</h2>
+        <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onCreateFile}>
+                <FilePlus className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>New File</p></TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onCreateFolder}>
+                <FolderPlus className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>New Folder</p></TooltipContent>
+          </Tooltip>
+        </div>
       </div>
       <div className="flex-1 p-2 overflow-y-auto">
         <div className="space-y-1">
-          {fileSystem.map((node) => (
-            <FileNode key={node.name} node={node} />
+          {files.map((node) => (
+            <FileNode key={node.id} node={node} onSelectFile={onSelectFile} activeFileId={activeFileId} />
           ))}
         </div>
       </div>

@@ -11,40 +11,62 @@ import { SettingsPanel } from "./settings-panel";
 import { TasksPanel } from "./tasks-panel";
 import { useToast } from "@/hooks/use-toast";
 import { suggestCodeCompletion } from "@/ai/flows/ai-suggest-code-completion";
+import { useFileSystem } from "@/hooks/useFileSystem";
 
 type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "none";
 
-const initialCode = `function greet(name) {\n  console.log(\`Hello, \${name}!\`);\n}\n\ngreet('VersaCode');`;
-
 export function IdeLayout() {
   const [activePanel, setActivePanel] = useState<ActivePanel>("files");
-  const [code, setCode] = useState<string>(initialCode);
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState(false);
   const { toast } = useToast();
+
+  const {
+    files,
+    activeFile,
+    activeFileId,
+    setActiveFileId,
+    updateFileContent,
+    createFile,
+    createFolder,
+  } = useFileSystem();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   const handleRun = useCallback(() => {
-    setTerminalOutput((prev) => [
-      ...prev,
-      `> Executing code...`,
-      ...code.split("\n"),
-      `> Execution finished.`,
-    ]);
-  }, [code]);
+    if (activeFile) {
+      setTerminalOutput((prev) => [
+        ...prev,
+        `> Executing ${activeFile.name}...`,
+        `> Simulating output:`,
+        ...activeFile.content.split('\n'),
+        `> Execution finished.`
+      ]);
+    } else {
+      setTerminalOutput((prev) => [...prev, `> No file selected to run.`]);
+    }
+  }, [activeFile]);
 
   const handleSuggest = useCallback(async () => {
+    if (!activeFile) {
+      toast({
+        variant: "destructive",
+        title: "No active file",
+        description: "Please select a file to get suggestions.",
+      });
+      return;
+    }
+
     setIsSuggesting(true);
     try {
       const result = await suggestCodeCompletion({
-        codeContext: code,
-        programmingLanguage: "typescript",
+        codeContext: activeFile.content,
+        programmingLanguage: "typescript", // This could be dynamic later
       });
-      setCode((prev) => prev + result.suggestedCode);
+      updateFileContent(activeFile.id, activeFile.content + result.suggestedCode);
       toast({
         title: "AI Suggestion",
         description: "Code suggestion has been added.",
@@ -59,12 +81,24 @@ export function IdeLayout() {
     } finally {
       setIsSuggesting(false);
     }
-  }, [code, toast]);
+  }, [activeFile, toast, updateFileContent]);
+  
+  const handleCodeChange = (newCode: string) => {
+    if (activeFileId) {
+      updateFileContent(activeFileId, newCode);
+    }
+  };
 
   const renderPanel = () => {
     switch (activePanel) {
       case "files":
-        return <FileExplorer />;
+        return <FileExplorer 
+          files={files} 
+          activeFileId={activeFileId} 
+          onSelectFile={setActiveFileId}
+          onCreateFile={() => createFile()}
+          onCreateFolder={() => createFolder()}
+        />;
       case "extensions":
         return <ExtensionsPanel />;
       case "settings":
@@ -77,7 +111,9 @@ export function IdeLayout() {
   };
 
   if (!isMounted) {
-    return null; // or a loading spinner
+    // Prevent hydration mismatch by not rendering server-side
+    // This is important because useFileSystem relies on localStorage
+    return null;
   }
 
   return (
@@ -93,7 +129,11 @@ export function IdeLayout() {
           )}
           <div className="flex-1 flex flex-col min-w-0">
             <div className="flex-1 relative overflow-auto">
-              <CodeEditor value={code} onChange={setCode} />
+              <CodeEditor 
+                value={activeFile?.content} 
+                onChange={handleCodeChange}
+                isReadOnly={!activeFileId}
+              />
             </div>
             <div className="h-1/3 border-t border-border flex flex-col">
               <Terminal output={terminalOutput} />
