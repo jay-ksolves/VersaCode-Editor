@@ -1,5 +1,5 @@
 
-"use client";
+'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Sidebar } from "./sidebar";
@@ -24,14 +24,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 
 
 type ActivePanel = "files" | "extensions" | "settings" | "search" | "none";
-type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
-
-const mockProblems: Problem[] = [
-  { severity: "error", message: "Property 'lenght' does not exist on type 'string[]'. Did you mean 'length'?", file: "src/app.tsx", line: 2 },
-  { severity: "warning", message: "'Button' is declared but its value is never read.", file: "src/styles.css", line: 1 },
-  { severity: "error", message: "Cannot find name 'React'.", file: "package.json", line: 1 },
-];
-
+export type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
 
 const defaultEditorSettings = {
   minimap: true,
@@ -40,7 +33,8 @@ const defaultEditorSettings = {
 
 function IdeLayoutContent() {
   const [activePanel, setActivePanel] = useState<ActivePanel>("files");
-  const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
+  const [output, setOutput] = useState<string[]>([]);
+  const [problems, setProblems] = useState<Problem[]>([]);
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
   const [isFormatting, setIsFormatting] = useState<boolean>(false);
   const [editorSettings, setEditorSettings] = useState(defaultEditorSettings);
@@ -91,8 +85,9 @@ function IdeLayoutContent() {
     handleFormatCode();
   });
   
-  const clearTerminal = useCallback(() => {
-    setTerminalOutput([]);
+  const logToOutput = useCallback((message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setOutput(prev => [...prev, `[${timestamp}] ${message}`]);
   }, []);
   
   const getFileLanguage = (filename: string | undefined) => {
@@ -192,6 +187,41 @@ function IdeLayoutContent() {
     }
   }, [activeFileId]);
 
+  // Effect for tracking editor diagnostics (problems)
+  useEffect(() => {
+    const monaco = monacoRef.current;
+    if (!monaco) return;
+
+    const onMarkerChange = () => {
+      const allProblems: Problem[] = [];
+      const models = monaco.editor.getModels();
+      
+      models.forEach(model => {
+        const markers = monaco.editor.getModelMarkers({ resource: model.uri });
+        const filePath = model.uri.path.substring(1); // Remove leading '/'
+
+        markers.forEach(marker => {
+          if (marker.severity === monaco.MarkerSeverity.Error || marker.severity === monaco.MarkerSeverity.Warning) {
+            allProblems.push({
+              severity: marker.severity === monaco.MarkerSeverity.Error ? 'error' : 'warning',
+              message: marker.message,
+              file: filePath,
+              line: marker.startLineNumber,
+            });
+          }
+        });
+      });
+      setProblems(allProblems);
+    };
+
+    const disposable = monaco.editor.onDidChangeMarkers(onMarkerChange);
+    onMarkerChange(); // Initial check
+
+    return () => {
+      disposable.dispose();
+    };
+  }, [openFileIds]);
+
 
   const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor, monacoInstance: typeof monaco) => {
     editorRef.current = editor;
@@ -205,20 +235,6 @@ function IdeLayoutContent() {
         }
     }
   };
-  
-  const handleRun = useCallback(() => {
-    if (activeFile) {
-      setTerminalOutput((prev) => [
-        ...prev,
-        `> Executing ${activeFile.name}...`,
-        `> Simulating output:`,
-        ...(activeFile.content || '').split('\n'),
-        `> Execution finished.`
-      ]);
-    } else {
-      setTerminalOutput((prev) => [...prev, `> No file selected to run.`]);
-    }
-  }, [activeFile]);
 
   const handleSuggest = useCallback(async () => {
     if (!activeFile || !editorRef.current) {
@@ -230,6 +246,7 @@ function IdeLayoutContent() {
       return;
     }
 
+    logToOutput(`Requesting AI code suggestion for ${activeFile.path}...`);
     setIsSuggesting(true);
     try {
       const currentModel = editorRef.current.getModel();
@@ -246,11 +263,13 @@ function IdeLayoutContent() {
       const op = {identifier: id, range: range, text: result.suggestedCode, forceMoveMarkers: true};
       currentModel.pushEditOperations([], [op], () => null);
 
+      logToOutput(`AI suggestion applied to ${activeFile.path}.`);
       toast({
         title: "AI Suggestion",
         description: "Code suggestion has been added.",
       });
     } catch (error) {
+      logToOutput(`Error getting AI suggestion: ${error}`);
       console.error("AI suggestion failed:", error);
       toast({
         variant: "destructive",
@@ -260,7 +279,7 @@ function IdeLayoutContent() {
     } finally {
       setIsSuggesting(false);
     }
-  }, [activeFile, toast]);
+  }, [activeFile, toast, logToOutput]);
 
   const handleFormatCode = useCallback(async () => {
     if (!activeFile || !editorRef.current) {
@@ -272,6 +291,7 @@ function IdeLayoutContent() {
       return;
     }
 
+    logToOutput(`Formatting ${activeFile.path}...`);
     setIsFormatting(true);
     try {
       const currentModel = editorRef.current.getModel();
@@ -285,13 +305,15 @@ function IdeLayoutContent() {
       const fullRange = currentModel.getFullModelRange();
       const op = { range: fullRange, text: result.formattedCode };
       currentModel.pushEditOperations([], [op], () => null);
-
+      
+      logToOutput(`${activeFile.path} formatted successfully.`);
       toast({
         title: "Code Formatted",
         description: `${activeFile.name} has been formatted.`,
       });
 
     } catch(error) {
+       logToOutput(`Error formatting code: ${error}`);
        console.error("AI formatting failed:", error);
       toast({
         variant: "destructive",
@@ -301,7 +323,7 @@ function IdeLayoutContent() {
     } finally {
       setIsFormatting(false);
     }
-  }, [activeFile, toast]);
+  }, [activeFile, toast, logToOutput]);
   
   const handleSettingsChange = (newSettings: Partial<typeof editorSettings>) => {
     setEditorSettings(prev => ({...prev, ...newSettings}));
@@ -408,7 +430,6 @@ function IdeLayoutContent() {
         <Sidebar activePanel={activePanel} onSelectPanel={setActivePanel} />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header 
-            onRun={handleRun} 
             onSuggest={handleSuggest}
             onFormat={handleFormatCode}
             isSuggesting={isSuggesting}
@@ -419,6 +440,7 @@ function IdeLayoutContent() {
             onToggleMinimap={(checked) => handleSettingsChange({ minimap: checked })}
             onNewTerminal={handleNewTerminal}
             onToggleTerminal={handleToggleTerminal}
+            logOutput={logToOutput}
           />
           <main className="flex-1 flex overflow-hidden">
             <ResizablePanelGroup direction="horizontal">
@@ -470,9 +492,8 @@ function IdeLayoutContent() {
                       className={cn(bottomPanelSize <= 5 && "hidden")}
                     >
                       <Terminal 
-                        output={terminalOutput} 
-                        problems={mockProblems} 
-                        onClear={clearTerminal} 
+                        output={output} 
+                        problems={problems} 
                         onGoToProblem={handleGoToProblem} 
                         onClose={() => setBottomPanelSize(0)}
                       />
@@ -503,3 +524,5 @@ export function IdeLayout() {
     </TooltipProvider>
   );
 }
+
+    

@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Menubar,
@@ -13,7 +14,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Play, Sparkles, LoaderCircle, Indent } from "lucide-react";
 
 interface HeaderProps {
-  onRun: () => void;
   onSuggest: () => void;
   onFormat: () => void;
   isSuggesting: boolean;
@@ -24,10 +24,10 @@ interface HeaderProps {
   isMinimapVisible: boolean;
   onNewTerminal: () => void;
   onToggleTerminal: () => void;
+  logOutput: (message: string) => void;
 }
 
 export function Header({
-  onRun,
   onSuggest,
   onFormat,
   isSuggesting,
@@ -38,7 +38,13 @@ export function Header({
   isMinimapVisible,
   onNewTerminal,
   onToggleTerminal,
+  logOutput,
 }: HeaderProps) {
+  
+  const handleRun = () => {
+    logOutput("Run command executed (placeholder).");
+  };
+
   return (
     <header className="flex items-center justify-between h-16 px-4 border-b bg-card">
       <div className="flex items-center gap-4">
@@ -101,7 +107,7 @@ export function Header({
           <MenubarMenu>
             <MenubarTrigger>Run</MenubarTrigger>
             <MenubarContent>
-              <MenubarItem onClick={onRun}>Run Code</MenubarItem>
+              <MenubarItem onClick={handleRun}>Run Code</MenubarItem>
               <MenubarItem disabled>Run With Debugger</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
@@ -154,7 +160,7 @@ export function Header({
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button size="icon" onClick={onRun} className="bg-accent text-accent-foreground hover:bg-accent/90" title="Run Code">
+            <Button size="icon" onClick={handleRun} className="bg-accent text-accent-foreground hover:bg-accent/90" title="Run Code">
               <Play className="h-5 w-5" />
             </Button>
           </TooltipTrigger>
@@ -166,3 +172,5 @@ export function Header({
     </header>
   );
 }
+
+    
