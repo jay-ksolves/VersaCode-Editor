@@ -25,27 +25,38 @@ export default function HomePage({ theme }: { theme: string }) {
   const { files } = useFileSystem({ autoSave: false }); // We don't need autoSave here
 
   useEffect(() => {
-    let effect: any;
-    if (window.VANTA && theme === 'dark' && vantaRef.current) {
-      effect = window.VANTA.RINGS({
-        el: vantaRef.current,
-        mouseControls: true,
-        touchControls: true,
-        gyroControls: false,
-        minHeight: 200.00,
-        minWidth: 200.00,
-        scale: 1.00,
-        scaleMobile: 1.00,
-        color: 0x88ff00,
-        backgroundColor: 0x202428,
-      });
-      setVantaEffect(effect);
-    } else {
-        if (vantaEffect) vantaEffect.destroy();
+    if (!window.VANTA || !vantaRef.current) {
+        return;
     }
-
+    
+    if (theme === 'dark') {
+        if (!vantaEffect) {
+            const effect = window.VANTA.RINGS({
+                el: vantaRef.current,
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0x88ff00,
+                backgroundColor: 0x202428,
+            });
+            setVantaEffect(effect);
+        }
+    } else {
+        if (vantaEffect) {
+            vantaEffect.destroy();
+            setVantaEffect(null);
+        }
+    }
+    
     return () => {
-      if (effect) effect.destroy();
+        if (vantaEffect) {
+            vantaEffect.destroy();
+            setVantaEffect(null);
+        }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme]);
