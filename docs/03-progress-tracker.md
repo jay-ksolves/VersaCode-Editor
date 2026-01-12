@@ -1,18 +1,21 @@
+
 # IDE Feature Progress Tracker
 
-This document tracks the implementation status of core IDE features. All features for version 1.0 are complete.
+This document tracks the implementation status of core IDE features.
 
 ## Core Shell & Layout
 
 - [x] Main landing page (VS Code style)
-- [x] Basic IDE Layout (Sidebar, Main Panel, Terminal) at `/editor` route
-- [x] Resizable panels (Sidebar, Editor, Terminal)
+- [x] Basic IDE Layout (Activity Bar, Side Panel, Main Panel, Status Bar) at `/editor` route
+- [x] Resizable panels (Side Panel, Editor, Bottom Panel)
 - [x] Collapsible Side Panels with persistence
-- [x] Theme Toggle (Light/Dark) - UI present, logic pending
-- [x] Persist Theme and Panel State in `localStorage`
+- [x] Command Palette (`Ctrl+Shift+P`)
+- [ ] Theme Toggle (Light/Dark) - UI present, logic pending
+- [ ] Persist Theme and Panel State in `localStorage`
 
 ## File Explorer Panel (`files`)
 
+- [x] "Open Editors" section in sidebar
 - [x] Dynamic File Tree from an in-memory source
 - [x] File selection and opening in editor
 - [x] Persist file system state in `localStorage`
@@ -38,7 +41,7 @@ This document tracks the implementation status of core IDE features. All feature
 
 - [x] Monaco Editor integration with stable model management
 - [x] Multi-tab support with advanced context menus (Close, Close All, etc.)
-- [x] Scrollable editor tabs
+- [x] Scrollable editor tabs with drag-and-drop reordering
 - [x] AI Code Suggestion (`Ctrl+Space` or button click)
 - [x] Displays content of selected file
 - [x] Syntax Highlighting
@@ -47,9 +50,9 @@ This document tracks the implementation status of core IDE features. All feature
 - [x] Show/Hide Minimap setting
 - [x] Code Formatting (via AI)
 - [x] AI Code Generation from Prompt
-- [x] z-index fix for editor suggestion pop-ups
+- [x] Double-click tab area to create new untitled file
 
-## Terminal / Output Panel
+## Bottom Panel (Terminal / Output)
 
 - [x] Functional Terminal UI with Tabs
 - [x] Client-side JavaScript code execution

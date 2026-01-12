@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Folder, File as FileIcon, ChevronRight, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen, FileJson, FileCode, FileText, RefreshCw } from "lucide-react";
+import { Folder, File as FileIcon, ChevronRight, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen, FileJson, FileCode, FileText, RefreshCw, ChevronDown } from "lucide-react";
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { cn } from "@/lib/utils";
 import type { FileSystemNode } from "@/hooks/useFileSystem";
@@ -14,6 +14,8 @@ import { Label } from "../ui/label";
 import { generateCodeFromPrompt } from "@/ai/flows/generate-code-from-prompt";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "../ui/textarea";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
+import { ScrollArea } from "../ui/scroll-area";
 
 type Operation = 'create_file' | 'create_folder' | 'rename';
 type EditState = {
@@ -27,12 +29,13 @@ type EditState = {
 type DeleteOperation = { type: 'delete', nodeId: string, nodeName: string } | null;
 type GenerateOperation = { type: 'generate_code', parentId: string | null } | null;
 
-const FileIconComponent = ({ filename }: { filename: string }) => {
+export const FileIconComponent = ({ filename }: { filename: string }) => {
     const extension = filename.split('.').pop()?.toLowerCase();
     switch (extension) {
         case 'json':
             return <FileJson className="w-4 h-4 text-yellow-500" />;
         case 'css':
+        case 'tailwind':
             return <FileCode className="w-4 h-4 text-blue-500" />;
         case 'tsx':
         case 'jsx':
@@ -80,7 +83,6 @@ function FileNode({
   const isActive = activeFileId === node.id;
 
   const handleNodeClick = (e: React.MouseEvent) => {
-    // Prevent popover content from triggering node selection
     if ((e.target as HTMLElement).closest('[data-radix-popover-content]')) {
       return;
     }
@@ -90,8 +92,6 @@ function FileNode({
   const handleDoubleClick = () => {
     if (isFolder) {
       onToggleFolder(node.id);
-    } else {
-       onSetEditState(node.id);
     }
   }
 
@@ -123,7 +123,7 @@ function FileNode({
       {isFolder ? (
           <ChevronRight className={cn("w-4 h-4 transition-transform flex-shrink-0", isExpanded && "rotate-90")} />
       ) : (
-        <div className="w-4" /> // Spacer for alignment
+        <div className="w-4" />
       )}
 
       {isFolder ? <FolderIconComponent className="w-4 h-4 text-accent" /> : <FileIconComponent filename={node.name} />}
@@ -179,7 +179,7 @@ function EditNode({
   
   return (
     <div className="flex items-center space-x-2 py-1.5 px-2" style={{ paddingLeft: `${level * 1 + 0.5}rem` }}>
-       <div className="w-4" /> {/* Spacer */}
+       <div className="w-4" />
        {isFolder ? <Folder className="w-4 h-4 text-accent" /> : <FileIcon className="w-4 h-4 text-muted-foreground" />}
        <input
           ref={inputRef}
@@ -196,6 +196,7 @@ function EditNode({
 
 interface FileExplorerProps {
     files: FileSystemNode[];
+    openFileIds: string[];
     activeFileId: string | null;
     onSelectFile: (id: string) => void;
     createFile: (name: string, parentId: string | null, content?: string) => string | null;
@@ -215,7 +216,7 @@ export type FileExplorerRef = {
 };
 
 
-export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ files, activeFileId, onSelectFile, createFile, createFolder, expandedFolders, onToggleFolder, renameNode, deleteNode, moveNode, getTargetFolder, onOpenFile, refreshFileSystem }, ref) => {
+export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ files, openFileIds, activeFileId, onSelectFile, createFile, createFolder, expandedFolders, onToggleFolder, renameNode, deleteNode, moveNode, getTargetFolder, onOpenFile, refreshFileSystem }, ref) => {
   const [deleteOperation, setDeleteOperation] = useState<DeleteOperation>(null);
   const [generateOperation, setGenerateOperation] = useState<GenerateOperation>(null);
   const [generatePrompt, setGeneratePrompt] = useState('');
@@ -300,7 +301,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
 
   const startCreate = (type: 'create_file' | 'create_folder') => {
     const parentId = getParentIdForNewNode();
-    if(parentId) onToggleFolder(parentId, true); // Force open the parent folder
+    if(parentId) onToggleFolder(parentId, true);
 
     handleSetEditState({
       id: `new-${type}-${Date.now()}`,
@@ -476,18 +477,47 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
           </Tooltip>
         </div>
       </div>
-      <div className="flex-1 p-2 overflow-y-auto" onDragOver={(e) => e.preventDefault()}>
-        {files.length === 0 && !editState ? renderEmptyState() : (
-          <div className="space-y-0.5">
-            {renderFileTree(files)}
-            {editState && (editState.type === 'create_file' || editState.type === 'create_folder') && editState.parentId === null && (
-              <EditNode editState={editState} level={0} />
-            )}
-          </div>
-        )}
-      </div>
+      <ScrollArea className="flex-1" onDragOver={(e) => e.preventDefault()}>
+        <Collapsible defaultOpen={true}>
+          <CollapsibleTrigger className="flex items-center justify-between w-full text-xs uppercase text-muted-foreground font-semibold p-2 hover:bg-muted">
+            Open Editors
+            <ChevronDown className="h-4 w-4" />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="space-y-0.5 p-2">
+              {openFileIds.map(id => {
+                const file = files.find(f => f.id === id) || files.flatMap(f => f.type === 'folder' ? f.children : []).find(f => f.id === id);
+                return file ? (
+                  <div key={`open-${id}`} className={cn("flex items-center space-x-2 py-1.5 px-2 rounded-md hover:bg-muted group cursor-pointer relative", { "bg-muted": activeFileId === id })} onClick={() => onSelectFile(id)}>
+                      <FileIconComponent filename={file.name} />
+                      <span className="truncate text-sm select-none">{file.name}</span>
+                  </div>
+                ) : null
+              })}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
-      {/* Generate Code Dialog */}
+        <Collapsible defaultOpen={true}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-xs uppercase text-muted-foreground font-semibold p-2 hover:bg-muted">
+                File System
+                <ChevronDown className="h-4 w-4" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="p-2">
+                {files.length === 0 && !editState ? renderEmptyState() : (
+                  <div className="space-y-0.5">
+                    {renderFileTree(files)}
+                    {editState && (editState.type === 'create_file' || editState.type === 'create_folder') && editState.parentId === null && (
+                      <EditNode editState={editState} level={0} />
+                    )}
+                  </div>
+                )}
+              </div>
+            </CollapsibleContent>
+        </Collapsible>
+      </ScrollArea>
+
       <Dialog open={!!generateOperation} onOpenChange={() => { setGenerateOperation(null); setGeneratePrompt(''); setGenerateFileName(''); }}>
         <DialogContent className="sm:max-w-[625px]">
           <DialogHeader>
@@ -514,7 +544,6 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
         </DialogContent>
       </Dialog>
       
-      {/* Delete Confirmation Dialog */}
       <Dialog open={!!deleteOperation} onOpenChange={() => setDeleteOperation(null)}>
         <DialogContent>
           <DialogHeader>
@@ -534,5 +563,3 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
 });
 
 FileExplorer.displayName = 'FileExplorer';
-
-    

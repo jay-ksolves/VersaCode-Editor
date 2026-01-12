@@ -20,6 +20,7 @@ export interface SearchResult {
     fileId: string;
     filePath: string;
     line: number;
+    column: number;
     lineContent: string;
 }
 
@@ -37,7 +38,6 @@ const initialFileSystem: FileSystemNode[] = [
   { id: '4', name: 'package.json', type: 'file', content: '{ "name": "versacode-app" }', path: 'package.json' },
 ];
 
-// This non-hook version is for getting original content without triggering React updates
 let originalFiles: FileSystemNode[] = [];
 function findNodeByIdInOriginal(nodes: FileSystemNode[], id: string): FileSystemNode | null {
   for (const node of nodes) {
@@ -185,12 +185,12 @@ export function useFileSystem() {
 
       const parsedFiles = storedFiles ? JSON.parse(storedFiles) : initialFileSystem;
       setFiles(parsedFiles);
-      originalFiles = JSON.parse(JSON.stringify(parsedFiles)); // Deep copy for original state
+      originalFiles = JSON.parse(JSON.stringify(parsedFiles));
 
       if (storedExpanded) {
         setExpandedFolders(new Set(JSON.parse(storedExpanded)));
       } else {
-        setExpandedFolders(new Set(['1'])); // Default to expanding 'src'
+        setExpandedFolders(new Set(['1']));
       }
 
       if (storedOpenFiles) {
@@ -286,7 +286,7 @@ export function useFileSystem() {
         name,
         type: 'file',
         content: content || `// ${name}\n`,
-        path: '', // Path will be updated by addNodeToTree
+        path: '', 
     };
     setFiles(prevFiles => {
         const newTree = addNodeToTree(prevFiles, parentId, newFile);
@@ -310,7 +310,7 @@ export function useFileSystem() {
         name,
         type: 'folder',
         children: [],
-        path: '', // Path will be updated by addNodeToTree
+        path: '',
     };
     setFiles(prevFiles => {
         const newTree = addNodeToTree(prevFiles, parentId, newFolder);
@@ -469,11 +469,13 @@ export function useFileSystem() {
             if (node.type === 'file') {
                 const lines = node.content.split('\n');
                 lines.forEach((lineContent, index) => {
-                    if (lineContent.toLowerCase().includes(lowerCaseQuery)) {
+                    const matchIndex = lineContent.toLowerCase().indexOf(lowerCaseQuery);
+                    if (matchIndex !== -1) {
                         results.push({
                             fileId: node.id,
                             filePath: node.path,
                             line: index + 1,
+                            column: matchIndex + 1,
                             lineContent: lineContent.trim(),
                         });
                     }
@@ -505,6 +507,7 @@ export function useFileSystem() {
     toggleFolder,
     openFile,
     openFileIds,
+    setOpenFileIds,
     closeFile,
     findNodeById: (id: string, useOriginal = false) => {
       const source = useOriginal ? originalFiles : files;

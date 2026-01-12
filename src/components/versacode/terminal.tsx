@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, XCircle, Trash2, X, Split, Plus } from "lucide-react";
+import { AlertTriangle, XCircle, Trash2, X, Split, Plus, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import type { Problem } from "./ide-layout";
@@ -90,7 +90,6 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
                 const newIndex = Math.min(history.length - 1, historyIndex + 1);
                 setHistoryIndex(newIndex);
                 e.currentTarget.textContent = history[newIndex] || '';
-                // Move cursor to end
                  setTimeout(() => {
                     const range = document.createRange();
                     const sel = window.getSelection();
@@ -135,7 +134,6 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
             setLines([welcomeMessage, createNewInputLine()]);
             session.output = [welcomeMessage, createNewInputLine()];
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
 
@@ -163,10 +161,6 @@ export function Terminal({
     setActiveTerminalId,
 }: TerminalProps) {
   
-  const handleClearTerminal = () => {
-    // This is now handled within the TerminalInstance
-  };
-
   return (
     <Tabs defaultValue="terminal" className="h-full flex flex-col">
       <div className="flex items-center justify-between border-b pr-2 bg-card">
@@ -209,6 +203,16 @@ export function Terminal({
           </Tooltip>
            <Tooltip>
             <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClosePanel} title="Hide Panel">
+                <ChevronDown className="h-4 w-4"/>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>Hide Panel</p>
+            </TooltipContent>
+          </Tooltip>
+           <Tooltip>
+            <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClosePanel} title="Close Panel">
                 <X className="h-4 w-4"/>
               </Button>
@@ -219,15 +223,15 @@ export function Terminal({
           </Tooltip>
         </div>
       </div>
-      <div className="flex-1 bg-[#1e1e1e] font-code text-sm overflow-hidden">
+      <div className="flex-1 bg-card font-code text-sm overflow-hidden">
         <TabsContent value="terminal" className="h-full m-0 flex flex-col">
-          {initialTerminals.length > 1 && (
+          {initialTerminals.length > 0 && (
             <Tabs value={activeTerminalId ?? ''} onValueChange={setActiveTerminalId} className="border-b">
                 <TabsList className="bg-transparent p-0 rounded-none h-auto">
                     {initialTerminals.map((term, i) => (
                         <TabsTrigger key={term.id} value={term.id} className="text-xs rounded-none border-r data-[state=active]:bg-background/20 data-[state=active]:shadow-none py-1.5 px-3 relative group">
                            {i+1}: {term.name}
-                           <div role="button" onClick={(e) => { e.stopPropagation(); onCloseTerminal(term.id)}} className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-0.5 rounded-full hover:bg-muted/50"><X className="h-3 w-3"/></div>
+                           <div role="button" onClick={(e) => { e.stopPropagation(); onCloseTerminal(term.id)}} className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-0.5 rounded-full hover:bg-muted/50 cursor-pointer"><X className="h-3 w-3"/></div>
                         </TabsTrigger>
                     ))}
                 </TabsList>

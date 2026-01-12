@@ -3,10 +3,10 @@
 
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
-import { Search, File as FileIcon } from "lucide-react";
+import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { SearchResult } from "@/hooks/useFileSystem";
-import { cn } from "@/lib/utils";
+import { FileIconComponent } from "./file-explorer";
 
 interface SearchPanelProps {
     onSearch: (query: string) => SearchResult[];
@@ -61,7 +61,7 @@ export function SearchPanel({ onSearch, onGoToResult }: SearchPanelProps) {
                         {Object.entries(groupedResults).map(([filePath, fileResults]) => (
                             <div key={filePath}>
                                 <div className="flex items-center gap-2 mb-2">
-                                    <FileIcon className="h-4 w-4 text-muted-foreground" />
+                                    <FileIconComponent filename={filePath} />
                                     <h3 className="font-semibold text-sm truncate" title={filePath}>{filePath}</h3>
                                 </div>
                                 <div className="space-y-1 pl-6">

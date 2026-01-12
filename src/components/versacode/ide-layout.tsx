@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Sidebar } from "./sidebar";
 import { Header } from "./header";
 import { CodeEditor } from "./code-editor";
 import { EditorTabs } from "./editor-tabs";
@@ -21,9 +20,10 @@ import { SearchPanel } from "./search-panel";
 import { cn } from "@/lib/utils";
 import { formatCode } from "@/ai/flows/format-code";
 import { useHotkeys } from "react-hotkeys-hook";
+import { ActivityBar, type ActivePanel } from "./activity-bar";
+import { StatusBar } from "./status-bar";
+import { CommandPalette } from "./command-palette";
 
-
-type ActivePanel = "files" | "extensions" | "settings" | "search" | "none";
 export type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
 
 const defaultEditorSettings = {
@@ -65,9 +65,11 @@ function IdeLayoutContent() {
   const [isFormatting, setIsFormatting] = useState<boolean>(false);
   const [editorSettings, setEditorSettings] = useState(defaultEditorSettings);
   const [dirtyFiles, setDirtyFiles] = useState<Set<string>>(new Set());
-  const [bottomPanelSize, setBottomPanelSize] = useState(33);
+  const [bottomPanelSize, setBottomPanelSize] = useState(25);
+  const [isBottomPanelOpen, setIsBottomPanelOpen] = useState(true);
   const [terminalSessions, setTerminalSessions] = useState<TerminalSession[]>([]);
   const [activeTerminalId, setActiveTerminalId] = useState<string | null>(null);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);
@@ -93,6 +95,7 @@ function IdeLayoutContent() {
     toggleFolder,
     openFile,
     openFileIds,
+    setOpenFileIds,
     closeFile: closeFileFromHook,
     findNodeById,
     findNodeByPath,
@@ -113,6 +116,11 @@ function IdeLayoutContent() {
   useHotkeys('ctrl+alt+f, cmd+alt+f', (e) => {
     e.preventDefault();
     handleFormatCode();
+  });
+  
+  useHotkeys('ctrl+shift+p, cmd+shift+p', (e) => {
+    e.preventDefault();
+    setIsCommandPaletteOpen(true);
   });
   
   const logToOutput = useCallback((message: string) => {
@@ -142,7 +150,6 @@ function IdeLayoutContent() {
     }
   };
   
-  // Effect for managing model lifecycle (creation, disposal, content listeners)
   useEffect(() => {
     const monaco = monacoRef.current;
     if (!monaco) return;
@@ -150,26 +157,22 @@ function IdeLayoutContent() {
     const openFilesSet = new Set(openFileIds);
     const disposables = new Map<string, monaco.IDisposable>();
 
-    // Create models for newly opened files and attach change listeners
     openFilesSet.forEach(fileId => {
       if (!modelsRef.current.has(fileId)) {
-        const file = findNodeById(fileId, true); // Get original to set initial content
+        const file = findNodeById(fileId, true);
         if (file?.type === 'file') {
           const model = monaco.editor.createModel(
             file.content,
             getFileLanguage(file.name),
             monaco.Uri.parse(`file:///${file.path}`)
           );
-
-          // Listen for content changes to update both the main state and the dirty state
+          
           const disposable = model.onDidChangeContent(() => {
             const currentContent = model.getValue();
             const originalContent = findNodeById(fileId, true)?.content;
             
-            // Sync content with the main (React) state
             updateFileContent(fileId, currentContent, true);
             
-            // Update dirty status
             setDirtyFiles(prev => {
               const newDirty = new Set(prev);
               if (currentContent !== originalContent) {
@@ -187,7 +190,6 @@ function IdeLayoutContent() {
       }
     });
 
-    // Clean up models and listeners for closed files
     modelsRef.current.forEach((model, fileId) => {
       if (!openFilesSet.has(fileId)) {
         disposables.get(fileId)?.dispose();
@@ -202,12 +204,10 @@ function IdeLayoutContent() {
     });
 
     return () => {
-      // Dispose all remaining listeners on unmount
       disposables.forEach(d => d.dispose());
     };
   }, [openFileIds, findNodeById, updateFileContent]);
 
-  // Effect for switching the editor's active model
   useEffect(() => {
     const editor = editorRef.current;
     const model = activeFileId ? modelsRef.current.get(activeFileId) : null;
@@ -217,7 +217,6 @@ function IdeLayoutContent() {
     }
   }, [activeFileId]);
 
-  // Effect for tracking editor diagnostics (problems)
   useEffect(() => {
     const monaco = monacoRef.current;
     if (!monaco) return;
@@ -228,7 +227,7 @@ function IdeLayoutContent() {
       
       models.forEach(model => {
         const markers = monaco.editor.getModelMarkers({ resource: model.uri });
-        const filePath = model.uri.path.substring(1); // Remove leading '/'
+        const filePath = model.uri.path.substring(1);
 
         markers.forEach(marker => {
           if (marker.severity === monaco.MarkerSeverity.Error || marker.severity === monaco.MarkerSeverity.Warning) {
@@ -245,7 +244,7 @@ function IdeLayoutContent() {
     };
 
     const disposable = monaco.editor.onDidChangeMarkers(onMarkerChange);
-    onMarkerChange(); // Initial check
+    onMarkerChange();
 
     return () => {
       disposable.dispose();
@@ -257,7 +256,6 @@ function IdeLayoutContent() {
     editorRef.current = editor;
     monacoRef.current = monacoInstance;
 
-    // Set the initial model if there's an active file on mount
     if (activeFileId) {
         const model = modelsRef.current.get(activeFileId);
         if (model) {
@@ -287,7 +285,6 @@ function IdeLayoutContent() {
         programmingLanguage: getFileLanguage(activeFile.name), 
       });
 
-      // Apply the suggestion to the model
       const range = editorRef.current.getSelection() || new monaco.Range(1,1,1,1);
       const id = { major: 1, minor: 1 };
       const op = {identifier: id, range: range, text: result.suggestedCode, forceMoveMarkers: true};
@@ -373,8 +370,6 @@ function IdeLayoutContent() {
   const handleNewUntitledFile = useCallback(() => {
     let i = 1;
     let newName = `Untitled-${i}`;
-    // This is a simple way to find the next available name.
-    // A more robust solution would parse numbers, but this is fine for now.
     while (findNodeByPath(files, newName)) {
       i++;
       newName = `Untitled-${i}`;
@@ -386,14 +381,14 @@ function IdeLayoutContent() {
   }, [files, createFile, openFile, findNodeByPath]);
 
   const handleNewTerminal = useCallback(() => {
-    if (bottomPanelSize <= 5) {
-      setBottomPanelSize(33); // Or a default size
+    if (!isBottomPanelOpen) {
+      setIsBottomPanelOpen(true);
     }
     const newSession = createNewTerminalSession();
     setTerminalSessions(prev => [...prev, newSession]);
     setActiveTerminalId(newSession.id);
     return newSession.id;
-  }, [bottomPanelSize]);
+  }, [isBottomPanelOpen]);
 
   const handleCloseTerminal = useCallback((id: string) => {
     setTerminalSessions(prev => {
@@ -411,16 +406,15 @@ function IdeLayoutContent() {
       const newId = handleNewTerminal();
       setActiveTerminalId(newId);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handleNewTerminal]);
+  }, []);
 
   const handleToggleTerminal = () => {
-    setBottomPanelSize(prev => prev > 5 ? 0 : 33);
+    setIsBottomPanelOpen(prev => !prev);
   };
 
-  const goToLine = useCallback((line: number) => {
+  const goToLine = useCallback((line: number, column: number = 1) => {
     editorRef.current?.revealLineInCenter(line, monaco.editor.ScrollType.Smooth);
-    editorRef.current?.setPosition({ lineNumber: line, column: 1 });
+    editorRef.current?.setPosition({ lineNumber: line, column });
     editorRef.current?.focus();
   }, []);
 
@@ -442,7 +436,7 @@ function IdeLayoutContent() {
     const targetNode = findNodeById(result.fileId);
     if (targetNode && targetNode.type === 'file') {
       openFile(targetNode.id);
-      setTimeout(() => goToLine(result.line), 100);
+      setTimeout(() => goToLine(result.line, result.column), 100);
     }
   }, [findNodeById, openFile, goToLine]);
 
@@ -470,13 +464,43 @@ function IdeLayoutContent() {
     closeFileFromHook(fileId);
   }
 
+  const handleCloseAllTabs = () => {
+    if (!confirmClose(openFileIds)) return;
+    setOpenFileIds([]);
+    setActiveFileId(null);
+  };
+
+  const handleCloseOtherTabs = (fileId: string) => {
+    const otherFileIds = openFileIds.filter(id => id !== fileId);
+    if (!confirmClose(otherFileIds)) return;
+    setOpenFileIds([fileId]);
+  };
+  
+  const handleCommand = (commandId: string) => {
+      switch (commandId) {
+          case 'theme:toggle':
+              // Logic for toggling theme
+              toast({title: "Theme Toggle", description: "Theme toggling is not yet implemented."});
+              break;
+          case 'file:new':
+              handleNewFile();
+              break;
+          case 'editor:format':
+              handleFormatCode();
+              break;
+          default:
+              break;
+      }
+      setIsCommandPaletteOpen(false);
+  };
 
   const renderPanel = () => {
     switch (activePanel) {
       case "files":
         return <FileExplorer 
           ref={fileExplorerRef}
-          files={files} 
+          files={files}
+          openFileIds={openFileIds}
           activeFileId={activeFileId} 
           onSelectFile={openFile}
           createFile={createFile}
@@ -511,8 +535,9 @@ function IdeLayoutContent() {
 
   return (
       <div className="flex h-screen bg-background text-foreground font-body">
-        <Sidebar activePanel={activePanel} onSelectPanel={setActivePanel} />
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <CommandPalette open={isCommandPaletteOpen} onOpenChange={setIsCommandPaletteOpen} onCommand={handleCommand} />
+        <ActivityBar activePanel={activePanel} onSelectPanel={setActivePanel} />
+        <div className="flex flex-1 flex-col overflow-hidden">
           <Header 
             onSuggest={handleSuggest}
             onFormat={handleFormatCode}
@@ -525,22 +550,29 @@ function IdeLayoutContent() {
             onNewTerminal={handleNewTerminal}
             onToggleTerminal={handleToggleTerminal}
             logOutput={logToOutput}
+            onCommandPalette={() => setIsCommandPaletteOpen(true)}
           />
           <main className="flex-1 flex overflow-hidden">
             <ResizablePanelGroup direction="horizontal">
-              <ResizablePanel defaultSize={20} minSize={15} maxSize={30} id="side-panel" order={1} className={cn("min-w-[200px]", activePanel === 'none' && "hidden")}>
+              <ResizablePanel defaultSize={20} minSize={15} maxSize={40} id="side-panel" order={1} className={cn("min-w-[200px] bg-card", activePanel === 'none' && "hidden")}>
                 {renderPanel()}
               </ResizablePanel>
               {activePanel !== 'none' && <ResizableHandle withHandle />}
               <ResizablePanel id="main-panel" order={2}>
-                 <ResizablePanelGroup direction="vertical">
-                    <ResizablePanel defaultSize={100 - bottomPanelSize} order={1}>
+                 <ResizablePanelGroup direction="vertical" onLayout={(sizes) => {
+                     setIsBottomPanelOpen(sizes[1] > 5);
+                     setBottomPanelSize(sizes[1]);
+                 }}>
+                    <ResizablePanel defaultSize={100 - bottomPanelSize} minSize={20} order={1}>
                        <div className="flex-1 flex flex-col min-w-0 h-full">
                         <EditorTabs
                             openFileIds={openFileIds}
                             activeFileId={activeFileId}
                             onSelectTab={setActiveFileId}
                             onCloseTab={handleCloseTab}
+                            onCloseAllTabs={handleCloseAllTabs}
+                            onCloseOtherTabs={handleCloseOtherTabs}
+                            onReorderTabs={setOpenFileIds}
                             findNodeById={findNodeById}
                             dirtyFileIds={dirtyFiles}
                             onNewUntitled={handleNewUntitledFile}
@@ -559,27 +591,42 @@ function IdeLayoutContent() {
                                 }}
                               />
                           ) : (
-                            <div className="flex items-center justify-center h-full text-muted-foreground">
-                              <p>Select a file to begin editing or create a new one.</p>
+                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                              <svg
+                                  className="w-24 h-24 mb-4 text-gray-600"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path d="M14.4645 19.232L21.3698 12.3267L23.1421 14.099L16.2368 21.0043L14.4645 19.232Z" fill="currentColor"/>
+                                  <path d="M1.00439 14.099L7.90969 21.0043L9.68198 19.232L2.77668 12.3267L1.00439 14.099Z" fill="currentColor"/>
+                                  <path d="M9.17188 3L2.26658 9.9053L4.03887 11.6776L10.9442 4.7723L9.17188 3Z" fill="currentColor"/>
+                                  <path d="M21.8579 9.9053L14.9526 3L13.1803 4.7723L20.0856 11.6776L21.8579 9.9053Z" fill="currentColor"/>
+                                </svg>
+                                <p className="mb-4">Select a file to begin editing or create a new one.</p>
+                                <button onClick={() => setIsCommandPaletteOpen(true)} className="text-sm text-primary hover:underline">Show all commands</button>
                             </div>
                           )}
                         </div>
                       </div>
                     </ResizablePanel>
-                    {bottomPanelSize > 5 && <ResizableHandle withHandle />}
+                    <ResizableHandle withHandle className={cn(!isBottomPanelOpen && "hidden")} />
                     <ResizablePanel 
-                      defaultSize={bottomPanelSize} 
-                      minSize={5} 
+                      defaultSize={bottomPanelSize}
+                      collapsedSize={5}
+                      collapsible={true}
+                      minSize={15} 
                       maxSize={80} 
                       id="bottom-panel" 
                       order={2}
-                      onResize={setBottomPanelSize}
-                      className={cn(bottomPanelSize <= 5 && "hidden")}
+                      onCollapse={() => setIsBottomPanelOpen(false)}
+                      onExpand={() => setIsBottomPanelOpen(true)}
+                      className={cn(isBottomPanelOpen ? "block" : "hidden")}
                     >
                       <Terminal 
                         problems={problems} 
                         onGoToProblem={handleGoToProblem} 
-                        onClosePanel={() => setBottomPanelSize(0)}
+                        onClosePanel={() => setIsBottomPanelOpen(false)}
                         onNewTerminal={handleNewTerminal}
                         initialTerminals={terminalSessions}
                         onCloseTerminal={handleCloseTerminal}
@@ -591,16 +638,20 @@ function IdeLayoutContent() {
               </ResizablePanel>
             </ResizablePanelGroup>
           </main>
+          <StatusBar 
+            activeFile={activeFile}
+            problems={problems}
+          />
         </div>
       </div>
   );
 }
 
 export function IdeLayout() {
-  const [isMounted, setIsMounted] = useState(false);
+  const [isMounted, useState] = React.useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    useState(true);
   }, []);
 
   if (!isMounted) {

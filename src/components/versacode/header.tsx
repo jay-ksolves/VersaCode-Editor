@@ -11,7 +11,7 @@ import {
   MenubarCheckboxItem,
 } from "@/components/ui/menubar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Play, Sparkles, LoaderCircle, Indent } from "lucide-react";
+import { Play, Sparkles, LoaderCircle, Indent, Command } from "lucide-react";
 
 interface HeaderProps {
   onSuggest: () => void;
@@ -25,6 +25,7 @@ interface HeaderProps {
   onNewTerminal: () => void;
   onToggleTerminal: () => void;
   logOutput: (message: string) => void;
+  onCommandPalette: () => void;
 }
 
 export function Header({
@@ -39,6 +40,7 @@ export function Header({
   onNewTerminal,
   onToggleTerminal,
   logOutput,
+  onCommandPalette,
 }: HeaderProps) {
   
   const handleRun = () => {
@@ -46,9 +48,26 @@ export function Header({
   };
 
   return (
-    <header className="flex items-center justify-between h-16 px-4 border-b bg-card">
+    <header className="flex items-center justify-between h-12 px-4 border-b bg-card">
       <div className="flex items-center gap-4">
         <Menubar className="border-none bg-transparent">
+          <MenubarMenu>
+              <MenubarTrigger>
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="text-primary"
+                    >
+                    <path d="M14.4645 19.232L21.3698 12.3267L23.1421 14.099L16.2368 21.0043L14.4645 19.232Z" fill="currentColor"/>
+                    <path d="M1.00439 14.099L7.90969 21.0043L9.68198 19.232L2.77668 12.3267L1.00439 14.099Z" fill="currentColor"/>
+                    <path d="M9.17188 3L2.26658 9.9053L4.03887 11.6776L10.9442 4.7723L9.17188 3Z" fill="currentColor"/>
+                    <path d="M21.8579 9.9053L14.9526 3L13.1803 4.7723L20.0856 11.6776L21.8579 9.9053Z" fill="currentColor"/>
+                </svg>
+              </MenubarTrigger>
+          </MenubarMenu>
           <MenubarMenu>
             <MenubarTrigger>File</MenubarTrigger>
             <MenubarContent>
@@ -93,15 +112,19 @@ export function Header({
           <MenubarMenu>
             <MenubarTrigger>View</MenubarTrigger>
             <MenubarContent>
-              <MenubarCheckboxItem
-                checked={isMinimapVisible}
-                onCheckedChange={onToggleMinimap}
-              >
-                Show Minimap
-              </MenubarCheckboxItem>
-              <MenubarSeparator />
-              <MenubarItem disabled>Explorer</MenubarItem>
-              <MenubarItem onClick={onToggleTerminal}>Terminal</MenubarItem>
+                <MenubarItem onClick={onCommandPalette}>
+                    Command Palette <MenubarShortcut>Ctrl+Shift+P</MenubarShortcut>
+                </MenubarItem>
+                <MenubarSeparator />
+                <MenubarCheckboxItem
+                    checked={isMinimapVisible}
+                    onCheckedChange={onToggleMinimap}
+                >
+                    Show Minimap
+                </MenubarCheckboxItem>
+                <MenubarSeparator />
+                <MenubarItem disabled>Explorer</MenubarItem>
+                <MenubarItem onClick={onToggleTerminal}>Terminal</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
           <MenubarMenu>
@@ -159,6 +182,17 @@ export function Header({
           </TooltipContent>
         </Tooltip>
         <Tooltip>
+            <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={onCommandPalette} title="Command Palette (Ctrl+Shift+P)">
+                    <Command className="h-5 w-5" />
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+                <p>Command Palette</p>
+                <p className="text-xs text-muted-foreground">Ctrl+Shift+P</p>
+            </TooltipContent>
+        </Tooltip>
+        <Tooltip>
           <TooltipTrigger asChild>
             <Button size="icon" onClick={handleRun} className="bg-accent text-accent-foreground hover:bg-accent/90" title="Run Code">
               <Play className="h-5 w-5" />
@@ -172,5 +206,3 @@ export function Header({
     </header>
   );
 }
-
-    
