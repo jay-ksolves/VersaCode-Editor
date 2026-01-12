@@ -10,7 +10,7 @@ export type FileSystemNode = {
   path: string;
   isDirty?: boolean;
 } | {
-  id: string;
+  id:string;
   name: string;
   type: 'folder';
   children: FileSystemNode[];
@@ -25,19 +25,7 @@ export interface SearchResult {
     lineContent: string;
 }
 
-const initialFileSystem: FileSystemNode[] = [
-  {
-    id: '1',
-    name: 'src',
-    type: 'folder',
-    path: 'src',
-    children: [
-      { id: '2', name: 'app.tsx', type: 'file', content: 'console.log("Hello, World!");', path: 'src/app.tsx' },
-      { id: '3', name: 'styles.css', type: 'file', content: 'body { margin: 0; }', path: 'src/styles.css' },
-    ],
-  },
-  { id: '4', name: 'package.json', type: 'file', content: '{ "name": "versacode-app" }', path: 'package.json' },
-];
+const initialFileSystem: FileSystemNode[] = [];
 
 function findNodeById(nodes: FileSystemNode[], id: string, searchInside: boolean = true): FileSystemNode | null {
   for (const node of nodes) {
@@ -140,7 +128,7 @@ function addNodeToTree(nodes: FileSystemNode[], parentId: string | null, newNode
 }
 
 function renameNodeInTree(nodes: FileSystemNode[], id: string, newName: string): FileSystemNode[] {
-    const tree = nodes.map(node => {
+    return updatePaths(nodes.map(node => {
         if (node.id === id) {
             return { ...node, name: newName };
         }
@@ -148,8 +136,7 @@ function renameNodeInTree(nodes: FileSystemNode[], id: string, newName: string):
             return { ...node, children: renameNodeInTree(node.children, id, newName) };
         }
         return node;
-    });
-    return updatePaths(tree);
+    }));
 }
 
 
