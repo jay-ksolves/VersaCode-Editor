@@ -45,7 +45,7 @@ A clear and concise description of what actually happened. Include screenshots o
 
 - **ID:** `BUG-001`
 - **Severity:** `P2`
-- **Status:** `Open`
+- **Status:** `Resolved`
 - **Assignee:** `N/A`
 
 **Description:**
@@ -65,7 +65,7 @@ The output persists until the page is reloaded.
 
 - **ID:** `BUG-002`
 - **Severity:** `P3`
-- **Status:** `Open`
+- **Status:** `Resolved`
 - **Assignee:** `N/A`
 
 **Description:**

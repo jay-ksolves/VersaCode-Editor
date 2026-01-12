@@ -3,10 +3,13 @@
 import React, { useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, XCircle } from "lucide-react";
+import { AlertTriangle, XCircle, Trash2 } from "lucide-react";
+import { Button } from "../ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 interface TerminalProps {
   output: string[];
+  onClear: () => void;
 }
 
 const problems = [
@@ -16,7 +19,7 @@ const problems = [
 ];
 
 
-export function Terminal({ output }: TerminalProps) {
+export function Terminal({ output, onClear }: TerminalProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,12 +33,24 @@ export function Terminal({ output }: TerminalProps) {
 
   return (
     <Tabs defaultValue="terminal" className="h-full flex flex-col">
-      <TabsList className="px-2 bg-card rounded-none border-b justify-start">
-        <TabsTrigger value="terminal">TERMINAL</TabsTrigger>
-        <TabsTrigger value="problems">PROBLEMS</TabsTrigger>
-        <TabsTrigger value="output">OUTPUT</TabsTrigger>
-        <TabsTrigger value="debug">DEBUG CONSOLE</TabsTrigger>
-      </TabsList>
+      <div className="flex items-center justify-between border-b pr-2">
+        <TabsList className="px-2 bg-card rounded-none border-b-0 justify-start">
+          <TabsTrigger value="terminal">TERMINAL</TabsTrigger>
+          <TabsTrigger value="problems">PROBLEMS</TabsTrigger>
+          <TabsTrigger value="output">OUTPUT</TabsTrigger>
+          <TabsTrigger value="debug">DEBUG CONSOLE</TabsTrigger>
+        </TabsList>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClear}>
+              <Trash2 className="h-4 w-4"/>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p>Clear Terminal</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
       <div className="flex-1 bg-background font-code text-sm overflow-hidden">
         <TabsContent value="terminal" className="h-full m-0">
             <ScrollArea className="h-full" ref={scrollAreaRef}>

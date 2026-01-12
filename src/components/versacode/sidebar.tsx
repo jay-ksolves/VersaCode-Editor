@@ -21,16 +21,27 @@ const navItems = [
 ] as const;
 
 export function Sidebar({ activePanel, onSelectPanel }: SidebarProps) {
-  const [isDark, setIsDark] = useState(false);
+  const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    setIsDark(isDarkMode);
+    const storedTheme = localStorage.getItem('versacode-theme') || 'light';
+    setTheme(storedTheme);
+    if (storedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, []);
 
   const toggleTheme = () => {
-    document.documentElement.classList.toggle('dark');
-    setIsDark(prev => !prev);
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('versacode-theme', newTheme);
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
   
   const handlePanelSelection = (panel: typeof navItems[number]['id']) => {
@@ -69,7 +80,7 @@ export function Sidebar({ activePanel, onSelectPanel }: SidebarProps) {
          <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" className="h-10 w-10" onClick={toggleTheme}>
-                {isDark ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
+                {theme === 'dark' ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">

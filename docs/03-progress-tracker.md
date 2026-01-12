@@ -7,7 +7,7 @@ This document tracks the implementation status of core IDE features.
 - [x] Basic IDE Layout (Sidebar, Main Panel, Terminal)
 - [x] Collapsible Side Panels
 - [x] Theme Toggle (Light/Dark)
-- [ ] Persist Theme and Panel State in `localStorage`
+- [x] Persist Theme and Panel State in `localStorage`
 
 ## File Explorer Panel (`files`)
 
@@ -38,7 +38,7 @@ This document tracks the implementation status of core IDE features.
 - [x] Mock Code Execution Output
 - [x] "Problems" tab with mock data
 - [ ] Implement actual code execution environment (e.g., using WebContainers)
-- [ ] Clear terminal output
+- [x] Clear terminal output
 - [ ] Link problems to lines in the code editor
 
 ## Extensions Panel (`extensions`)

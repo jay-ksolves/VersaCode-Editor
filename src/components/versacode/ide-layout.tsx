@@ -41,6 +41,10 @@ export function IdeLayout() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+  
+  const clearTerminal = useCallback(() => {
+    setTerminalOutput([]);
+  }, []);
 
   const handleRun = useCallback(() => {
     if (activeFile) {
@@ -123,7 +127,7 @@ export function IdeLayout() {
 
   if (!isMounted) {
     // Prevent hydration mismatch by not rendering server-side
-    // This is important because useFileSystem relies on localStorage
+    // This is important because useFileSystem and theme rely on localStorage
     return null;
   }
 
@@ -148,7 +152,7 @@ export function IdeLayout() {
                 />
               </div>
               <div className="h-1/3 border-t border-border flex flex-col">
-                <Terminal output={terminalOutput} />
+                <Terminal output={terminalOutput} onClear={clearTerminal} />
               </div>
             </div>
           </main>
