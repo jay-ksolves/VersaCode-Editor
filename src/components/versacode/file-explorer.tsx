@@ -518,12 +518,6 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
                     )}
                   </div>
                 )}
-                <Alert className="mt-4">
-                    <Info className="h-4 w-4" />
-                    <AlertDescription className="text-xs">
-                        This is a prototype using browser localStorage, which has size limits. Native file system access via the File System Access API is planned for a future release to support large projects.
-                    </AlertDescription>
-                </Alert>
               </div>
             </CollapsibleContent>
         </Collapsible>
