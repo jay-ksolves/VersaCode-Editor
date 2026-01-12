@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Folder, File as FileIcon, ChevronRight, ChevronDown, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen } from "lucide-react";
+import { Folder, File as FileIcon, ChevronRight, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen, FileJson, FileCss, FileCode, FileText } from "lucide-react";
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { cn } from "@/lib/utils";
 import type { FileSystemNode } from "@/hooks/useFileSystem";
@@ -26,6 +26,26 @@ type EditState = {
 
 type DeleteOperation = { type: 'delete', nodeId: string, nodeName: string } | null;
 type GenerateOperation = { type: 'generate_code', parentId: string | null } | null;
+
+const FileIconComponent = ({ filename }: { filename: string }) => {
+    const extension = filename.split('.').pop()?.toLowerCase();
+    switch (extension) {
+        case 'json':
+            return <FileJson className="w-4 h-4 text-yellow-500" />;
+        case 'css':
+            return <FileCss className="w-4 h-4 text-blue-500" />;
+        case 'tsx':
+        case 'jsx':
+            return <FileCode className="w-4 h-4 text-cyan-400" />;
+        case 'ts':
+        case 'js':
+            return <FileCode className="w-4 h-4 text-yellow-400" />;
+        case 'md':
+            return <FileText className="w-4 h-4 text-gray-400" />;
+        default:
+            return <FileIcon className="w-4 h-4 text-muted-foreground" />;
+    }
+};
 
 function FileNode({ 
   node, 
@@ -100,12 +120,13 @@ function FileNode({
       style={{ paddingLeft: `${level * 1 + 0.5}rem` }}
       title={node.path}
     >
-      {isFolder && (
-          <ChevronRight className={cn("w-4 h-4 transition-transform", isExpanded && "rotate-90")} />
+      {isFolder ? (
+          <ChevronRight className={cn("w-4 h-4 transition-transform flex-shrink-0", isExpanded && "rotate-90")} />
+      ) : (
+        <div className="w-4" /> // Spacer for alignment
       )}
-      {!isFolder && <div className="w-4 h-4" />} {/* Spacer */}
 
-      {isFolder ? <FolderIconComponent className="w-4 h-4 text-accent" /> : <FileIcon className="w-4 h-4 text-muted-foreground" />}
+      {isFolder ? <FolderIconComponent className="w-4 h-4 text-accent" /> : <FileIconComponent filename={node.name} />}
       
       {renderNodeName()}
 
@@ -158,7 +179,7 @@ function EditNode({
   
   return (
     <div className="flex items-center space-x-2 py-1.5 px-2" style={{ paddingLeft: `${level * 1 + 0.5}rem` }}>
-       <ChevronRight className="w-4 h-4 invisible" />
+       <div className="w-4" /> {/* Spacer */}
        {isFolder ? <Folder className="w-4 h-4 text-accent" /> : <FileIcon className="w-4 h-4 text-muted-foreground" />}
        <input
           ref={inputRef}
@@ -499,3 +520,5 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
 });
 
 FileExplorer.displayName = 'FileExplorer';
+
+    
