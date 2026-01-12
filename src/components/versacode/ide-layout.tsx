@@ -7,7 +7,7 @@ import { Header } from "./header";
 import { CodeEditor } from "./code-editor";
 import { EditorTabs } from "./editor-tabs";
 import { Terminal } from "./terminal";
-import { FileExplorer } from "./file-explorer";
+import { FileExplorer, FileExplorerRef } from "./file-explorer";
 import { ExtensionsPanel } from "./extensions-panel";
 import { SettingsPanel } from "./settings-panel";
 import { TasksPanel } from "./tasks-panel";
@@ -33,7 +33,7 @@ function IdeLayoutContent() {
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
   const [editorSettings, setEditorSettings] = useState(defaultEditorSettings);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const fileExplorerRef = useRef<{ startCreate: (type: 'create_file' | 'create_folder') => void }>(null);
+  const fileExplorerRef = useRef<FileExplorerRef>(null);
 
   const { toast } = useToast();
 
