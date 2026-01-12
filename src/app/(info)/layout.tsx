@@ -2,12 +2,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Github, Moon, Rss, Sun, Twitter, Youtube } from 'lucide-react';
+import { Github, Moon, Rss, Sun, Twitter, Youtube, ArrowUp } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from '@/context/theme-context';
 import React, { useRef, useEffect, useState } from 'react';
 import Script from 'next/script';
+import { cn } from '@/lib/utils';
 
 declare global {
   interface Window {
@@ -27,6 +28,20 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
   const vantaRef = useRef<HTMLDivElement>(null);
   const vantaEffectRef = useRef<any>(null);
   const [isThreeLoaded, setIsThreeLoaded] = useState(false);
+  const [showScroll, setShowScroll] = useState(false);
+
+  useEffect(() => {
+    const checkScrollTop = () => {
+      if (!showScroll && window.scrollY > 400) {
+        setShowScroll(true);
+      } else if (showScroll && window.scrollY <= 400) {
+        setShowScroll(false);
+      }
+    };
+
+    window.addEventListener('scroll', checkScrollTop);
+    return () => window.removeEventListener('scroll', checkScrollTop);
+  }, [showScroll]);
 
   useEffect(() => {
     const cleanup = () => {
@@ -68,6 +83,10 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
+  };
+  
+  const scrollTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   
   return (
@@ -218,6 +237,16 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
             </footer>
         </div>
       </div>
+      <Button
+        onClick={scrollTop}
+        className={cn(
+          'fixed bottom-8 right-8 z-50 rounded-full p-0 w-12 h-12 transition-opacity duration-300',
+          showScroll ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        )}
+        aria-label="Scroll to top"
+      >
+        <ArrowUp className="h-6 w-6" />
+      </Button>
     </>
   );
 }
