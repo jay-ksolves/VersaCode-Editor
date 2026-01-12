@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Folder, File as FileIcon, ChevronRight, ChevronDown, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2 } from "lucide-react";
+import { Folder, File as FileIcon, ChevronRight, ChevronDown, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen } from "lucide-react";
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { cn } from "@/lib/utils";
 import type { FileSystemNode } from "@/hooks/useFileSystem";
@@ -39,6 +39,8 @@ function FileNode({
   onDrop,
   isBeingDragged,
   isDropTarget,
+  isExpanded,
+  onToggleFolder
 }: { 
   node: FileSystemNode; 
   level?: number; 
@@ -51,6 +53,8 @@ function FileNode({
   onDrop: (e: React.DragEvent, dropTargetId: string | null) => void;
   isBeingDragged: boolean;
   isDropTarget: boolean;
+  isExpanded: boolean;
+  onToggleFolder: (folderId: string) => void;
 }) {
   const isFolder = node.type === 'folder';
   const isActive = activeFileId === node.id;
@@ -64,19 +68,25 @@ function FileNode({
   };
   
   const handleDoubleClick = () => {
-    onSetEditState(node.id);
+    if (isFolder) {
+      onToggleFolder(node.id);
+    } else {
+       onSetEditState(node.id);
+    }
   }
 
   const renderNodeName = () => (
     <span className="truncate text-sm select-none" onDoubleClick={handleDoubleClick}>{node.name}</span>
   );
+  
+  const FolderIcon = isExpanded ? FolderOpen : Folder;
 
   return (
     <div
       draggable
       onDragStart={(e) => onDragStart(e, node.id)}
-      className={cn("flex items-center space-x-2 py-1 px-2 rounded-md hover:bg-muted group cursor-pointer", {
-        "bg-muted": isActive && !isFolder,
+      className={cn("flex items-center space-x-2 py-1.5 px-2 rounded-md hover:bg-muted group cursor-pointer", {
+        "bg-muted": isActive,
         "opacity-50": isBeingDragged,
         "bg-accent/20 border-2 border-dashed border-accent": isDropTarget && isFolder,
       })}
@@ -87,15 +97,15 @@ function FileNode({
           e.stopPropagation();
           onDrop(e, node.type === 'folder' ? node.id : null);
       }}
-      style={{ paddingLeft: `${level * 1.25 + 0.5}rem` }}
+      style={{ paddingLeft: `${level * 1 + 0.5}rem` }}
       title={node.path}
     >
-      {isFolder ? (
-        <div /> // Spacer for alignment
-      ) : (
-        <div style={{ width: '1rem' }} /> /* Spacer for alignment */
+      {isFolder && (
+          <ChevronRight className={cn("w-4 h-4 transition-transform", isExpanded && "rotate-90")} />
       )}
-      {isFolder ? <Folder className="w-4 h-4 text-accent" /> : <FileIcon className="w-4 h-4 text-muted-foreground" />}
+      {!isFolder && <div className="w-4 h-4" />} {/* Spacer */}
+
+      {isFolder ? <FolderIcon className="w-4 h-4 text-accent" /> : <FileIcon className="w-4 h-4 text-muted-foreground" />}
       
       {renderNodeName()}
 
@@ -106,7 +116,7 @@ function FileNode({
               </Button>
           </PopoverTrigger>
           <PopoverContent className="w-40 p-1" onClick={e => e.stopPropagation()}>
-              <Button variant="ghost" className="w-full justify-start h-8 px-2" onClick={handleDoubleClick}>
+              <Button variant="ghost" className="w-full justify-start h-8 px-2" onClick={() => onSetEditState(node.id)}>
                   <Edit className="mr-2 h-4 w-4" /> Rename
               </Button>
                <Button variant="ghost" className="w-full justify-start h-8 px-2 text-destructive hover:text-destructive" onClick={() => onSetDeleteOperation({ type: 'delete', nodeId: node.id, nodeName: node.name })}>
@@ -147,8 +157,8 @@ function EditNode({
   const isFolder = editState.type === 'create_folder';
   
   return (
-    <div className="flex items-center space-x-2 py-1 px-2" style={{ paddingLeft: `${level * 1.25 + 0.5}rem` }}>
-       <div style={{ width: '1rem' }} />
+    <div className="flex items-center space-x-2 py-1.5 px-2" style={{ paddingLeft: `${level * 1 + 0.5}rem` }}>
+       <ChevronRight className="w-4 h-4 invisible" />
        {isFolder ? <Folder className="w-4 h-4 text-accent" /> : <FileIcon className="w-4 h-4 text-muted-foreground" />}
        <input
           ref={inputRef}
@@ -157,7 +167,7 @@ function EditNode({
           onChange={(e) => setName(e.target.value)}
           onBlur={handleSubmit}
           onKeyDown={handleKeyDown}
-          className="bg-transparent border border-accent rounded-sm h-6 px-1 text-sm w-full"
+          className="bg-transparent border border-accent rounded-sm h-7 px-1 text-sm w-full"
        />
     </div>
   );
@@ -250,7 +260,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
     if (type === 'file') {
       onSelectFile(id);
     } else {
-      // Don't toggle on select, only on chevron click
+       onToggleFolder(id);
     }
   }
 
@@ -360,26 +370,22 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
         const nodeComponent = isEditing ? (
             <EditNode key={node.id} editState={editState!} initialName={node.name} level={level} />
         ) : (
-          <div key={node.id} className="flex items-center space-x-2">
-            {isFolder && (
-                <button onClick={(e) => { e.stopPropagation(); onToggleFolder(node.id); }} className="flex-shrink-0" style={{ paddingLeft: `${level * 1.25 + 0.5}rem` }}>
-                    {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                </button>
-            )}
-            <FileNode 
-                node={node} 
-                level={isFolder ? 0 : level}
-                onSelectNode={handleSelectNode} 
-                activeFileId={activeFileId}
-                onSetEditState={startRename}
-                onSetDeleteOperation={setDeleteOperation}
-                onDragStart={handleDragStart}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-                isBeingDragged={draggedNodeId === node.id}
-                isDropTarget={dropTargetId === node.id && node.type === 'folder'}
-            />
-          </div>
+          <FileNode 
+              key={node.id}
+              node={node} 
+              level={level}
+              onSelectNode={handleSelectNode} 
+              activeFileId={activeFileId}
+              onSetEditState={startRename}
+              onSetDeleteOperation={setDeleteOperation}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              isBeingDragged={draggedNodeId === node.id}
+              isDropTarget={dropTargetId === node.id && node.type === 'folder'}
+              isExpanded={isExpanded}
+              onToggleFolder={onToggleFolder}
+          />
         );
 
         let childrenComponents: React.ReactNode[] = [];
@@ -406,8 +412,8 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
 
   return (
     <div className="h-full flex flex-col" onDragEnd={handleDragEnd} onDrop={(e) => handleDrop(e, null)}>
-      <div className="p-2 border-b flex items-center justify-between">
-        <h2 className="text-lg font-semibold tracking-tight px-2">Explorer</h2>
+      <div className="p-2 border-b flex items-center justify-between h-12">
+        <h2 className="text-sm font-semibold tracking-tight px-2 uppercase text-muted-foreground">Explorer</h2>
         <div className="flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -437,7 +443,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
       </div>
       <div className="flex-1 p-2 overflow-y-auto" onDragOver={(e) => e.preventDefault()}>
         {files.length === 0 && !editState ? renderEmptyState() : (
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {renderFileTree(files)}
             {editState && (editState.type === 'create_file' || editState.type === 'create_folder') && editState.parentId === null && (
               <EditNode editState={editState} level={0} />
@@ -493,5 +499,3 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
 });
 
 FileExplorer.displayName = 'FileExplorer';
-
-    

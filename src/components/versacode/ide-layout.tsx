@@ -100,7 +100,7 @@ function IdeLayoutContent() {
     }
   };
   
-  // Effect for managing model lifecycle (creation and disposal)
+  // Effect for managing model lifecycle (creation, disposal, content listeners)
   useEffect(() => {
     const monaco = monacoRef.current;
     if (!monaco) return;
@@ -108,10 +108,10 @@ function IdeLayoutContent() {
     const openFilesSet = new Set(openFileIds);
     const disposables = new Map<string, monaco.IDisposable>();
 
-    // Create models for newly opened files
+    // Create models for newly opened files and attach change listeners
     openFilesSet.forEach(fileId => {
       if (!modelsRef.current.has(fileId)) {
-        const file = findNodeById(fileId);
+        const file = findNodeById(fileId, true); // Get original to set initial content
         if (file?.type === 'file') {
           const model = monaco.editor.createModel(
             file.content,
@@ -122,17 +122,14 @@ function IdeLayoutContent() {
           // Listen for content changes to update both the main state and the dirty state
           const disposable = model.onDidChangeContent(() => {
             const currentContent = model.getValue();
-            const savedContent = findNodeById(fileId)?.content;
+            const originalContent = findNodeById(fileId, true)?.content;
             
-            // Sync content with the main state
-            if (currentContent !== savedContent) {
-              updateFileContent(fileId, currentContent, true); // Pass true to indicate it's from editor
-            }
+            // Sync content with the main (React) state
+            updateFileContent(fileId, currentContent, true);
             
             // Update dirty status
             setDirtyFiles(prev => {
               const newDirty = new Set(prev);
-              const originalContent = findNodeById(fileId, true)?.content; // Get original from non-React state
               if (currentContent !== originalContent) {
                 newDirty.add(fileId);
               } else {
@@ -148,26 +145,24 @@ function IdeLayoutContent() {
       }
     });
 
-    // Clean up models for closed files
+    // Clean up models and listeners for closed files
+    modelsRef.current.forEach((model, fileId) => {
+      if (!openFilesSet.has(fileId)) {
+        disposables.get(fileId)?.dispose();
+        model.dispose();
+        modelsRef.current.delete(fileId);
+        setDirtyFiles(prev => {
+          const newDirty = new Set(prev);
+          newDirty.delete(fileId);
+          return newDirty;
+        });
+      }
+    });
+
     return () => {
-        openFilesSet.forEach(fileId => {
-            const disposable = disposables.get(fileId);
-            disposable?.dispose();
-        });
-
-        modelsRef.current.forEach((model, fileId) => {
-            if (!openFilesSet.has(fileId)) {
-                model.dispose();
-                modelsRef.current.delete(fileId);
-                setDirtyFiles(prev => {
-                  const newDirty = new Set(prev);
-                  newDirty.delete(fileId);
-                  return newDirty;
-                });
-            }
-        });
+      // Dispose all remaining listeners on unmount
+      disposables.forEach(d => d.dispose());
     };
-
   }, [openFileIds, findNodeById, updateFileContent]);
 
   // Effect for switching the editor's active model
@@ -355,7 +350,7 @@ function IdeLayoutContent() {
           />
           <main className="flex-1 flex overflow-hidden">
             <ResizablePanelGroup direction="horizontal">
-              <ResizablePanel defaultSize={20} minSize={15} maxSize={30} id="side-panel" order={1} className={cn(activePanel === 'none' && "hidden")}>
+              <ResizablePanel defaultSize={20} minSize={15} maxSize={30} id="side-panel" order={1} className={cn("min-w-[200px]", activePanel === 'none' && "hidden")}>
                 {renderPanel()}
               </ResizablePanel>
               {activePanel !== 'none' && <ResizableHandle withHandle />}
@@ -363,10 +358,6 @@ function IdeLayoutContent() {
                  <ResizablePanelGroup direction="vertical">
                     <ResizablePanel defaultSize={100 - bottomPanelSize} order={1}>
                        <div className="flex-1 flex flex-col min-w-0 h-full">
-                        <Breadcrumbs
-                          activeFile={activeFile}
-                          onSelectPath={handleBreadcrumbSelect}
-                        />
                         <EditorTabs
                             openFileIds={openFileIds}
                             activeFileId={activeFileId}
@@ -374,6 +365,10 @@ function IdeLayoutContent() {
                             onCloseTab={handleCloseTab}
                             findNodeById={findNodeById}
                             dirtyFileIds={dirtyFiles}
+                        />
+                        <Breadcrumbs
+                          activeFile={activeFile}
+                          onSelectPath={handleBreadcrumbSelect}
                         />
                         <div className="flex-1 relative overflow-auto bg-card">
                           {openFileIds.length > 0 && activeFile ? (
@@ -436,5 +431,3 @@ export function IdeLayout() {
     </TooltipProvider>
   );
 }
-
-    

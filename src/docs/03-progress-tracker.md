@@ -59,5 +59,3 @@ This document tracks the implementation status of core IDE features.
 
 - [x] Initial UI with mock feature/bug lists
 - [x] Link tasks to progress/bug tracker docs
-
-    

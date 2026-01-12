@@ -4,7 +4,7 @@
 import React, { useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, XCircle, Trash2, X, ChevronUp, ChevronsUp, Maximize } from "lucide-react";
+import { AlertTriangle, XCircle, Trash2, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
@@ -37,8 +37,8 @@ export function Terminal({ output, problems, onClear, onGoToProblem, onClose }: 
 
   return (
     <Tabs defaultValue="terminal" className="h-full flex flex-col">
-      <div className="flex items-center justify-between border-b pr-2">
-        <TabsList className="px-2 bg-card rounded-none border-b-0 justify-start">
+      <div className="flex items-center justify-between border-b pr-2 bg-card">
+        <TabsList className="px-2 bg-transparent rounded-none border-b-0 justify-start">
           <TabsTrigger value="terminal">TERMINAL</TabsTrigger>
           <TabsTrigger value="problems">PROBLEMS</TabsTrigger>
           <TabsTrigger value="output">OUTPUT</TabsTrigger>
@@ -112,5 +112,3 @@ export function Terminal({ output, problems, onClear, onGoToProblem, onClose }: 
     </Tabs>
   );
 }
-
-    
