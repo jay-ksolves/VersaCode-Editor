@@ -118,7 +118,7 @@ export default function HomePage() {
        
       <div 
         ref={vantaRef} 
-        className="absolute top-0 left-0 w-screen h-screen z-[-1]"
+        className="absolute inset-0 z-[-1]"
       ></div>
       <div className="relative isolate overflow-hidden">
         <div className="container mx-auto px-4 py-24 text-center flex items-center justify-center h-screen">
