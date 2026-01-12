@@ -82,7 +82,7 @@ export default function HomePage() {
 
       <main className="flex-1">
         <div className="relative isolate overflow-hidden">
-             <div className="aurora-background"></div>
+             <div className="vanta-background"></div>
              <div className="container mx-auto px-4 py-24 text-center">
               <div className="mx-auto max-w-4xl animate-fade-in">
                 <div className="mb-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>

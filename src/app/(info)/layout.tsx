@@ -71,7 +71,7 @@ export default function InfoLayout({
       </header>
       <main className="flex-1">
         <div className="relative isolate overflow-hidden">
-          <div className="aurora-background"></div>
+          <div className="vanta-background"></div>
           <div className="container mx-auto px-4 py-16">
             {children}
           </div>
