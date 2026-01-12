@@ -82,7 +82,7 @@ export function EditorTabs({
   return (
     <ScrollArea className="w-full whitespace-nowrap bg-card border-b">
       <div className="flex">
-        {openFileIds.map((id, index) => {
+        {openFileIds.map((id) => {
           const file = findNodeById(id);
           if (!file || file.type !== 'file') return null;
 
@@ -101,6 +101,12 @@ export function EditorTabs({
                   onDragEnd={handleDragEnd}
                   onClick={() => onSelectTab(id)}
                   onAuxClick={(e) => handleAuxClick(e, id)}
+                  onContextMenu={(e) => {
+                      const trigger = e.currentTarget.closest('[data-radix-dropdown-menu-trigger]');
+                      if (trigger instanceof HTMLElement) {
+                          trigger.focus();
+                      }
+                  }}
                   className={cn(
                     'flex items-center gap-2 pl-4 pr-2 py-2 border-r cursor-pointer text-sm group relative min-w-max',
                     isActive ? 'bg-background text-foreground' : 'bg-card text-muted-foreground hover:bg-muted',
