@@ -48,6 +48,8 @@ export default function InfoLayout({
         backgroundColor: 0x202428,
       });
       setVantaEffect(effect);
+    } else {
+        if(vantaEffect) vantaEffect.destroy();
     }
 
     return () => {
@@ -59,8 +61,8 @@ export default function InfoLayout({
   
   return (
     <div className="bg-background text-foreground flex flex-col min-h-screen">
-       <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" strategy="beforeInteractive" />
-       <Script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.rings.min.js" strategy="beforeInteractive" />
+       <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" strategy="lazyOnload" />
+       <Script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.rings.min.js" strategy="lazyOnload" />
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-8">
