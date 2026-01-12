@@ -9,20 +9,20 @@
 - **Code Editor:** [Monaco Editor](https://microsoft.github.io/monaco-editor/)
 - **Generative AI:** [Genkit](https://firebase.google.com/docs/genkit) (with Google AI Plugin)
 - **Icons:** [Lucide React](https://lucide.dev/)
-- **State Persistence:** Browser `localStorage`
+- **State Persistence:** Browser Origin Private File System (OPFS) & `localStorage` for UI state.
 
 ## 2. Frontend Architecture
 
 The frontend is built using the **Next.js App Router**, which allows for a clear separation between Server Components and Client Components.
 
-- **`src/app/(info)/**`**: Routes for static informational pages (landing page, docs, blog, etc.).
+- **`src/app/(info)/**`**: Routes for static informational pages (landing page, docs, blog, etc.), which share a common layout.
 - **`src/app/editor/page.tsx`**: The main entry point for the IDE client application. This page renders the core `IdeLayout` component.
 - **`src/components/versacode/ide-layout.tsx`**: The heart of the application. This is a large client component that orchestrates the entire IDE interface, including the header, activity bar, panels, editor, and status bar. It manages all major state and interactions.
 - **Client Components (`"use client"`):** Used for all interactive UI elements, including the code editor, terminal, buttons, and panels that manage state. Most components within `src/components/versacode` are Client Components.
 
 ### State Management
 
-- **File System State:** All file system operations (CRUD, moving, renaming) and state are encapsulated in the `useFileSystem` custom hook (`src/hooks/useFileSystem.ts`). This hook also handles persistence of the file tree, open files, and expanded folders to `localStorage`.
+- **File System State:** All file system operations are encapsulated in the `useFileSystem` hook (`src/hooks/useFileSystem.ts`), which uses the high-performance **Origin Private File System (OPFS)** via the `useOPFS` hook for robust, persistent storage directly in the browser. This is much more powerful and scalable than `localStorage`.
 - **UI State:** Global UI state such as the active theme, panel sizes, and open/closed status of panels is managed within `IdeLayout` and persisted to `localStorage` to ensure a consistent workspace between sessions.
 - **Editor State (Monaco Models):** The `IdeLayout` component manages the lifecycle of Monaco Editor `ITextModel` instances. A `Map` caches one model per opened file, preserving undo/redo history and editor state across tab switches.
 
@@ -42,7 +42,7 @@ The project follows a standard Next.js `src` directory structure:
 |-- /components         # Reusable UI components
 |   |-- /ui             # Core ShadCN UI components
 |   `-- /versacode      # IDE-specific composite components
-|-- /hooks              # Custom React hooks (useFileSystem, useToast)
+|-- /hooks              # Custom React hooks (useFileSystem, useOPFS, useToast)
 |-- /lib                # Utility functions and libraries
 `-- /docs               # Project documentation (you are here)
 ```

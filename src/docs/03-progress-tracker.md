@@ -18,7 +18,7 @@ This document tracks the implementation status of core IDE features for the 1.0 
 - [x] "Open Editors" section in sidebar with close action
 - [x] Dynamic File Tree from an in-memory source
 - [x] File selection and opening in editor
-- [x] Persist file system state in `localStorage`
+- [x] Persist file system state in OPFS (Origin Private File System)
 - [x] Create, rename, and delete file actions
 - [x] Context menu for file operations (Rename, Delete)
 - [x] Confirmation dialog for delete
@@ -29,7 +29,7 @@ This document tracks the implementation status of core IDE features for the 1.0 
 - [x] Drag-and-drop files and folders
 - [x] Folder icons change on expand/collapse
 - [x] File-specific icons based on extension
-- [x] Refresh button to reload from `localStorage`
+- [x] Refresh button to reload from OPFS
 - [x] Upload Folder functionality to import projects
 
 ## Search Panel (`search`)
@@ -50,13 +50,13 @@ This document tracks the implementation status of core IDE features for the 1.0 
 ## Source Control Panel (`source-control`)
 
 - [x] Functional UI for staging, unstaging, and committing changes.
-- [x] Simulates a full Git workflow on the client-side.
-- [x] Full Git integration (deferred for future release)
+- [x] Simulates a full Git workflow on the client-side using OPFS dirty state.
+- [ ] Full Git integration (deferred for future release)
 
 ## Run & Debug Panel (`run-debug`)
 
-- [x] Functional placeholder panel with basic UI.
-- [x] Step-through debugger integration (deferred for future release)
+- [x] Functional placeholder panel with interactive UI controls.
+- [ ] Step-through debugger integration (deferred for future release)
 
 ## Code Editor
 
@@ -85,12 +85,12 @@ This document tracks the implementation status of core IDE features for the 1.0 
 
 ## Extensions Panel (`extensions`)
 
-- [x] Mock list of installed extensions
-- [ ] Connect to an extension marketplace (deferred for future release)
+- [x] UI populated from a central JSON file, simulating a marketplace.
+- [ ] Connect to a live extension marketplace (deferred for future release)
 - [ ] Install / Uninstall extensions (deferred for future release)
 
 ## Settings Panel (`settings`)
 
 - [x] UI for theme and editor settings
-- [x] Implement setting logic (font size, minimap, auto-save)
+- [x] Implement setting logic (font size, minimap)
 - [x] Reset settings to default
