@@ -33,26 +33,23 @@ function FileNode({
   level = 0, 
   onSelectNode, 
   activeFileId, 
-  isExpanded, 
-  onToggleFolder,
   onSetEditState,
   onSetDeleteOperation,
-  expandedFolders,
+  onToggleFolder,
 }: { 
   node: FileSystemNode; 
   level?: number; 
   onSelectNode: (id: string, type: 'file' | 'folder') => void; 
   activeFileId: string | null; 
-  isExpanded: boolean;
-  onToggleFolder: (folderId: string) => void;
-  onSetEditState: (state: EditState) => void;
+  onSetEditState: (id: string) => void;
   onSetDeleteOperation: (operation: DeleteOperation) => void;
-  expandedFolders: Set<string>;
+  onToggleFolder: (folderId: string) => void;
 }) {
   const isFolder = node.type === 'folder';
   const isActive = activeFileId === node.id;
 
   const handleNodeClick = (e: React.MouseEvent) => {
+    // Prevent popover content from triggering node selection
     if ((e.target as HTMLElement).closest('[data-radix-popover-content]')) {
       return;
     }
@@ -60,81 +57,46 @@ function FileNode({
   };
   
   const handleDoubleClick = () => {
-    onSetEditState({
-      id: node.id,
-      type: 'rename',
-      parentId: null, // Not needed for rename
-      onDone: (newName) => {
-        // The rename logic is handled by useFileSystem
-      },
-      onCancel: () => {}
-    });
+    onSetEditState(node.id);
   }
 
   const renderNodeName = () => (
     <span className="truncate text-sm select-none" onDoubleClick={handleDoubleClick}>{node.name}</span>
   );
 
-  const ChevronIcon = isExpanded ? ChevronDown : ChevronRight;
-
   return (
-    <div>
-      <div
-        className={cn("flex items-center space-x-2 py-1 px-2 rounded-md hover:bg-muted group cursor-pointer", {
-          "bg-muted": isActive && !isFolder,
-        })}
-        onClick={handleNodeClick}
-        style={{ paddingLeft: `${level * 1.25 + 0.5}rem` }}
-        title={node.path}
-      >
-        {isFolder ? (
-          <ChevronIcon onClick={(e) => { e.stopPropagation(); onToggleFolder(node.id); }} className="w-4 h-4 flex-shrink-0" />
-        ) : (
-          <div style={{ width: '1rem' }} /> /* Spacer for alignment */
-        )}
-        {isFolder ? <Folder className="w-4 h-4 text-accent" /> : <FileIcon className="w-4 h-4 text-muted-foreground" />}
-        
-        {renderNodeName()}
-
-        <Popover>
-            <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto opacity-0 group-hover:opacity-100" onClick={e => e.stopPropagation()} title={`Actions for ${node.name}`}>
-                    <MoreVertical className="h-4 w-4" />
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-40 p-1" onClick={e => e.stopPropagation()}>
-                <Button variant="ghost" className="w-full justify-start h-8 px-2" onClick={handleDoubleClick}>
-                    <Edit className="mr-2 h-4 w-4" /> Rename
-                </Button>
-                 <Button variant="ghost" className="w-full justify-start h-8 px-2 text-destructive hover:text-destructive" onClick={() => onSetDeleteOperation({ type: 'delete', nodeId: node.id, nodeName: node.name })}>
-                    <Trash2 className="mr-2 h-4 w-4" /> Delete
-                </Button>
-            </PopoverContent>
-        </Popover>
-
-      </div>
-      {isFolder && isExpanded && (
-        <div>
-          {node.children && node.children.length > 0 ? node.children.map((child) => (
-            <FileNode 
-              key={child.id} 
-              node={child} 
-              level={level + 1} 
-              onSelectNode={onSelectNode} 
-              activeFileId={activeFileId} 
-              isExpanded={expandedFolders.has(child.id)}
-              onToggleFolder={onToggleFolder}
-              onSetEditState={onSetEditState}
-              onSetDeleteOperation={onSetDeleteOperation}
-              expandedFolders={expandedFolders}
-            />
-          )) : (
-            <div style={{ paddingLeft: `${(level + 1) * 1.25 + 0.5}rem` }} className="text-xs text-muted-foreground py-1 px-2 italic">
-              Empty folder
-            </div>
-          )}
-        </div>
+    <div
+      className={cn("flex items-center space-x-2 py-1 px-2 rounded-md hover:bg-muted group cursor-pointer", {
+        "bg-muted": isActive && !isFolder,
+      })}
+      onClick={handleNodeClick}
+      style={{ paddingLeft: `${level * 1.25 + 0.5}rem` }}
+      title={node.path}
+    >
+      {isFolder ? (
+        <div /> // Spacer for alignment
+      ) : (
+        <div style={{ width: '1rem' }} /> /* Spacer for alignment */
       )}
+      {isFolder ? <Folder className="w-4 h-4 text-accent" /> : <FileIcon className="w-4 h-4 text-muted-foreground" />}
+      
+      {renderNodeName()}
+
+      <Popover>
+          <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto opacity-0 group-hover:opacity-100" onClick={e => e.stopPropagation()} title={`Actions for ${node.name}`}>
+                  <MoreVertical className="h-4 w-4" />
+              </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-40 p-1" onClick={e => e.stopPropagation()}>
+              <Button variant="ghost" className="w-full justify-start h-8 px-2" onClick={handleDoubleClick}>
+                  <Edit className="mr-2 h-4 w-4" /> Rename
+              </Button>
+               <Button variant="ghost" className="w-full justify-start h-8 px-2 text-destructive hover:text-destructive" onClick={() => onSetDeleteOperation({ type: 'delete', nodeId: node.id, nodeName: node.name })}>
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+              </Button>
+          </PopoverContent>
+      </Popover>
     </div>
   );
 }
@@ -191,7 +153,7 @@ interface FileExplorerProps {
     createFile: (name: string, parentId: string | null, content?: string) => string | null;
     createFolder: (name: string, parentId: string | null) => void;
     expandedFolders: Set<string>;
-    onToggleFolder: (folderId: string) => void;
+    onToggleFolder: (folderId: string, forceOpen?: boolean) => void;
     renameNode: (id: string, newName: string) => void;
     deleteNode: (id: string) => void;
     getTargetFolder: (id: string | null) => FileSystemNode | null;
@@ -212,18 +174,18 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
   const { toast } = useToast();
   const [editState, setEditState] = useState<EditState>(null);
   
-  const findNode = (nodes: FileSystemNode[], id: string): {node: FileSystemNode, level: number} | null => {
-    const find = (nodes: FileSystemNode[], level: number): {node: FileSystemNode, level: number} | null => {
+  const findNodeInfo = (nodes: FileSystemNode[], id: string): {node: FileSystemNode, level: number, parentId: string | null} | null => {
+    const find = (nodes: FileSystemNode[], level: number, parentId: string | null): {node: FileSystemNode, level: number, parentId: string | null} | null => {
       for (const node of nodes) {
-        if (node.id === id) return {node, level};
+        if (node.id === id) return {node, level, parentId};
         if (node.type === 'folder') {
-          const found = find(node.children, level + 1);
+          const found = find(node.children, level + 1, node.id);
           if (found) return found;
         }
       }
       return null;
     }
-    return find(nodes, 0);
+    return find(nodes, 0, null);
   };
 
   const handleGenerate = async () => {
@@ -268,7 +230,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
     if (type === 'file') {
       onSelectFile(id);
     } else {
-      onToggleFolder(id);
+      // Don't toggle on select, only on chevron click
     }
   }
 
@@ -286,7 +248,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
 
   const startCreate = (type: 'create_file' | 'create_folder') => {
     const parentId = getParentIdForNewNode();
-    if(parentId) onToggleFolder(parentId);
+    if(parentId) onToggleFolder(parentId, true); // Force open the parent folder
 
     handleSetEditState({
       id: `new-${type}-${Date.now()}`,
@@ -295,7 +257,8 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
       onDone: (name) => {
         if (name) {
           if (type === 'create_file') {
-            createFile(name, parentId);
+            const newFileId = createFile(name, parentId);
+            if (newFileId) onOpenFile(newFileId);
           } else {
             createFolder(name, parentId);
           }
@@ -311,13 +274,13 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
   }));
 
   const startRename = (id: string) => {
-    const nodeInfo = findNode(files, id);
+    const nodeInfo = findNodeInfo(files, id);
     if (!nodeInfo) return;
 
     handleSetEditState({
       id: nodeInfo.node.id,
       type: 'rename',
-      parentId: getTargetFolder(id)?.id ?? null,
+      parentId: nodeInfo.parentId,
       onDone: (newName) => {
         if (newName && newName !== nodeInfo.node.name) {
           renameNode(id, newName);
@@ -327,35 +290,50 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
       onCancel: () => setEditState(null),
     })
   }
+  
+  const renderFileTree = (nodes: FileSystemNode[], level = 0): React.ReactNode[] => {
+    const sortedNodes = [...nodes].sort((a, b) => {
+        if (a.type === 'folder' && b.type === 'file') return -1;
+        if (a.type === 'file' && b.type === 'folder') return 1;
+        return a.name.localeCompare(b.name);
+    });
 
-  const renderFileTree = (nodes: FileSystemNode[], level = 0) => {
-    return nodes.map(node => (
-        <React.Fragment key={node.id}>
-            {editState?.type === 'rename' && editState.id === node.id ? (
-              <EditNode editState={editState} initialName={node.name} level={level} />
-            ) : (
-              <FileNode 
+    return sortedNodes.flatMap(node => {
+        const isFolder = node.type === 'folder';
+        const isExpanded = isFolder && expandedFolders.has(node.id);
+        const isEditing = editState?.type === 'rename' && editState.id === node.id;
+        
+        const nodeComponent = isEditing ? (
+            <EditNode key={node.id} editState={editState!} initialName={node.name} level={level} />
+        ) : (
+          <div key={node.id} className="flex items-center space-x-2">
+            {isFolder && (
+                <button onClick={(e) => { e.stopPropagation(); onToggleFolder(node.id); }} className="flex-shrink-0" style={{ paddingLeft: `${level * 1.25 + 0.5}rem` }}>
+                    {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </button>
+            )}
+            <FileNode 
                 node={node} 
-                level={level}
+                level={isFolder ? 0 : level}
                 onSelectNode={handleSelectNode} 
                 activeFileId={activeFileId}
-                isExpanded={expandedFolders.has(node.id)}
-                onToggleFolder={onToggleFolder}
-                onSetEditState={() => startRename(node.id)}
+                onSetEditState={startRename}
                 onSetDeleteOperation={setDeleteOperation}
-                expandedFolders={expandedFolders}
-              />
-            )}
-            {node.type === 'folder' && expandedFolders.has(node.id) && (
-              <>
-                {renderFileTree(node.children, level + 1)}
-                {editState && (editState.type === 'create_file' || editState.type === 'create_folder') && editState.parentId === node.id && (
-                  <EditNode editState={editState} level={level + 1} />
-                )}
-              </>
-            )}
-        </React.Fragment>
-    ));
+                onToggleFolder={onToggleFolder}
+            />
+          </div>
+        );
+
+        let childrenComponents: React.ReactNode[] = [];
+        if (isExpanded) {
+            childrenComponents = renderFileTree(node.children, level + 1);
+            if (editState && (editState.type === 'create_file' || editState.type === 'create_folder') && editState.parentId === node.id) {
+                childrenComponents.push(<EditNode key={editState.id} editState={editState} level={level + 1} />);
+            }
+        }
+        
+        return [nodeComponent, ...childrenComponents];
+    });
   };
 
 
