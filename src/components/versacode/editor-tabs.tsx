@@ -2,7 +2,7 @@
 'use client';
 
 import { X } from 'lucide-react';
-import React, { useState } from 'react';
+import React, 'useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { FileSystemNode } from '@/hooks/useFileSystem';
@@ -102,10 +102,9 @@ export function EditorTabs({
                   onClick={() => onSelectTab(id)}
                   onAuxClick={(e) => handleAuxClick(e, id)}
                   onContextMenu={(e) => {
-                      const trigger = e.currentTarget.closest('[data-radix-dropdown-menu-trigger]');
-                      if (trigger instanceof HTMLElement) {
-                          trigger.focus();
-                      }
+                    // This allows the DropdownMenuTrigger to work on right-click
+                    // without interfering with the primary onClick action.
+                    // We don't need to call e.preventDefault() here.
                   }}
                   className={cn(
                     'flex items-center gap-2 pl-4 pr-2 py-2 border-r cursor-pointer text-sm group relative min-w-max',
