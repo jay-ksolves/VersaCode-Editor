@@ -62,7 +62,7 @@ export default function HomePage() {
   
   return (
     <div className="relative z-10 text-center flex items-center justify-center h-full pt-16 sm:pt-0">
-        <div className="mx-auto max-w-4xl animate-fade-in">
+        <div className="mx-auto max-w-4xl animate-fade-in pt-4">
           <div className="mb-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
             <Link
               href="/updates"
