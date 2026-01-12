@@ -24,24 +24,26 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
   const { theme, setTheme } = useTheme();
   const isHomePage = pathname === '/';
 
-  const vantaRef = useRef(null);
+  const vantaRef = useRef<HTMLDivElement>(null);
   const vantaEffectRef = useRef<any>(null);
   const [isThreeLoaded, setIsThreeLoaded] = useState(false);
 
   useEffect(() => {
-    if (!isHomePage || !isThreeLoaded || !window.VANTA || !vantaRef.current) {
-        if(vantaEffectRef.current) vantaEffectRef.current.destroy();
-        return;
+    // Ensure cleanup happens reliably
+    const cleanup = () => {
+      if (vantaEffectRef.current) {
+        vantaEffectRef.current.destroy();
+        vantaEffectRef.current = null;
+      }
     };
 
-    if (vantaEffectRef.current) {
-        vantaEffectRef.current.destroy();
-    }
+    if (isHomePage && isThreeLoaded && window.VANTA && vantaRef.current && vantaRef.current.clientHeight > 0) {
+      cleanup(); // Clean up previous instance before creating a new one
 
-    const vantaColor = theme === 'dark' ? 0x15a07c : 0x15a07c; 
-    const bgColor = theme === 'dark' ? 0x1a1a2e : 0xf0f2f5;
+      const vantaColor = theme === 'dark' ? 0x15a07c : 0x15a07c;
+      const bgColor = theme === 'dark' ? 0x1a1a2e : 0xf0f2f5;
 
-    vantaEffectRef.current = window.VANTA.RINGS({
+      vantaEffectRef.current = window.VANTA.RINGS({
         el: vantaRef.current,
         mouseControls: true,
         touchControls: true,
@@ -52,13 +54,12 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
         scaleMobile: 1.00,
         color: vantaColor,
         backgroundColor: bgColor,
-    });
+      });
+    } else {
+      cleanup();
+    }
 
-    return () => {
-        if (vantaEffectRef.current) {
-            vantaEffectRef.current.destroy();
-        }
-    };
+    return cleanup; // This is the cleanup function for the effect
   }, [theme, isThreeLoaded, isHomePage]);
 
   if (pathname === '/editor') {
