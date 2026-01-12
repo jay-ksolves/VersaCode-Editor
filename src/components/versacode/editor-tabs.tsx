@@ -102,9 +102,8 @@ export function EditorTabs({
                   onClick={() => onSelectTab(id)}
                   onAuxClick={(e) => handleAuxClick(e, id)}
                   onContextMenu={(e) => {
-                    // This allows the DropdownMenuTrigger to work on right-click
-                    // without interfering with the primary onClick action.
-                    // We don't need to call e.preventDefault() here.
+                    // This allows the DropdownMenuTrigger to work on right-click.
+                    // We don't need to call e.preventDefault() here as the trigger does it.
                   }}
                   className={cn(
                     'flex items-center gap-2 pl-4 pr-2 py-2 border-r cursor-pointer text-sm group relative min-w-max',
@@ -125,7 +124,9 @@ export function EditorTabs({
                   >
                     {isDirty ? (
                       <div className="group-hover:hidden w-2 h-2 rounded-full bg-foreground/50" />
-                    ) : null}
+                    ) : (
+                      <X className="h-4 w-4 opacity-0 group-hover:opacity-100" />
+                    )}
                     <X className="h-4 w-4 hidden group-hover:block" />
                   </Button>
                 </div>
