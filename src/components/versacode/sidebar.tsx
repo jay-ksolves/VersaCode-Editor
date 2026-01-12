@@ -1,8 +1,9 @@
+
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FileCode, Puzzle, Settings, Sun, Moon, CheckSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,29 +22,7 @@ const navItems = [
 ] as const;
 
 export function Sidebar({ activePanel, onSelectPanel }: SidebarProps) {
-  const [theme, setTheme] = useState('light');
 
-  useEffect(() => {
-    const storedTheme = localStorage.getItem('versacode-theme') || 'light';
-    setTheme(storedTheme);
-    if (storedTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('versacode-theme', newTheme);
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
-  
   const handlePanelSelection = (panel: typeof navItems[number]['id']) => {
     if (activePanel === panel) {
       onSelectPanel('none');
@@ -77,16 +56,7 @@ export function Sidebar({ activePanel, onSelectPanel }: SidebarProps) {
       </div>
 
       <div className="mt-auto">
-         <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-10 w-10" onClick={toggleTheme}>
-                {theme === 'dark' ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>Toggle Theme</p>
-            </TooltipContent>
-          </Tooltip>
+         {/* Theme toggle functionality is temporarily disabled */}
       </div>
     </aside>
   );

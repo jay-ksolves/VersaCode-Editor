@@ -104,29 +104,41 @@ function deleteNodeFromTree(nodes: FileSystemNode[], id: string): FileSystemNode
 
 const FS_LOCAL_STORAGE_KEY = 'versacode_filesystem';
 const EXPANDED_FOLDERS_LOCAL_STORAGE_KEY = 'versacode_expanded_folders';
-
+const OPEN_FILES_LOCAL_STORAGE_KEY = 'versacode_open_files';
+const ACTIVE_FILE_LOCAL_STORAGE_KEY = 'versacode_active_file';
 
 export function useFileSystem() {
   const [files, setFiles] = useState<FileSystemNode[]>([]);
   const [activeFileId, setActiveFileId] = useState<string | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['1']));
+  const [openFileIds, setOpenFileIds] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     try {
       const storedFiles = localStorage.getItem(FS_LOCAL_STORAGE_KEY);
       const storedExpanded = localStorage.getItem(EXPANDED_FOLDERS_LOCAL_STORAGE_KEY);
+      const storedOpenFiles = localStorage.getItem(OPEN_FILES_LOCAL_STORAGE_KEY);
+      const storedActiveFile = localStorage.getItem(ACTIVE_FILE_LOCAL_STORAGE_KEY);
 
-      if (storedFiles) {
-        setFiles(JSON.parse(storedFiles));
-      } else {
-        setFiles(initialFileSystem);
-      }
+      const parsedFiles = storedFiles ? JSON.parse(storedFiles) : initialFileSystem;
+      setFiles(parsedFiles);
 
       if (storedExpanded) {
         setExpandedFolders(new Set(JSON.parse(storedExpanded)));
       } else {
         setExpandedFolders(new Set(['1'])); // Default to expanding 'src'
+      }
+
+      if (storedOpenFiles) {
+        const parsedOpenFiles = JSON.parse(storedOpenFiles);
+        setOpenFileIds(parsedOpenFiles);
+
+        if (storedActiveFile && parsedOpenFiles.includes(storedActiveFile)) {
+            setActiveFileId(storedActiveFile);
+        } else if (parsedOpenFiles.length > 0) {
+            setActiveFileId(parsedOpenFiles[0]);
+        }
       }
 
     } catch (error) {
@@ -141,11 +153,17 @@ export function useFileSystem() {
         try {
             localStorage.setItem(FS_LOCAL_STORAGE_KEY, JSON.stringify(files));
             localStorage.setItem(EXPANDED_FOLDERS_LOCAL_STORAGE_KEY, JSON.stringify(Array.from(expandedFolders)));
+            localStorage.setItem(OPEN_FILES_LOCAL_STORAGE_KEY, JSON.stringify(openFileIds));
+            if (activeFileId) {
+                localStorage.setItem(ACTIVE_FILE_LOCAL_STORAGE_KEY, activeFileId);
+            } else {
+                localStorage.removeItem(ACTIVE_FILE_LOCAL_STORAGE_KEY);
+            }
         } catch (error) {
             console.error("Failed to save to localStorage", error);
         }
     }
-  }, [files, expandedFolders]);
+  }, [files, expandedFolders, openFileIds, activeFileId]);
 
   const activeFile = activeFileId ? findNodeById(files, activeFileId) : null;
 
@@ -162,20 +180,20 @@ export function useFileSystem() {
     return findParentNode(files, selectedNodeId);
   }, [files]);
 
-  const validateName = (name: string, parentId: string | null) => {
+  const validateName = (name: string, parentId: string | null, nodeIdToIgnore: string | null = null) => {
     if (!name) return "Name cannot be empty.";
     if (name.includes('/') || name.includes('\\')) return "Name cannot contain slashes.";
     
     let siblingNodes: FileSystemNode[] = [];
-    if (parentId) {
-        const parentNode = findNodeById(files, parentId);
-        if (parentNode && parentNode.type === 'folder') {
-            siblingNodes = parentNode.children;
-        }
-    } else {
+    const parentNode = parentId ? findNodeById(files, parentId) : null;
+
+    if (parentNode && parentNode.type === 'folder') {
+        siblingNodes = parentNode.children;
+    } else if (!parentId) {
         siblingNodes = files;
     }
-    if (siblingNodes.some(node => node.name === name)) {
+    
+    if (siblingNodes.some(node => node.name === name && node.id !== nodeIdToIgnore)) {
         return "A file or folder with this name already exists in this directory.";
     }
     return null;
@@ -221,7 +239,7 @@ export function useFileSystem() {
     const parent = findParentNode(files, id);
     const parentId = parent ? parent.id : null;
 
-    const validationError = validateName(newName, parentId);
+    const validationError = validateName(newName, parentId, id);
     if (validationError) {
         toast({ variant: 'destructive', title: "Invalid Name", description: validationError });
         return;
@@ -236,11 +254,9 @@ export function useFileSystem() {
     if (!nodeToDelete) return;
     
     setFiles(prevFiles => deleteNodeFromTree(prevFiles, id));
-    if (activeFileId === id) {
-        setActiveFileId(null);
-    }
+    closeFile(id);
     toast({ title: "Deleted", description: `${nodeToDelete.name} was deleted.` });
-  }, [files, toast, activeFileId]);
+  }, [files, toast, closeFile]);
 
   const toggleFolder = useCallback((folderId: string) => {
     setExpandedFolders(prev => {
@@ -253,6 +269,39 @@ export function useFileSystem() {
         return newSet;
     });
   }, []);
+
+  const openFile = useCallback((fileId: string) => {
+    const node = findNodeById(files, fileId);
+    if (node?.type === 'folder') {
+        toggleFolder(fileId);
+        return;
+    }
+
+    if (node?.type === 'file') {
+        if (!openFileIds.includes(fileId)) {
+            setOpenFileIds(prev => [...prev, fileId]);
+        }
+        setActiveFileId(fileId);
+    }
+  }, [files, openFileIds, toggleFolder]);
+
+  const closeFile = useCallback((fileId: string) => {
+    setOpenFileIds(prev => {
+        const newOpenFiles = prev.filter(id => id !== fileId);
+        if (activeFileId === fileId) {
+            // If the closed tab was active, set the new active tab
+            const closingIndex = prev.indexOf(fileId);
+            if (newOpenFiles.length > 0) {
+                // Activate the previous tab, or the first one if it was the first
+                const newIndex = Math.max(0, closingIndex - 1);
+                setActiveFileId(newOpenFiles[newIndex]);
+            } else {
+                setActiveFileId(null);
+            }
+        }
+        return newOpenFiles;
+    });
+  }, [activeFileId]);
 
 
   return {
@@ -268,6 +317,10 @@ export function useFileSystem() {
     deleteNode,
     getTargetFolder,
     expandedFolders,
-    toggleFolder
+    toggleFolder,
+    openFile,
+    openFileIds,
+    closeFile,
+    findNodeById: (id: string) => findNodeById(files, id),
   };
 }

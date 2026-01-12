@@ -1,9 +1,11 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
 import { CodeEditor } from "./code-editor";
+import { EditorTabs } from "./editor-tabs";
 import { Terminal } from "./terminal";
 import { FileExplorer } from "./file-explorer";
 import { ExtensionsPanel } from "./extensions-panel";
@@ -14,13 +16,13 @@ import { suggestCodeCompletion } from "@/ai/flows/ai-suggest-code-completion";
 import { useFileSystem } from "@/hooks/useFileSystem";
 import { TooltipProvider } from "../ui/tooltip";
 
+
 type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "none";
 
-export function IdeLayout() {
+function IdeLayoutContent() {
   const [activePanel, setActivePanel] = useState<ActivePanel>("files");
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
-  const [isMounted, setIsMounted] = useState(false);
   const { toast } = useToast();
 
   const {
@@ -36,11 +38,11 @@ export function IdeLayout() {
     getTargetFolder,
     expandedFolders,
     toggleFolder,
+    openFile,
+    openFileIds,
+    closeFile,
+    findNodeById,
   } = useFileSystem();
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
   
   const clearTerminal = useCallback(() => {
     setTerminalOutput([]);
@@ -74,7 +76,7 @@ export function IdeLayout() {
     try {
       const result = await suggestCodeCompletion({
         codeContext: activeFile.content,
-        programmingLanguage: "typescript", // This could be dynamic later
+        programmingLanguage: "typescript", 
       });
       updateFileContent(activeFile.id, activeFile.content + result.suggestedCode);
       toast({
@@ -93,8 +95,8 @@ export function IdeLayout() {
     }
   }, [activeFile, toast, updateFileContent]);
   
-  const handleCodeChange = (newCode: string) => {
-    if (activeFileId) {
+  const handleCodeChange = (newCode: string | undefined) => {
+    if (activeFileId && newCode !== undefined) {
       updateFileContent(activeFileId, newCode);
     }
   };
@@ -105,7 +107,7 @@ export function IdeLayout() {
         return <FileExplorer 
           files={files} 
           activeFileId={activeFileId} 
-          onSelectFile={setActiveFileId}
+          onSelectFile={openFile}
           onCreateFile={createFile}
           onCreateFolder={createFolder}
           onRename={renameNode}
@@ -125,14 +127,27 @@ export function IdeLayout() {
     }
   };
 
-  if (!isMounted) {
-    // Prevent hydration mismatch by not rendering server-side
-    // This is important because useFileSystem and theme rely on localStorage
-    return null;
-  }
+  const getFileLanguage = (filename: string) => {
+    const extension = filename.split('.').pop();
+    switch (extension) {
+      case 'js':
+        return 'javascript';
+      case 'ts':
+      case 'tsx':
+        return 'typescript';
+      case 'css':
+        return 'css';
+      case 'json':
+        return 'json';
+      case 'md':
+        return 'markdown';
+      default:
+        return 'plaintext';
+    }
+  };
+
 
   return (
-    <TooltipProvider>
       <div className="flex h-screen bg-background text-foreground font-body">
         <Sidebar activePanel={activePanel} onSelectPanel={setActivePanel} />
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -144,12 +159,27 @@ export function IdeLayout() {
               </div>
             )}
             <div className="flex-1 flex flex-col min-w-0">
-              <div className="flex-1 relative overflow-auto">
-                <CodeEditor 
-                  value={activeFile?.content} 
-                  onChange={handleCodeChange}
-                  isReadOnly={!activeFileId}
-                />
+              <EditorTabs
+                  openFileIds={openFileIds}
+                  activeFileId={activeFileId}
+                  onSelectTab={setActiveFileId}
+                  onCloseTab={closeFile}
+                  findNodeById={findNodeById}
+              />
+              <div className="flex-1 relative overflow-auto bg-card">
+                 {openFileIds.length > 0 && activeFile ? (
+                    <CodeEditor 
+                      key={activeFileId}
+                      value={activeFile.content} 
+                      onChange={handleCodeChange}
+                      isReadOnly={!activeFileId}
+                      language={getFileLanguage(activeFile.name)}
+                    />
+                 ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    <p>Select a file to begin editing or create a new one.</p>
+                  </div>
+                 )}
               </div>
               <div className="h-1/3 border-t border-border flex flex-col">
                 <Terminal output={terminalOutput} onClear={clearTerminal} />
@@ -158,6 +188,23 @@ export function IdeLayout() {
           </main>
         </div>
       </div>
+  );
+}
+
+export function IdeLayout() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return null; 
+  }
+  
+  return (
+    <TooltipProvider>
+      <IdeLayoutContent />
     </TooltipProvider>
   );
 }

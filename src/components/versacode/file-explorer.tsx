@@ -40,14 +40,10 @@ function FileNode({
   const isActive = activeFileId === node.id;
 
   const handleNodeClick = (e: React.MouseEvent) => {
-    // Stop propagation to prevent selecting when interacting with context menu
     if ((e.target as HTMLElement).closest('[data-radix-popover-content]')) {
         return;
     }
     onSelectNode(node.id, node.type);
-    if (isFolder) {
-      onToggleFolder(node.id);
-    }
   };
 
   useEffect(() => {
@@ -86,19 +82,19 @@ function FileNode({
     return <span className="truncate text-sm select-none">{node.name}</span>
   }
 
+  const ChevronIcon = isExpanded ? ChevronDown : ChevronRight;
+
   return (
     <div>
       <div
-        className={cn("flex items-center space-x-2 py-1 px-2 rounded-md hover:bg-muted group", {
-          "bg-muted": isActive,
+        className={cn("flex items-center space-x-2 py-1 px-2 rounded-md hover:bg-muted group cursor-pointer", {
+          "bg-muted": isActive && !isFolder,
         })}
         onClick={handleNodeClick}
         style={{ paddingLeft: `${level * 1.25 + 0.5}rem` }}
       >
         {isFolder ? (
-          <div onClick={(e) => { e.stopPropagation(); onToggleFolder(node.id); }} className="cursor-pointer">
-            {isExpanded ? <ChevronDown className="w-4 h-4 flex-shrink-0" /> : <ChevronRight className="w-4 h-4 flex-shrink-0" />}
-          </div>
+          <ChevronIcon onClick={(e) => { e.stopPropagation(); onToggleFolder(node.id); }} className="w-4 h-4 flex-shrink-0" />
         ) : (
           <div style={{ width: '1rem' }} /> /* Spacer for alignment */
         )}
@@ -123,16 +119,16 @@ function FileNode({
         </Popover>
 
       </div>
-      {isFolder && isExpanded && node.children && (
+      {isFolder && isExpanded && (
         <div>
-          {node.children.length > 0 ? node.children.map((child) => (
+          {node.children && node.children.length > 0 ? node.children.map((child) => (
             <FileNode 
               key={child.id} 
               node={child} 
               level={level + 1} 
               onSelectNode={onSelectNode} 
               activeFileId={activeFileId} 
-              isExpanded={isExpanded}
+              isExpanded={expandedFolders.has(child.id)}
               onToggleFolder={onToggleFolder}
               onRename={onRename}
               onSetOperation={onSetOperation}
@@ -175,7 +171,7 @@ export function FileExplorer({ files, activeFileId, onSelectFile, onCreateFile, 
     if (type === 'file') {
       onSelectFile(id);
     } else {
-      onSelectFile(id); // Also select folder to show context for new file/folder
+      onToggleFolder(id);
     }
   }
   
