@@ -285,10 +285,8 @@ export function useFileSystem() {
     setOpenFileIds(prev => {
         const newOpenFiles = prev.filter(id => id !== fileId);
         if (activeFileId === fileId) {
-            // If the closed tab was active, set the new active tab
             const closingIndex = prev.indexOf(fileId);
             if (newOpenFiles.length > 0) {
-                // Activate the previous tab, or the first one if it was the first
                 const newIndex = Math.max(0, closingIndex - 1);
                 setActiveFileId(newOpenFiles[newIndex]);
             } else {
@@ -303,7 +301,6 @@ export function useFileSystem() {
     const nodeToDelete = findNodeById(files, id);
     if (!nodeToDelete) return;
     
-    // Recursively find all file IDs to close
     const idsToClose = new Set<string>();
     function findIds(node: FileSystemNode) {
         if (node.type === 'file') {
@@ -315,10 +312,17 @@ export function useFileSystem() {
     findIds(nodeToDelete);
 
     setFiles(prevFiles => deleteNodeFromTree(prevFiles, id));
-    idsToClose.forEach(fileId => closeFile(fileId));
+    
+    setOpenFileIds(prevOpen => {
+      const newOpenFiles = prevOpen.filter(openId => !idsToClose.has(openId));
+      if (idsToClose.has(activeFileId ?? '')) {
+        setActiveFileId(newOpenFiles[0] ?? null);
+      }
+      return newOpenFiles;
+    });
     
     toast({ title: "Deleted", description: `${nodeToDelete.name} was deleted.` });
-  }, [files, toast, closeFile]);
+  }, [files, toast, activeFileId]);
 
   const toggleFolder = useCallback((folderId: string) => {
     setExpandedFolders(prev => {

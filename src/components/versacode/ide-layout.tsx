@@ -230,8 +230,11 @@ function IdeLayoutContent() {
             <div className="flex-1 flex flex-col min-w-0">
                <Breadcrumbs
                 activeFile={activeFile}
-                findNodeById={findNodeById}
-                onSelect={openFile}
+                findNodeByPath={findNodeByPath}
+                onSelectPath={path => {
+                  const node = findNodeByPath(path);
+                  if (node) openFile(node.id);
+                }}
               />
               <EditorTabs
                   openFileIds={openFileIds}

@@ -142,9 +142,11 @@ function FileNode({
 function EditNode({
   editState,
   initialName = '',
+  level = 0,
 }: {
   editState: NonNullable<EditState>;
   initialName?: string;
+  level: number;
 }) {
   const [name, setName] = useState(initialName);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -166,7 +168,7 @@ function EditNode({
   const isFolder = editState.type === 'create_folder';
   
   return (
-    <div className="flex items-center space-x-2 py-1 px-2" style={{ paddingLeft: `${editState.id ? (Number(editState.id.split('-').pop()) + 1) * 1.25 : 0.5}rem` }}>
+    <div className="flex items-center space-x-2 py-1 px-2" style={{ paddingLeft: `${level * 1.25 + 0.5}rem` }}>
        <div style={{ width: '1rem' }} />
        {isFolder ? <Folder className="w-4 h-4 text-accent" /> : <FileIcon className="w-4 h-4 text-muted-foreground" />}
        <input
@@ -210,7 +212,19 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
   const { toast } = useToast();
   const [editState, setEditState] = useState<EditState>(null);
   
-  const findNode = (id: string | null) => id ? files.flatMap(f => f.type === 'folder' ? [f, ...f.children] : [f]).find(f => f.id === id) : null;
+  const findNode = (nodes: FileSystemNode[], id: string): {node: FileSystemNode, level: number} | null => {
+    const find = (nodes: FileSystemNode[], level: number): {node: FileSystemNode, level: number} | null => {
+      for (const node of nodes) {
+        if (node.id === id) return {node, level};
+        if (node.type === 'folder') {
+          const found = find(node.children, level + 1);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+    return find(nodes, 0);
+  };
 
   const handleGenerate = async () => {
     if (!generateOperation || generateOperation.type !== 'generate_code' || !generatePrompt || !generateFileName) return;
@@ -259,25 +273,31 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
   }
 
   const handleSetEditState = (state: EditState) => {
-    if (editState) { // If there's already an edit in progress, finalize it.
-      editState.onDone(''); 
+    if (editState) {
+      editState.onCancel(); 
     }
     setEditState(state);
   };
   
-  const parentIdForNewNode = getTargetFolder(activeFileId)?.id ?? null;
+  const getParentIdForNewNode = () => {
+    const targetFolder = getTargetFolder(activeFileId);
+    return targetFolder ? targetFolder.id : null;
+  }
 
   const startCreate = (type: 'create_file' | 'create_folder') => {
+    const parentId = getParentIdForNewNode();
+    if(parentId) onToggleFolder(parentId);
+
     handleSetEditState({
       id: `new-${type}-${Date.now()}`,
       type: type,
-      parentId: parentIdForNewNode,
+      parentId: parentId,
       onDone: (name) => {
         if (name) {
           if (type === 'create_file') {
-            createFile(name, parentIdForNewNode);
+            createFile(name, parentId);
           } else {
-            createFolder(name, parentIdForNewNode);
+            createFolder(name, parentId);
           }
         }
         setEditState(null);
@@ -291,15 +311,15 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
   }));
 
   const startRename = (id: string) => {
-    const node = findNode(id);
-    if (!node) return;
+    const nodeInfo = findNode(files, id);
+    if (!nodeInfo) return;
 
     handleSetEditState({
-      id: node.id,
+      id: nodeInfo.node.id,
       type: 'rename',
       parentId: getTargetFolder(id)?.id ?? null,
       onDone: (newName) => {
-        if (newName && newName !== node.name) {
+        if (newName && newName !== nodeInfo.node.name) {
           renameNode(id, newName);
         }
         setEditState(null);
@@ -312,7 +332,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
     return nodes.map(node => (
         <React.Fragment key={node.id}>
             {editState?.type === 'rename' && editState.id === node.id ? (
-              <EditNode editState={editState} initialName={node.name} />
+              <EditNode editState={editState} initialName={node.name} level={level} />
             ) : (
               <FileNode 
                 node={node} 
@@ -330,7 +350,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
               <>
                 {renderFileTree(node.children, level + 1)}
                 {editState && (editState.type === 'create_file' || editState.type === 'create_folder') && editState.parentId === node.id && (
-                  <EditNode editState={editState} />
+                  <EditNode editState={editState} level={level + 1} />
                 )}
               </>
             )}
@@ -355,7 +375,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
         <div className="flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setGenerateOperation({type: 'generate_code', parentId: parentIdForNewNode })} title="Generate Code">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setGenerateOperation({type: 'generate_code', parentId: getParentIdForNewNode() })} title="Generate Code">
                 <Wand2 className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -380,11 +400,11 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
         </div>
       </div>
       <div className="flex-1 p-2 overflow-y-auto">
-        {files.length === 0 ? renderEmptyState() : (
+        {files.length === 0 && !editState ? renderEmptyState() : (
           <div className="space-y-1">
             {renderFileTree(files)}
             {editState && (editState.type === 'create_file' || editState.type === 'create_folder') && editState.parentId === null && (
-              <EditNode editState={editState} />
+              <EditNode editState={editState} level={0} />
             )}
           </div>
         )}
