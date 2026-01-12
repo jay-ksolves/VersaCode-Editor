@@ -40,25 +40,23 @@ export default function HomePage() {
         minWidth: 200.00,
         scale: 1.00,
         scaleMobile: 1.00,
-        color: 0x88ff00,
-        backgroundColor: 0x202428,
+        color: 0xA020F0, // Vibrant Purple
+        backgroundColor: theme === 'dark' ? 0x242438 : 0xE6E6FA, // Darker Lavender / Lavender
     });
-  }, []);
+  }, [theme]);
 
 
   useEffect(() => {
     let effect: any = null;
 
     const tryToStart = () => {
-        if (theme === 'dark') {
-            effect = startVanta();
-            if (effect) {
-                setVantaEffect(effect);
-            } else {
-                // Retry if VANTA is not ready yet
-                setTimeout(tryToStart, 500);
-            }
-        }
+      effect = startVanta();
+      if (effect) {
+          setVantaEffect(effect);
+      } else {
+          // Retry if VANTA is not ready yet
+          setTimeout(tryToStart, 500);
+      }
     };
     
     if (vantaEffect) {
