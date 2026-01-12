@@ -46,8 +46,8 @@ export default function HomePage() {
         minWidth: 200.00,
         scale: 1.00,
         scaleMobile: 1.00,
-        color: 0xA020F0,
-        backgroundColor: theme === 'dark' ? 0x242438 : 0xE6E6FA,
+        color: 0x4caf50, // Parrot green
+        backgroundColor: theme === 'dark' ? 0x141e14 : 0xf0f8f0, // Dark and light green
     });
 
     // Cleanup function to destroy the instance on component unmount
