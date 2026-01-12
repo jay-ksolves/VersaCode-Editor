@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Folder, File as FileIcon, ChevronRight, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen, FileJson, FileCss, FileCode, FileText } from "lucide-react";
+import { Folder, File as FileIcon, ChevronRight, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen, FileJson, FileCode, FileText } from "lucide-react";
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { cn } from "@/lib/utils";
 import type { FileSystemNode } from "@/hooks/useFileSystem";
@@ -33,7 +33,7 @@ const FileIconComponent = ({ filename }: { filename: string }) => {
         case 'json':
             return <FileJson className="w-4 h-4 text-yellow-500" />;
         case 'css':
-            return <FileCss className="w-4 h-4 text-blue-500" />;
+            return <FileCode className="w-4 h-4 text-blue-500" />;
         case 'tsx':
         case 'jsx':
             return <FileCode className="w-4 h-4 text-cyan-400" />;
