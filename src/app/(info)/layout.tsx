@@ -10,7 +10,7 @@ export default function InfoLayout({
 }) {
   return (
     <div className="bg-background text-foreground flex flex-col min-h-screen">
-      <header className="border-b">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-2">
@@ -71,26 +71,46 @@ export default function InfoLayout({
       </header>
       <main className="container mx-auto px-4 py-16 flex-1">{children}</main>
       <footer className="border-t">
-        <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-8 text-sm md:flex-row">
-          <div className="flex items-center gap-4 text-muted-foreground">
-            <a href="#" className="hover:text-foreground" title="GitHub"><Github className="h-5 w-5" /></a>
-            <a href="#" className="hover:text-foreground" title="Twitter"><Twitter className="h-5 w-5" /></a>
-            <a href="#" className="hover:text-foreground" title="YouTube"><Youtube className="h-5 w-5" /></a>
-            <a href="#" className="hover:text-foreground" title="RSS Feed"><Rss className="h-5 w-5" /></a>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link href="/support" className="hover:text-primary">
-              Support
-            </Link>
-            <Link href="/privacy" className="hover:text-primary">
-              Privacy
-            </Link>
-            <Link href="/terms" className="hover:text-primary">
-              Terms of Use
-            </Link>
-            <Link href="/license" className="hover:text-primary">
-              License
-            </Link>
+        <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 py-12">
+            <div>
+              <h3 className="font-semibold mb-2">VersaCode</h3>
+              <p className="text-sm text-muted-foreground">The AI-Native Web IDE.</p>
+               <div className="flex items-center gap-4 text-muted-foreground mt-4">
+                <a href="#" className="hover:text-foreground" title="GitHub"><Github className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-foreground" title="Twitter"><Twitter className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-foreground" title="YouTube"><Youtube className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-foreground" title="RSS Feed"><Rss className="h-5 w-5" /></a>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">Product</h3>
+              <nav className="flex flex-col gap-2 text-sm">
+                  <Link href="/updates" className="text-muted-foreground hover:text-primary">Updates</Link>
+                  <Link href="/docs" className="text-muted-foreground hover:text-primary">Docs</Link>
+                   <Link href="/editor" className="text-muted-foreground hover:text-primary">Editor</Link>
+              </nav>
+            </div>
+             <div>
+              <h3 className="font-semibold mb-2">Community</h3>
+              <nav className="flex flex-col gap-2 text-sm">
+                  <Link href="#" className="text-muted-foreground hover:text-primary">GitHub</Link>
+                  <Link href="#" className="text-muted-foreground hover:text-primary">Contributors</Link>
+                  <Link href="/blog" className="text-muted-foreground hover:text-primary">Blog</Link>
+              </nav>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">Legal</h3>
+              <nav className="flex flex-col gap-2 text-sm">
+                <Link href="/support" className="text-muted-foreground hover:text-primary">Support</Link>
+                <Link href="/privacy" className="text-muted-foreground hover:text-primary">Privacy</Link>
+                <Link href="/terms" className="text-muted-foreground hover:text-primary">Terms of Use</Link>
+                <Link href="/license" className="text-muted-foreground hover:text-primary">License</Link>
+              </nav>
+            </div>
+        </div>
+         <div className="border-t">
+          <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
+            &copy; {new Date().getFullYear()} VersaCode. All rights reserved.
           </div>
         </div>
       </footer>
