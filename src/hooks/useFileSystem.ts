@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
 
@@ -249,6 +250,24 @@ export function useFileSystem() {
     toast({ title: "Renamed", description: `Renamed to ${newName}.` });
   }, [files, toast]);
 
+  const closeFile = useCallback((fileId: string) => {
+    setOpenFileIds(prev => {
+        const newOpenFiles = prev.filter(id => id !== fileId);
+        if (activeFileId === fileId) {
+            // If the closed tab was active, set the new active tab
+            const closingIndex = prev.indexOf(fileId);
+            if (newOpenFiles.length > 0) {
+                // Activate the previous tab, or the first one if it was the first
+                const newIndex = Math.max(0, closingIndex - 1);
+                setActiveFileId(newOpenFiles[newIndex]);
+            } else {
+                setActiveFileId(null);
+            }
+        }
+        return newOpenFiles;
+    });
+  }, [activeFileId]);
+
   const deleteNode = useCallback((id: string) => {
     const nodeToDelete = findNodeById(files, id);
     if (!nodeToDelete) return;
@@ -284,24 +303,6 @@ export function useFileSystem() {
         setActiveFileId(fileId);
     }
   }, [files, openFileIds, toggleFolder]);
-
-  const closeFile = useCallback((fileId: string) => {
-    setOpenFileIds(prev => {
-        const newOpenFiles = prev.filter(id => id !== fileId);
-        if (activeFileId === fileId) {
-            // If the closed tab was active, set the new active tab
-            const closingIndex = prev.indexOf(fileId);
-            if (newOpenFiles.length > 0) {
-                // Activate the previous tab, or the first one if it was the first
-                const newIndex = Math.max(0, closingIndex - 1);
-                setActiveFileId(newOpenFiles[newIndex]);
-            } else {
-                setActiveFileId(null);
-            }
-        }
-        return newOpenFiles;
-    });
-  }, [activeFileId]);
 
 
   return {
