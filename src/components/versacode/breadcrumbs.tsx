@@ -3,6 +3,8 @@
 
 import { ChevronRight } from 'lucide-react';
 import type { FileSystemNode } from '@/hooks/useFileSystem';
+import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface BreadcrumbsProps {
   activeFile: FileSystemNode | null;
@@ -11,7 +13,7 @@ interface BreadcrumbsProps {
 }
 
 export function Breadcrumbs({ activeFile, findNodeById, onSelect }: BreadcrumbsProps) {
-  if (!activeFile) {
+  if (!activeFile || !activeFile.path) {
     return <div className="h-10 flex items-center px-4 text-sm text-muted-foreground italic border-b">No file selected</div>;
   }
 
@@ -45,9 +47,4 @@ export function Breadcrumbs({ activeFile, findNodeById, onSelect }: BreadcrumbsP
       })}
     </div>
   );
-}
-
-// Minimal cn utility for the new component
-function cn(...inputs: (string | boolean | undefined | null)[]) {
-  return inputs.filter(Boolean).join(' ');
 }
