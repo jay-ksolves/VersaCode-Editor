@@ -7,12 +7,12 @@ export default function DocsPage() {
           Welcome to the VersaCode documentation. Here you will find guides and API references for using and extending the IDE. Our goal is to provide a comprehensive resource for both users and contributors.
         </p>
         
-        <h2>Getting Started</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Getting Started</h2>
         <p>
           To get started with VersaCode, simply navigate to the <a href="/editor">Editor</a>. The IDE is designed to be intuitive, with a familiar layout for anyone who has used modern code editors. The file explorer on the left provides a view of a virtual file system, which is persisted in your browser's local storage, so your work is saved between sessions.
         </p>
         
-        <h2>Core Features</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Core Features</h2>
         <p>
           VersaCode is packed with features designed for modern web development:
         </p>
@@ -24,7 +24,7 @@ export default function DocsPage() {
           <li><strong>Problem Detection</strong>: Real-time code analysis that highlights errors and warnings directly in your editor and the "Problems" panel.</li>
         </ul>
         
-        <h2>For Contributors</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">For Contributors</h2>
         <p>
           Interested in contributing? VersaCode is an open-source project, and we welcome contributions of all kinds. Check out our project architecture and feature registry to learn more about how you can get involved.
         </p>

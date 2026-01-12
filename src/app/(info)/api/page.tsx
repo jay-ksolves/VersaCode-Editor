@@ -7,7 +7,7 @@ export default function ApiPage() {
           The VersaCode extension API is currently under development. Our goal is to provide a simple yet powerful API that allows developers to extend the IDE with new functionality, themes, and language support, similar to the VS Code extension ecosystem.
         </p>
 
-        <h2>Core Concepts</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Core Concepts</h2>
         <p>
           The extension API will be built around a few core concepts:
         </p>
@@ -26,7 +26,7 @@ export default function ApiPage() {
           </li>
         </ul>
         
-        <h2>Coming Soon</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Coming Soon</h2>
         <p>
           We are actively working on the first version of the API. Stay tuned for more updates and documentation as we build out the extension ecosystem. We believe that a strong extension community is key to making VersaCode a truly versatile tool.
         </p>

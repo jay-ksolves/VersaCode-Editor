@@ -4,7 +4,7 @@ export default function UpdatesPage() {
       <h1 className="text-4xl font-bold tracking-tight animate-slide-up" style={{ animationDelay: '0.2s' }}>What's New in VersaCode</h1>
 
       <article className="animate-slide-up" style={{ animationDelay: '0.3s' }}>
-        <h2>Version 1.0.0</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Version 1.0.0</h2>
         <p><em>Published: 2024-07-26</em></p>
         
         <h3>Welcome to the Official Release of VersaCode!</h3>

@@ -6,7 +6,7 @@ import {
   Download,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import Script from 'next/script';
 import JSZip from 'jszip';
 import { useToast } from '@/hooks/use-toast';

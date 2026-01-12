@@ -4,7 +4,7 @@ export default function LicensePage() {
     <div className="prose dark:prose-invert max-w-none animate-fade-in">
       <h1 className="text-4xl font-bold tracking-tight animate-slide-up" style={{ animationDelay: '0.2s' }}>License Information</h1>
       <div className="animate-slide-up" style={{ animationDelay: '0.3s' }}>
-        <h2>MIT License</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">MIT License</h2>
         <p>
           Copyright (c) 2024 VersaCode
         </p>
