@@ -11,7 +11,7 @@ import { ExtensionsPanel } from "./extensions-panel";
 import { SettingsPanel } from "./settings-panel";
 import { useToast } from "@/hooks/use-toast";
 import { suggestCodeCompletion } from "@/ai/flows/ai-suggest-code-completion";
-import { useFileSystem, SearchResult } from "@/hooks/useFileSystem";
+import { useFileSystem, SearchResult, FileSystemNode } from "@/hooks/useFileSystem";
 import { TooltipProvider } from "../ui/tooltip";
 import type * as monaco from 'monaco-editor';
 import { Breadcrumbs } from "./breadcrumbs";
@@ -22,6 +22,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { ActivityBar, type ActivePanel } from "./activity-bar";
 import { StatusBar } from "./status-bar";
 import { CommandPalette } from "./command-palette";
+import { AiAssistantPanel } from "./ai-assistant-panel";
 
 export type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
 
@@ -80,6 +81,7 @@ function IdeLayoutContent() {
 
   const {
     files,
+    setFiles,
     activeFile,
     activeFileId,
     setActiveFileId,
@@ -457,8 +459,8 @@ function IdeLayoutContent() {
     setOpenFileIds([fileId]);
   };
   
-  const handleTriggerEditorAction = (action: string) => {
-    editorRef.current?.trigger('source', action, null);
+  const handleTriggerEditorAction = (actionId: string) => {
+    editorRef.current?.trigger('source', actionId, null);
   };
 
   const handleCommand = (commandId: string) => {
@@ -473,7 +475,8 @@ function IdeLayoutContent() {
               handleFormatCode();
               break;
           default:
-              break;
+            handleTriggerEditorAction(commandId);
+            break;
       }
   };
 
@@ -503,6 +506,8 @@ function IdeLayoutContent() {
           onSearch={searchFiles}
           onGoToResult={handleGoToSearchResult}
         />;
+      case "ai-assistant":
+        return <AiAssistantPanel allFiles={files} />;
       case "extensions":
         return <ExtensionsPanel />;
       case "settings":

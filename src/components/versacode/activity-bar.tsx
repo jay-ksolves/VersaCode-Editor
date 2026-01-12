@@ -4,10 +4,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { FileCode, Puzzle, Settings, Search, GitBranch, Bug } from 'lucide-react';
+import { FileCode, Puzzle, Settings, Search, GitBranch, Bug, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type ActivePanel = 'files' | 'extensions' | 'settings' | 'search' | 'none';
+export type ActivePanel = 'files' | 'extensions' | 'settings' | 'search' | 'ai-assistant' | 'none';
 
 interface ActivityBarProps {
   activePanel: ActivePanel;
@@ -17,6 +17,7 @@ interface ActivityBarProps {
 const navItems = [
   { id: 'files', icon: FileCode, label: 'File Explorer' },
   { id: 'search', icon: Search, label: 'Search' },
+  { id: 'ai-assistant', icon: Bot, label: 'AI Assistant' },
   { id: 'source-control', icon: GitBranch, label: 'Source Control', disabled: true },
   { id: 'run-debug', icon: Bug, label: 'Run and Debug', disabled: true },
   { id: 'extensions', icon: Puzzle, label: 'Extensions' },

@@ -515,7 +515,10 @@ export function useFileSystem() {
       const source = useOriginal ? originalFiles : files;
       return findNodeByIdInOriginal(source, id);
     },
-    findNodeByPath: (path: string) => findNodeByPath(files, path),
+    findNodeByPath: (path: string | null) => {
+      if (!path) return null;
+      return findNodeByPath(files, path);
+    },
     searchFiles,
     refreshFileSystem: loadFromLocalStorage,
   };
