@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Folder, File as FileIcon, ChevronRight, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen, FileJson, FileCode, FileText, RefreshCw, ChevronDown } from "lucide-react";
+import { Folder, File as FileIcon, ChevronRight, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen, FileJson, FileCode, FileText, RefreshCw, ChevronDown, X } from "lucide-react";
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { cn } from "@/lib/utils";
 import type { FileSystemNode } from "@/hooks/useFileSystem";
@@ -209,6 +209,7 @@ interface FileExplorerProps {
     getTargetFolder: (id: string | null) => FileSystemNode | null;
     onOpenFile: (id: string) => void;
     refreshFileSystem: () => void;
+    onCloseFile: (id: string) => void;
 }
 
 export type FileExplorerRef = {
@@ -216,7 +217,7 @@ export type FileExplorerRef = {
 };
 
 
-export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ files, openFileIds, activeFileId, onSelectFile, createFile, createFolder, expandedFolders, onToggleFolder, renameNode, deleteNode, moveNode, getTargetFolder, onOpenFile, refreshFileSystem }, ref) => {
+export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ files, openFileIds, activeFileId, onSelectFile, createFile, createFolder, expandedFolders, onToggleFolder, renameNode, deleteNode, moveNode, getTargetFolder, onOpenFile, refreshFileSystem, onCloseFile }, ref) => {
   const [deleteOperation, setDeleteOperation] = useState<DeleteOperation>(null);
   const [generateOperation, setGenerateOperation] = useState<GenerateOperation>(null);
   const [generatePrompt, setGeneratePrompt] = useState('');
@@ -486,11 +487,14 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
           <CollapsibleContent>
             <div className="space-y-0.5 p-2">
               {openFileIds.map(id => {
-                const file = files.find(f => f.id === id) || files.flatMap(f => f.type === 'folder' ? f.children : []).find(f => f.id === id);
-                return file ? (
+                const file = findNodeInfo(files, id)?.node;
+                return file && file.type === 'file' ? (
                   <div key={`open-${id}`} className={cn("flex items-center space-x-2 py-1.5 px-2 rounded-md hover:bg-muted group cursor-pointer relative", { "bg-muted": activeFileId === id })} onClick={() => onSelectFile(id)}>
                       <FileIconComponent filename={file.name} />
                       <span className="truncate text-sm select-none">{file.name}</span>
+                      <div role="button" title={`Close ${file.name}`} onClick={(e) => { e.stopPropagation(); onCloseFile(id); }} className="ml-auto opacity-0 group-hover:opacity-100 p-1 rounded-sm hover:bg-background">
+                        <X className="h-4 w-4" />
+                      </div>
                   </div>
                 ) : null
               })}

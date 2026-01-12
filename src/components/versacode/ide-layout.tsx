@@ -513,6 +513,7 @@ function IdeLayoutContent() {
           onToggleFolder={toggleFolder}
           onOpenFile={openFile}
           refreshFileSystem={refreshFileSystem}
+          onCloseFile={handleCloseTab}
         />;
       case "search":
         return <SearchPanel 
