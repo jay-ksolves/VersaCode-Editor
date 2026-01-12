@@ -1,6 +1,5 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { useToast } from "@/hooks/use-toast";
 import { useOPFS } from './useOPFS';
 
 export type FileSystemNode = {
@@ -38,7 +37,6 @@ export function useFileSystem() {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [openFileIds, setOpenFileIds] = useState<string[]>([]);
   const [stagedFiles, setStagedFiles] = useState<Set<string>>(new Set());
-  const { toast } = useToast();
   const { 
       isLoaded, 
       readDirectory, 
@@ -191,17 +189,15 @@ export function useFileSystem() {
         if (parentId) {
             setExpandedFolders(prev => new Set(prev).add(parentId!));
         }
-        toast({ title: "File Created", description: `${name} was added.` });
         
         const newNode = await findNodeByPath(filePath);
         return newNode?.id ?? null;
 
     } catch (error) {
         console.error(error);
-        toast({ variant: 'destructive', title: "Error creating file", description: String(error) });
         return null;
     }
-  }, [findNodeById, writeFile, loadFileSystem, toast, findNodeByPath]);
+  }, [findNodeById, writeFile, loadFileSystem, findNodeByPath]);
 
   const createFolder = useCallback(async (name: string, parentId: string | null) => {
     const parentNode = parentId ? findNodeById(parentId) : null;
@@ -214,12 +210,10 @@ export function useFileSystem() {
         if (parentId) {
             setExpandedFolders(prev => new Set(prev).add(parentId!));
         }
-        toast({ title: "Folder Created", description: `${name} was added.` });
     } catch(error) {
         console.error(error);
-        toast({ variant: 'destructive', title: "Error creating folder", description: String(error) });
     }
-  }, [findNodeById, createDirectory, loadFileSystem, toast]);
+  }, [findNodeById, createDirectory, loadFileSystem]);
 
   const renameNode = useCallback(async (id: string, newName: string) => {
     const node = findNodeById(id);
@@ -228,12 +222,10 @@ export function useFileSystem() {
     try {
         await rename(node.path, newName);
         await loadFileSystem();
-        toast({ title: "Renamed", description: `Renamed to ${newName}.` });
     } catch(error) {
         console.error(error);
-        toast({ variant: 'destructive', title: "Error renaming", description: String(error) });
     }
-  }, [findNodeById, rename, loadFileSystem, toast]);
+  }, [findNodeById, rename, loadFileSystem]);
 
   const closeFile = useCallback((fileId: string) => {
     setOpenFileIds(prev => {
@@ -281,13 +273,11 @@ export function useFileSystem() {
         return newStaged;
     });
 
-      toast({ title: "Deleted", description: `${node.name} was deleted.` });
 
     } catch (error) {
       console.error(error);
-      toast({ variant: 'destructive', title: "Error deleting", description: String(error) });
     }
-  }, [findNodeById, deleteFile, deleteDirectory, toast, loadFileSystem, activeFileId, openFileIds]);
+  }, [findNodeById, deleteFile, deleteDirectory, loadFileSystem, activeFileId, openFileIds]);
 
   const moveNode = useCallback(async (draggedNodeId: string, dropTargetId: string | null) => {
     const draggedNode = findNodeById(draggedNodeId);
@@ -299,7 +289,6 @@ export function useFileSystem() {
     let current = dropTargetNode;
     while(current) {
         if (current.id === draggedNodeId) {
-            toast({ variant: 'destructive', title: "Invalid Move", description: "Cannot move a folder into itself."});
             return;
         }
         current = getParentNode(current.id);
@@ -313,9 +302,8 @@ export function useFileSystem() {
         await loadFileSystem();
     } catch(e) {
         console.error("Move failed:", e);
-        toast({variant: 'destructive', title: 'Move Failed', description: String(e) });
     }
-  }, [findNodeById, getParentNode, rename, loadFileSystem, toast]);
+  }, [findNodeById, getParentNode, rename, loadFileSystem]);
 
   const toggleFolder = useCallback((folderId: string, forceOpen = false) => {
     setExpandedFolders(prev => {

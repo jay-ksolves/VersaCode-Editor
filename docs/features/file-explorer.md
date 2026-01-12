@@ -7,15 +7,15 @@
 
 ## 1. Description
 
-The File Explorer provides a user-friendly, VS Code–like tree view of the project's file system. It allows users to navigate, create, select, rename, and delete files and folders directly within the IDE. It also includes an AI-powered "Generate Code" feature to create new files from a natural language prompt. All changes are persisted to `localStorage` to ensure the user's workspace is saved between sessions.
+The File Explorer provides a user-friendly, VS Code–like tree view of the project's file system. It allows users to navigate, create, select, rename, and delete files and folders directly within the IDE. It also includes an AI-powered "Generate Code" feature to create new files from a natural language prompt. All changes are persisted to the browser's high-performance Origin Private File System (OPFS) to ensure the user's workspace is saved between sessions.
 
 ## 2. UI/UX Breakdown
 
 - **Trigger:** The explorer is visible when the "Files" icon in the sidebar is active.
 - **Components:**
-  - **`FileExplorer.tsx`**: Renders the file tree and action buttons (Generate Code, New File, New Folder). It handles user interactions like inline renaming, delete confirmations, AI generation, context menus, and drag-and-drop gestures.
+  - **`FileExplorer.tsx`**: Renders the file tree and action buttons (Generate Code, New File, New Folder, Refresh). It handles user interactions like inline renaming, delete confirmations, AI generation, context menus, and drag-and-drop gestures.
   - **`IdeLayout.tsx`**: The main parent component that initializes the `useFileSystem` hook and provides the state down to the `FileExplorer` and `CodeEditor`.
-  - **`hooks/useFileSystem.ts`**: A custom hook that encapsulates all logic for managing the file system state, including CRUD operations, drag-and-drop (`moveNode`), validation, and `localStorage` synchronization for both file structure and folder expansion state.
+  - **`hooks/useFileSystem.ts`**: A custom hook that encapsulates all logic for managing the file system state, including CRUD operations, drag-and-drop (`moveNode`), validation, and OPFS synchronization.
 - **Visual Flow:**
   - Users can click on a folder to expand or collapse it; this state is persisted. The folder icon changes to reflect its state.
   - Clicking a file makes it the "active" file, and its content is loaded into the `CodeEditor`.
@@ -32,7 +32,7 @@ The File Explorer provides a user-friendly, VS Code–like tree view of the proj
   - The `files` array and `expandedFolders` set are passed from `IdeLayout` to `FileExplorer`.
   - The content of the file corresponding to `activeFileId` is passed to `CodeEditor` by managing Monaco `ITextModel` instances.
   - When the user edits code, the `onChange` handler updates the content of the active file in the main `files` state via a function provided by the hook. This ensures that when the user switches between files, their changes are not lost.
-  - All modifications (create, rename, delete, move, edit, expand/collapse) are immediately saved to `localStorage`.
+  - All modifications are immediately saved to the OPFS.
 
 ## 4. AI Integration Details
 
@@ -43,6 +43,6 @@ The File Explorer provides a user-friendly, VS Code–like tree view of the proj
 
 ## 5. Future Improvements
 
-- [ ] Integrate with a real backend file system instead of `localStorage`.
 - [ ] Show file-specific icons (e.g., a React icon for `.tsx` files).
 - [ ] Add "Copy Path" and "Reveal in Finder" options to the context menu.
+- [ ] Integrate with a real remote Git repository.
