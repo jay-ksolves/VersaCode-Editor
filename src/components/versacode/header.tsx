@@ -7,7 +7,6 @@ import {
   MenubarMenu,
   MenubarSeparator,
   MenubarShortcut,
-  MenubarTrigger,
   MenubarCheckboxItem,
 } from "@/components/ui/menubar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -16,6 +15,7 @@ import { Play, Sparkles, LoaderCircle, Indent, Command } from "lucide-react";
 interface HeaderProps {
   onSuggest: () => void;
   onFormat: () => void;
+  onTriggerAction: (action: string) => void;
   isSuggesting: boolean;
   isFormatting: boolean;
   onNewFile: () => void;
@@ -31,6 +31,7 @@ interface HeaderProps {
 export function Header({
   onSuggest,
   onFormat,
+  onTriggerAction,
   isSuggesting,
   isFormatting,
   onNewFile,
@@ -90,20 +91,20 @@ export function Header({
           <MenubarMenu>
             <MenubarTrigger>Edit</MenubarTrigger>
             <MenubarContent>
-              <MenubarItem disabled>
+              <MenubarItem onClick={() => onTriggerAction('undo')}>
                 Undo <MenubarShortcut>Ctrl+Z</MenubarShortcut>
               </MenubarItem>
-              <MenubarItem disabled>
+              <MenubarItem onClick={() => onTriggerAction('redo')}>
                 Redo <MenubarShortcut>Ctrl+Y</MenubarShortcut>
               </MenubarItem>
               <MenubarSeparator />
-              <MenubarItem disabled>
+              <MenubarItem onClick={() => onTriggerAction('editor.action.clipboardCutAction')}>
                 Cut <MenubarShortcut>Ctrl+X</MenubarShortcut>
               </MenubarItem>
-              <MenubarItem disabled>
+              <MenubarItem onClick={() => onTriggerAction('editor.action.clipboardCopyAction')}>
                 Copy <MenubarShortcut>Ctrl+C</MenubarShortcut>
               </MenubarItem>
-              <MenubarItem disabled>
+              <MenubarItem onClick={() => onTriggerAction('editor.action.clipboardPasteAction')}>
                 Paste <MenubarShortcut>Ctrl+V</MenubarShortcut>
               </MenubarItem>
               <MenubarSeparator />

@@ -18,7 +18,6 @@ import { Breadcrumbs } from "./breadcrumbs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { SearchPanel } from "./search-panel";
 import { cn } from "@/lib/utils";
-import { formatCode } from "@/ai/flows/format-code";
 import { useHotkeys } from "react-hotkeys-hook";
 import { ActivityBar, type ActivePanel } from "./activity-bar";
 import { StatusBar } from "./status-bar";
@@ -309,39 +308,21 @@ function IdeLayoutContent() {
   }, [activeFile, toast, logToOutput]);
 
   const handleFormatCode = useCallback(async () => {
-    if (!activeFile || !editorRef.current) {
-      toast({
-        variant: "destructive",
-        title: "No active file",
-        description: "Please select a file to format.",
-      });
-      return;
-    }
-
-    logToOutput(`Formatting ${activeFile.path}...`);
+    const editor = editorRef.current;
+    if (!editor) return;
+    
+    logToOutput(`Formatting document...`);
     setIsFormatting(true);
     try {
-      const currentModel = editorRef.current.getModel();
-      if (!currentModel) return;
-      
-      const result = await formatCode({
-        code: currentModel.getValue(),
-        language: getFileLanguage(activeFile.name),
-      });
-
-      const fullRange = currentModel.getFullModelRange();
-      const op = { range: fullRange, text: result.formattedCode };
-      currentModel.pushEditOperations([], [op], () => null);
-      
-      logToOutput(`${activeFile.path} formatted successfully.`);
+      await editor.getAction('editor.action.formatDocument')?.run();
+      logToOutput(`Document formatted successfully.`);
       toast({
         title: "Code Formatted",
-        description: `${activeFile.name} has been formatted.`,
+        description: `The document has been formatted.`,
       });
-
     } catch(error) {
        logToOutput(`Error formatting code: ${error}`);
-       console.error("AI formatting failed:", error);
+       console.error("Formatting failed:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -350,7 +331,7 @@ function IdeLayoutContent() {
     } finally {
       setIsFormatting(false);
     }
-  }, [activeFile, toast, logToOutput]);
+  }, [logToOutput, toast]);
   
   const handleSettingsChange = (newSettings: Partial<typeof editorSettings>) => {
     setEditorSettings(prev => ({...prev, ...newSettings}));
@@ -370,7 +351,7 @@ function IdeLayoutContent() {
   const handleNewUntitledFile = useCallback(() => {
     let i = 1;
     let newName = `Untitled-${i}`;
-    while (findNodeByPath(files, newName)) {
+    while (findNodeByPath(newName)) {
       i++;
       newName = `Untitled-${i}`;
     }
@@ -378,7 +359,7 @@ function IdeLayoutContent() {
     if (newFileId) {
       openFile(newFileId);
     }
-  }, [files, createFile, openFile, findNodeByPath]);
+  }, [createFile, openFile, findNodeByPath]);
 
   const handleNewTerminal = useCallback(() => {
     if (!isBottomPanelOpen) {
@@ -476,10 +457,13 @@ function IdeLayoutContent() {
     setOpenFileIds([fileId]);
   };
   
+  const handleTriggerEditorAction = (action: string) => {
+    editorRef.current?.trigger('source', action, null);
+  };
+
   const handleCommand = (commandId: string) => {
       switch (commandId) {
           case 'theme:toggle':
-              // Logic for toggling theme
               toast({title: "Theme Toggle", description: "Theme toggling is not yet implemented."});
               break;
           case 'file:new':
@@ -491,7 +475,6 @@ function IdeLayoutContent() {
           default:
               break;
       }
-      setIsCommandPaletteOpen(false);
   };
 
   const renderPanel = () => {
@@ -542,6 +525,7 @@ function IdeLayoutContent() {
           <Header 
             onSuggest={handleSuggest}
             onFormat={handleFormatCode}
+            onTriggerAction={handleTriggerEditorAction}
             isSuggesting={isSuggesting}
             isFormatting={isFormatting}
             onNewFile={handleNewFile}
