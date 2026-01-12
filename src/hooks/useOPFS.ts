@@ -219,21 +219,23 @@ Enjoy coding!
         
         await resetAll();
 
-        async function copy(local: FileSystemDirectoryHandle | FileSystemFileHandle, remote: FileSystemDirectoryHandle) {
+        async function copy(local: FileSystemDirectoryHandle | FileSystemFileHandle, remotePath: string) {
              if (local.kind === 'file') {
                 const file = await local.getFile();
                 const content = await file.text();
-                await writeFile(`${remote.name ? remote.name + '/' : ''}${local.name}`, content)
+                const newFilePath = remotePath ? `${remotePath}/${local.name}` : local.name;
+                await writeFile(newFilePath, content);
              } else if (local.kind === 'directory') {
-                const newRemoteDir = await remote.getDirectoryHandle(local.name, { create: true });
+                const newRemotePath = remotePath ? `${remotePath}/${local.name}` : local.name;
+                await createDirectory(newRemotePath);
                 for await (const handle of local.values()) {
-                    await copy(handle, newRemoteDir);
+                    await copy(handle, newRemotePath);
                 }
              }
         }
 
          for await (const handle of localDirHandle.values()) {
-            await copy(handle, rootRef.current);
+            await copy(handle, '');
         }
     };
 

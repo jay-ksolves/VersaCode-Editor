@@ -177,17 +177,30 @@ export function useFileSystem() {
     }
   }, [findNodeById, writeFile, isDirtyMap]);
 
+  const toggleFolder = useCallback((folderId: string, forceOpen = false) => {
+    setExpandedFolders(prev => {
+        const newSet = new Set(prev);
+        if (forceOpen) {
+            newSet.add(folderId);
+        } else if (newSet.has(folderId)) {
+            newSet.delete(folderId);
+        } else {
+            newSet.add(folderId);
+        }
+        return newSet;
+    });
+  }, []);
 
   const createFile = useCallback(async (name: string, parentId: string | null, content: string = '') => {
     const parentNode = parentId ? findNodeById(parentId) : null;
     const parentPath = parentNode?.path ?? '';
-    const filePath = parentPath ? `\${parentPath}/\${name}` : name;
+    const filePath = parentPath ? `${parentPath}/${name}` : name;
     
     try {
         await writeFile(filePath, content);
         await loadFileSystem();
         if (parentId) {
-            setExpandedFolders(prev => new Set(prev).add(parentId!));
+            toggleFolder(parentId, true);
         }
         
         const newNode = await findNodeByPath(filePath);
@@ -197,23 +210,23 @@ export function useFileSystem() {
         console.error(error);
         return null;
     }
-  }, [findNodeById, writeFile, loadFileSystem, findNodeByPath]);
+  }, [findNodeById, writeFile, loadFileSystem, findNodeByPath, toggleFolder]);
 
   const createFolder = useCallback(async (name: string, parentId: string | null) => {
     const parentNode = parentId ? findNodeById(parentId) : null;
     const parentPath = parentNode?.path ?? '';
-    const folderPath = parentPath ? `\${parentPath}/\${name}` : name;
+    const folderPath = parentPath ? `${parentPath}/${name}` : name;
 
     try {
         await createDirectory(folderPath);
         await loadFileSystem();
         if (parentId) {
-            setExpandedFolders(prev => new Set(prev).add(parentId!));
+            toggleFolder(parentId, true);
         }
     } catch(error) {
         console.error(error);
     }
-  }, [findNodeById, createDirectory, loadFileSystem]);
+  }, [findNodeById, createDirectory, loadFileSystem, toggleFolder]);
 
   const renameNode = useCallback(async (id: string, newName: string) => {
     const node = findNodeById(id);
@@ -295,7 +308,7 @@ export function useFileSystem() {
     }
     
     const newParentPath = dropTargetNode ? dropTargetNode.path : '';
-    const newPath = newParentPath ? `\${newParentPath}/\${draggedNode.name}` : draggedNode.name;
+    const newPath = newParentPath ? `${newParentPath}/${draggedNode.name}` : draggedNode.name;
 
     try {
         await rename(draggedNode.path, newPath);
@@ -304,20 +317,6 @@ export function useFileSystem() {
         console.error("Move failed:", e);
     }
   }, [findNodeById, getParentNode, rename, loadFileSystem]);
-
-  const toggleFolder = useCallback((folderId: string, forceOpen = false) => {
-    setExpandedFolders(prev => {
-        const newSet = new Set(prev);
-        if (forceOpen) {
-            newSet.add(folderId);
-        } else if (newSet.has(folderId)) {
-            newSet.delete(folderId);
-        } else {
-            newSet.add(folderId);
-        }
-        return newSet;
-    });
-  }, []);
 
   const openFile = useCallback(async (fileId: string) => {
     const node = findNodeById(fileId);
