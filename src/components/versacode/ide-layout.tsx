@@ -150,7 +150,7 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
   }, [saveUiState]);
 
   // Hotkeys
-  useHotkeys('ctrl+n, cmd+n', (e) => { e.preventDefault(); handleNewFile(); }, { preventDefault: true }, [files]);
+  useHotkeys('ctrl+n, cmd+n', (e) => { e.preventDefault(); handleNewFile(); }, { preventDefault: true });
   useHotkeys('ctrl+s, cmd+s', (e) => { e.preventDefault(); toast({ title: "Auto-Save Enabled", description: "Your changes are saved automatically."}); }, { preventDefault: true });
   useHotkeys('ctrl+alt+f, cmd+alt+f', (e) => { e.preventDefault(); handleFormatCode(); }, { preventDefault: true });
   useHotkeys('ctrl+shift+p, cmd+shift+p', (e) => { e.preventDefault(); setIsCommandPaletteOpen(true); }, { preventDefault: true });
