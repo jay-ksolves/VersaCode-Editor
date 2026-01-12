@@ -12,6 +12,7 @@ import { TasksPanel } from "./tasks-panel";
 import { useToast } from "@/hooks/use-toast";
 import { suggestCodeCompletion } from "@/ai/flows/ai-suggest-code-completion";
 import { useFileSystem } from "@/hooks/useFileSystem";
+import { TooltipProvider } from "../ui/tooltip";
 
 type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "none";
 
@@ -117,30 +118,32 @@ export function IdeLayout() {
   }
 
   return (
-    <div className="flex h-screen bg-background text-foreground font-body">
-      <Sidebar activePanel={activePanel} onSelectPanel={setActivePanel} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header onRun={handleRun} onSuggest={handleSuggest} isSuggesting={isSuggesting} />
-        <main className="flex-1 flex overflow-hidden">
-          {activePanel !== "none" && (
-            <div className="w-64 bg-card border-r border-border flex-shrink-0 overflow-y-auto">
-              {renderPanel()}
+    <TooltipProvider>
+      <div className="flex h-screen bg-background text-foreground font-body">
+        <Sidebar activePanel={activePanel} onSelectPanel={setActivePanel} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header onRun={handleRun} onSuggest={handleSuggest} isSuggesting={isSuggesting} />
+          <main className="flex-1 flex overflow-hidden">
+            {activePanel !== "none" && (
+              <div className="w-64 bg-card border-r border-border flex-shrink-0 overflow-y-auto">
+                {renderPanel()}
+              </div>
+            )}
+            <div className="flex-1 flex flex-col min-w-0">
+              <div className="flex-1 relative overflow-auto">
+                <CodeEditor 
+                  value={activeFile?.content} 
+                  onChange={handleCodeChange}
+                  isReadOnly={!activeFileId}
+                />
+              </div>
+              <div className="h-1/3 border-t border-border flex flex-col">
+                <Terminal output={terminalOutput} />
+              </div>
             </div>
-          )}
-          <div className="flex-1 flex flex-col min-w-0">
-            <div className="flex-1 relative overflow-auto">
-              <CodeEditor 
-                value={activeFile?.content} 
-                onChange={handleCodeChange}
-                isReadOnly={!activeFileId}
-              />
-            </div>
-            <div className="h-1/3 border-t border-border flex flex-col">
-              <Terminal output={terminalOutput} />
-            </div>
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
