@@ -8,6 +8,7 @@ import {
   MenubarSeparator,
   MenubarShortcut,
   MenubarCheckboxItem,
+  MenubarTrigger,
 } from "@/components/ui/menubar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Play, Sparkles, LoaderCircle, Indent, Command } from "lucide-react";
