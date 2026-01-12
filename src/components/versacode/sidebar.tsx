@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { FileCode, Puzzle, Settings, Sun, Moon } from "lucide-react";
+import { FileCode, Puzzle, Settings, Sun, Moon, CheckSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ActivePanel = "files" | "extensions" | "settings" | "none";
+type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "none";
 
 interface SidebarProps {
   activePanel: ActivePanel;
@@ -16,6 +16,7 @@ interface SidebarProps {
 const navItems = [
   { id: "files", icon: FileCode, label: "File Explorer" },
   { id: "extensions", icon: Puzzle, label: "Extensions" },
+  { id: "tasks", icon: CheckSquare, label: "Tasks" },
   { id: "settings", icon: Settings, label: "Settings" },
 ] as const;
 

@@ -8,10 +8,11 @@ import { Terminal } from "./terminal";
 import { FileExplorer } from "./file-explorer";
 import { ExtensionsPanel } from "./extensions-panel";
 import { SettingsPanel } from "./settings-panel";
+import { TasksPanel } from "./tasks-panel";
 import { useToast } from "@/hooks/use-toast";
 import { suggestCodeCompletion } from "@/ai/flows/ai-suggest-code-completion";
 
-type ActivePanel = "files" | "extensions" | "settings" | "none";
+type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "none";
 
 const initialCode = `function greet(name) {\n  console.log(\`Hello, \${name}!\`);\n}\n\ngreet('VersaCode');`;
 
@@ -68,6 +69,8 @@ export function IdeLayout() {
         return <ExtensionsPanel />;
       case "settings":
         return <SettingsPanel />;
+      case "tasks":
+        return <TasksPanel />;
       default:
         return null;
     }
