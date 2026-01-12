@@ -1,15 +1,9 @@
 import { Puzzle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import extensions from '@/lib/extensions.json';
 
-const installedExtensions = [
-  { name: 'Prettier - Code formatter', description: 'The opinionated code formatter.', publisher: 'Prettier' },
-  { name: 'ESLint', description: 'Integrates ESLint into VS Code.', publisher: 'Microsoft' },
-  { name: 'Live Server', description: 'Launch a local development server with live reload feature.', publisher: 'Ritwick Dey' },
-  { name: 'GitLens — Git supercharged', description: 'Supercharge Git within VS Code.', publisher: 'GitKraken' },
-  { name: 'Material Icon Theme', description: 'Material Design icons for VS Code.', publisher: 'Philipp Kief' },
-  { name: 'Tailwind CSS IntelliSense', description: 'Intelligent Tailwind CSS tooling for VS Code.', publisher: 'Tailwind Labs' },
-];
+const { extensions: marketplaceExtensions } = extensions;
 
 export default function ExtensionsPage() {
   return (
@@ -21,7 +15,7 @@ export default function ExtensionsPage() {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {installedExtensions.map((ext, index) => (
+        {marketplaceExtensions.map((ext, index) => (
           <div 
             key={ext.name} 
             className="card-hover-effect flex flex-col rounded-lg border bg-card text-card-foreground p-4 animate-slide-up"

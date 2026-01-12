@@ -1,14 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Puzzle, CheckCircle } from "lucide-react";
+import extensions from '@/lib/extensions.json';
 
-const installedExtensions = [
-  { name: "Prettier - Code formatter", version: "v9.9.0" },
-  { name: "ESLint", version: "v8.56.0" },
-  { name: "Live Server", version: "v5.7.9" },
-  { name: "GitLens — Git supercharged", version: "v14.8.2" },
-];
+const { extensions: installedExtensions } = extensions;
 
 export function ExtensionsPanel() {
   return (
