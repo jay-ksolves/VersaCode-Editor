@@ -39,6 +39,7 @@ export function useFileSystem() {
   const [stagedFiles, setStagedFiles] = useState<Set<string>>(new Set());
   const { 
       isLoaded, 
+      isLoading,
       readDirectory, 
       readFile, 
       writeFile, 
@@ -442,7 +443,10 @@ export function useFileSystem() {
     unstageFile,
     commitChanges,
     isLoaded,
+    isLoading,
     importFromLocal: handleImportFromLocal,
     resetAll,
   };
 }
+
+    

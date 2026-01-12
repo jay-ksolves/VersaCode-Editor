@@ -17,9 +17,10 @@ interface SettingsPanelProps {
   },
   onSettingsChange: (newSettings: Partial<{ minimap: boolean; fontSize: number; }>) => void;
   onResetSettings: () => void;
+  onResetFileSystem: () => void;
 }
 
-export function SettingsPanel({ settings, onSettingsChange, onResetSettings }: SettingsPanelProps) {
+export function SettingsPanel({ settings, onSettingsChange, onResetSettings, onResetFileSystem }: SettingsPanelProps) {
   return (
     <div className="h-full flex flex-col" data-testid="settings-panel">
       <div className="p-4 border-b">
@@ -77,9 +78,12 @@ export function SettingsPanel({ settings, onSettingsChange, onResetSettings }: S
             </div>
         </div>
       </div>
-       <div className="p-4 border-t">
+       <div className="p-4 border-t space-y-2">
         <Button className="w-full" onClick={onResetSettings} data-testid="settings-reset-button">Reset to Defaults</Button>
+        <Button variant="destructive" className="w-full" onClick={onResetFileSystem} data-testid="settings-reset-filesystem-button">Reset File System</Button>
       </div>
     </div>
   );
 }
+
+    

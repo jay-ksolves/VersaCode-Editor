@@ -117,8 +117,9 @@ function IdeLayoutContent({}: IdeLayoutProps) {
     unstageFile,
     commitChanges,
     isLoaded,
+    isLoading,
     importFromLocal,
-    setExpandedFolders,
+    resetAll,
   } = useFileSystem();
 
   // Load and save UI state
@@ -368,6 +369,17 @@ function IdeLayoutContent({}: IdeLayoutProps) {
     });
   };
   
+  const handleResetFileSystem = async () => {
+    await resetAll();
+    await refreshFileSystem();
+    setOpenFileIds([]);
+    setActiveFileId(null);
+    toast({
+      title: "File System Reset",
+      description: "All files and folders have been deleted."
+    });
+  };
+  
   const handleNewFile = () => fileExplorerRef.current?.startCreate('create_file');
   const handleNewFolder = () => fileExplorerRef.current?.startCreate('create_folder');
   
@@ -596,6 +608,7 @@ function IdeLayoutContent({}: IdeLayoutProps) {
           settings={editorSettings} 
           onSettingsChange={handleSettingsChange}
           onResetSettings={handleResetSettings}
+          onResetFileSystem={handleResetFileSystem}
         />;
       default:
         return null;
@@ -613,7 +626,13 @@ function IdeLayoutContent({}: IdeLayoutProps) {
   }
 
   return (
-      <div className="flex h-screen bg-background text-foreground font-body">
+      <div className="flex h-screen bg-background text-foreground font-body relative">
+        {isLoading && (
+            <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-[9999]">
+                 <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
+                <p className="ml-4 text-muted-foreground">Importing project...</p>
+            </div>
+        )}
         <CommandPalette open={isCommandPaletteOpen} onOpenChange={setIsCommandPaletteOpen} onCommand={handleCommand} />
         <ActivityBar activePanel={activePanel} onSelectPanel={setActivePanel} />
         <div className="flex flex-1 flex-col overflow-hidden">
@@ -762,3 +781,5 @@ export function IdeLayout(props: IdeLayoutProps) {
   
   return <IdeLayoutContent {...props} />;
 }
+
+    

@@ -17,6 +17,7 @@ const DIRTY_MAP_STORAGE_KEY = 'versacode_opfs_dirty_map';
 
 export function useOPFS() {
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [isDirtyMap, setIsDirtyMap] = useState<Map<string, boolean>>(new Map());
     const [rootHandle, setRootHandle] = useState<FileSystemDirectoryHandle | null>(null);
 
@@ -219,6 +220,7 @@ Enjoy coding!
         const localDirHandle = await window.showDirectoryPicker();
         if (!rootHandle) return;
         
+        setIsLoading(true);
         await resetAll();
 
         async function copy(local: FileSystemDirectoryHandle | FileSystemFileHandle, remotePath: string) {
@@ -239,6 +241,7 @@ Enjoy coding!
          for await (const handle of localDirHandle.values()) {
             await copy(handle, '');
         }
+        setIsLoading(false);
     };
 
     const resetAll = async () => {
@@ -256,5 +259,7 @@ Enjoy coding!
     };
 
 
-    return { isLoaded, readDirectory, readFile, writeFile, createDirectory, deleteFile, deleteDirectory, rename, importFromLocal, isDirtyMap, resetDirty, resetAll };
+    return { isLoaded, isLoading, readDirectory, readFile, writeFile, createDirectory, deleteFile, deleteDirectory, rename, importFromLocal, isDirtyMap, resetDirty, resetAll };
 }
+
+    
