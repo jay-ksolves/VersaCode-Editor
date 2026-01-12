@@ -86,16 +86,6 @@
       to { transform: translateY(0); opacity: 1; }
   }
 
-  .vanta-background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: -1;
-    background-color: hsl(var(--background));
-  }
-  
   .card-hover-effect {
       position: relative;
       transition: transform 0.3s ease, box-shadow 0.3s ease;

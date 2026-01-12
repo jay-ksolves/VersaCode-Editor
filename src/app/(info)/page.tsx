@@ -108,8 +108,11 @@ export default function HomePage() {
        <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" strategy="lazyOnload" />
        <Script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.rings.min.js" strategy="lazyOnload" />
        
-      <div className="relative isolate overflow-hidden -mt-16 h-screen">
-        <div ref={vantaRef} className="vanta-background"></div>
+      <div className="relative isolate overflow-hidden h-screen">
+        <div 
+          ref={vantaRef} 
+          className="absolute top-0 left-0 w-screen h-screen z-[-1]"
+        ></div>
         <div className="container mx-auto px-4 py-24 text-center flex items-center justify-center h-full">
           <div className="mx-auto max-w-4xl animate-fade-in">
             <div className="mb-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
