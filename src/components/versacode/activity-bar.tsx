@@ -44,7 +44,6 @@ export function ActivityBar({ activePanel, onSelectPanel }: ActivityBarProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                disabled={item.disabled}
                 className={cn('h-10 w-10 relative', {
                   'text-accent-foreground': activePanel === item.id,
                 })}
