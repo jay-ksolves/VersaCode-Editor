@@ -178,6 +178,7 @@ export function useFileSystem() {
   const { toast } = useToast();
 
   const loadFromLocalStorage = useCallback(() => {
+    console.warn("VersaCode is currently using localStorage for the file system. To work with local device files, the File System Access API needs to be implemented.");
     try {
       const storedFiles = localStorage.getItem(FS_LOCAL_STORAGE_KEY);
       const storedExpanded = localStorage.getItem(EXPANDED_FOLDERS_LOCAL_STORAGE_KEY);

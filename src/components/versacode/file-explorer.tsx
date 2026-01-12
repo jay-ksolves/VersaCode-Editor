@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Folder, File as FileIcon, ChevronRight, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen, FileJson, FileCode, FileText, RefreshCw, ChevronDown, X } from "lucide-react";
+import { Folder, File as FileIcon, ChevronRight, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen, FileJson, FileCode, FileText, RefreshCw, ChevronDown, X, Info } from "lucide-react";
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { cn } from "@/lib/utils";
 import type { FileSystemNode } from "@/hooks/useFileSystem";
@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "../ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
 import { ScrollArea } from "../ui/scroll-area";
+import { Alert, AlertDescription } from "../ui/alert";
 
 type Operation = 'create_file' | 'create_folder' | 'rename';
 type EditState = {
@@ -517,6 +518,12 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
                     )}
                   </div>
                 )}
+                <Alert className="mt-4">
+                    <Info className="h-4 w-4" />
+                    <AlertDescription className="text-xs">
+                        This is a virtual file system stored in your browser. For native file system access, use the File System Access API (coming soon).
+                    </AlertDescription>
+                </Alert>
               </div>
             </CollapsibleContent>
         </Collapsible>

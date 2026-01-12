@@ -75,6 +75,9 @@ export function Header({
                 New File <MenubarShortcut>Ctrl+N</MenubarShortcut>
               </MenubarItem>
               <MenubarItem onClick={onNewFolder}>New Folder</MenubarItem>
+               <MenubarItem disabled>
+                Open Folder...
+              </MenubarItem>
               <MenubarSeparator />
               <MenubarItem disabled>
                 Save <MenubarShortcut>Ctrl+S</MenubarShortcut>
