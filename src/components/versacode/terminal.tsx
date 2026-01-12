@@ -223,7 +223,7 @@ export function Terminal({
                     {initialTerminals.map((term, i) => (
                         <TabsTrigger key={term.id} value={term.id} className="text-xs rounded-none border-r data-[state=active]:bg-background/20 data-[state=active]:shadow-none py-1.5 px-3 relative group">
                            {i+1}: {term.name}
-                           <button onClick={(e) => { e.stopPropagation(); onCloseTerminal(term.id)}} className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-0.5 rounded-full hover:bg-muted/50"><X className="h-3 w-3"/></button>
+                           <div role="button" onClick={(e) => { e.stopPropagation(); onCloseTerminal(term.id)}} className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-0.5 rounded-full hover:bg-muted/50"><X className="h-3 w-3"/></div>
                         </TabsTrigger>
                     ))}
                 </TabsList>
