@@ -114,6 +114,11 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
     findNodeByPath,
     searchFiles,
     refreshFileSystem,
+    changedFiles,
+    stagedFiles,
+    stageFile,
+    unstageFile,
+    commitChanges,
   } = useFileSystem({ autoSave: editorSettings.autoSave });
 
   // Load and save UI state
@@ -645,7 +650,14 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
       case "ai-assistant":
         return <AiAssistantPanel allFiles={files} />;
       case 'source-control':
-        return <SourceControlPanel />;
+        return <SourceControlPanel 
+          changedFiles={changedFiles}
+          stagedFiles={stagedFiles}
+          onStageFile={stageFile}
+          onUnstageFile={unstageFile}
+          onCommit={commitChanges}
+          onOpenFile={openFile}
+        />;
       case 'run-debug':
         return <RunDebugPanel />;
       case "extensions":
@@ -780,7 +792,6 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
                       className={cn(isBottomPanelOpen ? "block" : "hidden")}
                     >
                       <Terminal 
-                        output={output}
                         problems={problems} 
                         onGoToProblem={handleGoToProblem} 
                         onClosePanel={() => setIsBottomPanelOpen(false)}
