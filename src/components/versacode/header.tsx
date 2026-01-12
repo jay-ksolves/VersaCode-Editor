@@ -24,6 +24,7 @@ interface HeaderProps {
   isFormatting: boolean;
   onNewFile: () => void;
   onNewFolder: () => void;
+  onUploadFolder: () => void;
   onToggleMinimap: (checked: boolean) => void;
   isMinimapVisible: boolean;
   onNewTerminal: () => void;
@@ -33,6 +34,7 @@ interface HeaderProps {
   onDownloadZip: () => void;
   theme: string;
   onToggleTheme: () => void;
+  onCloseEditor: () => void;
 }
 
 export function Header({
@@ -43,6 +45,7 @@ export function Header({
   isFormatting,
   onNewFile,
   onNewFolder,
+  onUploadFolder,
   onToggleMinimap,
   isMinimapVisible,
   onNewTerminal,
@@ -52,6 +55,7 @@ export function Header({
   onDownloadZip,
   theme,
   onToggleTheme,
+  onCloseEditor,
 }: HeaderProps) {
   
   const handleRun = () => {
@@ -86,13 +90,13 @@ export function Header({
                 New File <MenubarShortcut>Ctrl+N</MenubarShortcut>
               </MenubarItem>
               <MenubarItem onClick={onNewFolder}>New Folder</MenubarItem>
-               <MenubarItem disabled>
-                Open Folder...
+               <MenubarItem onClick={onUploadFolder}>
+                Upload Folder...
               </MenubarItem>
               <MenubarSeparator />
               <MenubarItem onClick={onDownloadZip}>Download Project (.zip)</MenubarItem>
               <MenubarSeparator />
-              <MenubarItem disabled>Close Editor</MenubarItem>
+              <MenubarItem onClick={onCloseEditor}>Close Editor</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
           <MenubarMenu>

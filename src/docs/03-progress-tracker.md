@@ -30,6 +30,7 @@ This document tracks the implementation status of core IDE features for the 1.0 
 - [x] Folder icons change on expand/collapse
 - [x] File-specific icons based on extension
 - [x] Refresh button to reload from `localStorage`
+- [x] Upload Folder functionality to import projects
 
 ## Search Panel (`search`)
 
@@ -45,6 +46,16 @@ This document tracks the implementation status of core IDE features for the 1.0 
 - [x] File context selector tree
 - [x] Conversational prompt input
 - [x] Display AI response in a read-only code editor
+
+## Source Control Panel (`source-control`)
+
+- [x] Placeholder panel with basic UI
+- [ ] Full Git integration (deferred for future release)
+
+## Run & Debug Panel (`run-debug`)
+
+- [x] Placeholder panel with basic UI
+- [ ] Step-through debugger integration (deferred for future release)
 
 ## Code Editor
 

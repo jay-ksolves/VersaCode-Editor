@@ -24,6 +24,8 @@ import { CommandPalette } from "./command-palette";
 import { AiAssistantPanel } from "./ai-assistant-panel";
 import JSZip from 'jszip';
 import { LoaderCircle } from "lucide-react";
+import { SourceControlPanel } from "./source-control-panel";
+import { RunDebugPanel } from "./run-debug-panel";
 
 export type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
 
@@ -84,11 +86,14 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
   const modelsRef = useRef<Map<string, monaco.editor.ITextModel>>(new Map());
   const mainPanelGroupRef = useRef<any>(null);
   const sidePanelGroupRef = useRef<any>(null);
+  const folderUploadRef = useRef<HTMLInputElement | null>(null);
+
 
   const { toast } = useToast();
 
   const {
     files,
+    setFiles,
     activeFile,
     activeFileId,
     setActiveFileId,
@@ -361,6 +366,88 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
   const handleNewFile = () => fileExplorerRef.current?.startCreate('create_file');
   const handleNewFolder = () => fileExplorerRef.current?.startCreate('create_folder');
   
+  const handleUploadFolderClick = () => {
+    folderUploadRef.current?.click();
+  };
+
+  const handleFolderUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    toast({ title: "Uploading Folder...", description: "Processing your project files." });
+
+    const newFileTree: FileSystemNode[] = [];
+    const folderCache: { [key: string]: FileSystemNode } = {};
+
+    const getOrCreateFolder = (path: string): FileSystemNode => {
+        if (folderCache[path]) return folderCache[path];
+
+        const parts = path.split('/');
+        const folderName = parts.pop()!;
+        const parentPath = parts.join('/');
+        
+        const parentFolder = getOrCreateFolder(parentPath);
+        
+        const newFolder: FileSystemNode = {
+            id: `folder_${path}`,
+            name: folderName,
+            type: 'folder',
+            path: path,
+            children: [],
+        };
+        
+        if (parentFolder) {
+            (parentFolder as any).children.push(newFolder);
+        } else {
+            newFileTree.push(newFolder);
+        }
+        
+        folderCache[path] = newFolder;
+        return newFolder;
+    };
+    
+    // Create a root node for the top-level files
+    const rootName = files[0].webkitRelativePath.split('/')[0];
+    const rootNode: FileSystemNode = {
+        id: 'root',
+        name: rootName,
+        type: 'folder',
+        path: rootName,
+        children: [],
+    };
+    folderCache[rootName] = rootNode;
+
+
+    for (const file of Array.from(files)) {
+        const pathParts = file.webkitRelativePath.split('/');
+        const fileName = pathParts.pop()!;
+        const folderPath = pathParts.join('/');
+        
+        const parentFolder = folderCache[folderPath];
+        if (!parentFolder || parentFolder.type !== 'folder') continue;
+
+        const content = await file.text();
+        const newFile: FileSystemNode = {
+            id: `file_${file.webkitRelativePath}`,
+            name: fileName,
+            type: 'file',
+            path: file.webkitRelativePath,
+            content: content
+        };
+        parentFolder.children.push(newFile);
+    }
+
+    setFiles([rootNode]);
+    setOpenFileIds([]);
+    setActiveFileId(null);
+    setExpandedFolders(new Set([rootNode.id]));
+    toast({ title: "Folder Uploaded", description: `Project "${rootName}" is ready.` });
+    
+    // Reset file input
+    if(event.target) event.target.value = '';
+  };
+
+
   const handleNewUntitledFile = useCallback(() => {
     let i = 1;
     let newName = `Untitled-${i}`;
@@ -456,6 +543,12 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
   const handleCloseTab = (fileId: string) => {
     closeFileFromHook(fileId);
   }
+  
+  const handleCloseEditor = () => {
+    if (activeFileId) {
+      closeFileFromHook(activeFileId);
+    }
+  }
 
   const handleCloseAllTabs = () => {
     setOpenFileIds([]);
@@ -550,6 +643,10 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
         />;
       case "ai-assistant":
         return <AiAssistantPanel allFiles={files} />;
+      case 'source-control':
+        return <SourceControlPanel />;
+      case 'run-debug':
+        return <RunDebugPanel />;
       case "extensions":
         return <ExtensionsPanel />;
       case "settings":
@@ -566,6 +663,15 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
 
   return (
       <div className="flex h-screen bg-background text-foreground font-body">
+        <input 
+            type="file" 
+            ref={folderUploadRef}
+            onChange={handleFolderUpload}
+            className="hidden"
+            // @ts-ignore
+            webkitdirectory="true" 
+            directory="true"
+        />
         <CommandPalette open={isCommandPaletteOpen} onOpenChange={setIsCommandPaletteOpen} onCommand={handleCommand} />
         <ActivityBar activePanel={activePanel} onSelectPanel={setActivePanel} />
         <div className="flex flex-1 flex-col overflow-hidden">
@@ -577,6 +683,7 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
             isFormatting={isFormatting}
             onNewFile={handleNewFile}
             onNewFolder={handleNewFolder}
+            onUploadFolder={handleUploadFolderClick}
             isMinimapVisible={editorSettings.minimap}
             onToggleMinimap={(checked) => handleSettingsChange({ minimap: checked })}
             onNewTerminal={handleNewTerminal}
@@ -586,6 +693,7 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
             onDownloadZip={handleDownloadZip}
             theme={theme}
             onToggleTheme={handleToggleTheme}
+            onCloseEditor={handleCloseEditor}
           />
           <main className="flex-1 flex overflow-hidden">
             <ResizablePanelGroup direction="horizontal" ref={mainPanelGroupRef} onLayout={(sizes) => {
