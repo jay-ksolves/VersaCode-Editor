@@ -38,8 +38,8 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
         vantaEffectRef.current.destroy();
     }
 
-    const vantaColor = theme === 'dark' ? 0x4b0082 : 0xa020f0; 
-    const bgColor = theme === 'dark' ? 0x1a1a2e : 0xe6e6fa;
+    const vantaColor = theme === 'dark' ? 0x15a07c : 0x15a07c; 
+    const bgColor = theme === 'dark' ? 0x1a1a2e : 0xf0f2f5;
 
     vantaEffectRef.current = window.VANTA.RINGS({
         el: vantaRef.current,
