@@ -1,24 +1,27 @@
+
 'use server';
 
 /**
- * @fileOverview An AI-powered code completion flow that suggests code snippets as the user types.
+ * @fileOverview An AI-powered code completion flow that suggests code snippets.
+ * This flow takes the current code in the editor as context and the language, then returns a relevant code suggestion.
+ * It is designed to be triggered on demand by the user (e.g., via a keyboard shortcut).
  *
- * - suggestCodeCompletion - A function that handles the code completion process.
- * - SuggestCodeCompletionInput - The input type for the suggestCodeCompletion function.
- * - SuggestCodeCompletionOutput - The return type for the suggestCodeCompletion function.
+ * - suggestCodeCompletion - The primary exported function that executes the code completion logic.
+ * - SuggestCodeCompletionInput - The Zod schema defining the input for the flow.
+ * - SuggestCodeCompletionOutput - The Zod schema defining the output of the flow.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const SuggestCodeCompletionInputSchema = z.object({
-  codeContext: z.string().describe('The current code context the user is typing in.'),
-  programmingLanguage: z.string().describe('The programming language of the code.'),
+  codeContext: z.string().describe('The full content of the code file the user is currently editing.'),
+  programmingLanguage: z.string().describe('The programming language of the code (e.g., "typescript", "css").'),
 });
 export type SuggestCodeCompletionInput = z.infer<typeof SuggestCodeCompletionInputSchema>;
 
 const SuggestCodeCompletionOutputSchema = z.object({
-  suggestedCode: z.string().describe('The AI-suggested code completion snippet.'),
+  suggestedCode: z.string().describe('The AI-suggested code completion snippet to be inserted at the user\'s cursor.'),
 });
 export type SuggestCodeCompletionOutput = z.infer<typeof SuggestCodeCompletionOutputSchema>;
 

@@ -55,5 +55,3 @@ All generative AI functionality is handled through **Genkit flows**, located in 
 - **Client-Side Invocation:** Client components, such as `IdeLayout` and `AiAssistantPanel`, call these flows as if they were standard async functions. Next.js server actions handle the communication between the client and the server-side flow.
 - **Dynamic API Keys:** The AI Assistant feature (`ai-assistant-flow.ts`) demonstrates a scalable approach where the user provides their own API key. The flow dynamically initializes a temporary Genkit instance with the user's key for that specific request, ensuring security and proper attribution of API usage.
 - **Example:** The "Generate Code" feature in `FileExplorer.tsx` calls the `generateCodeFromPrompt` flow, passing a natural language prompt and receiving a generated code snippet. The AI Assistant panel uses the more advanced `aiAssistantFlow` to provide conversational, context-aware coding help.
-
-    

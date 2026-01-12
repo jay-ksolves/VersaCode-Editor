@@ -1,24 +1,27 @@
+
 'use server';
 
 /**
- * @fileOverview A code generation AI agent.
+ * @fileOverview An AI-powered code generation flow.
+ * This flow takes a natural language prompt and a target programming language, then generates a complete
+ * code snippet. It is used for features like the "Generate Code" dialog in the file explorer.
  *
- * - generateCodeFromPrompt - A function that handles the code generation process.
- * - GenerateCodeFromPromptInput - The input type for the generateCodeFromPrompt function.
- * - GenerateCodeFromPromptOutput - The return type for the generateCodeFromPrompt function.
+ * - generateCodeFromPrompt - The primary exported function that executes the code generation logic.
+ * - GenerateCodeFromPromptInput - The Zod schema defining the input for the flow.
+ * - GenerateCodeFromPromptOutput - The Zod schema defining the output of the flow.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateCodeFromPromptInputSchema = z.object({
-  prompt: z.string().describe('A natural language description of the desired code.'),
-  language: z.string().optional().default('typescript').describe('The programming language for the generated code.'),
+  prompt: z.string().describe('A natural language description of the desired code functionality.'),
+  language: z.string().optional().default('typescript').describe('The programming language for the generated code (e.g., "typescript", "python").'),
 });
 export type GenerateCodeFromPromptInput = z.infer<typeof GenerateCodeFromPromptInputSchema>;
 
 const GenerateCodeFromPromptOutputSchema = z.object({
-  code: z.string().describe('The generated code snippet.'),
+  code: z.string().describe('The generated code snippet as a string.'),
 });
 export type GenerateCodeFromPromptOutput = z.infer<typeof GenerateCodeFromPromptOutputSchema>;
 

@@ -50,12 +50,12 @@ This document tracks the implementation status of core IDE features for the 1.0 
 ## Source Control Panel (`source-control`)
 
 - [x] Placeholder panel with basic UI
-- [x] Full Git integration (deferred for future release)
+- [ ] Full Git integration (deferred for future release)
 
 ## Run & Debug Panel (`run-debug`)
 
 - [x] Placeholder panel with basic UI
-- [x] Step-through debugger integration (deferred for future release)
+- [ ] Step-through debugger integration (deferred for future release)
 
 ## Code Editor
 
@@ -85,8 +85,8 @@ This document tracks the implementation status of core IDE features for the 1.0 
 ## Extensions Panel (`extensions`)
 
 - [x] Mock list of installed extensions
-- [x] Connect to an extension marketplace (deferred for future release)
-- [x] Install / Uninstall extensions (deferred for future release)
+- [ ] Connect to an extension marketplace (deferred for future release)
+- [ ] Install / Uninstall extensions (deferred for future release)
 
 ## Settings Panel (`settings`)
 

@@ -3,10 +3,12 @@
 
 /**
  * @fileOverview A conversational AI assistant flow that can answer questions and generate code based on file context.
+ * This flow is designed to be highly flexible, accepting a user prompt, optional file context, and a user-provided
+ * API key to ensure security and proper API usage attribution.
  *
- * - runAiAssistant - A function that orchestrates the AI assistant logic.
- * - AiAssistantInput - The input type for the runAiAssistant function.
- * - AiAssistantOutput - The return type for the runAiAssistant function.
+ * - runAiAssistant - The primary exported function that executes the AI assistant logic.
+ * - AiAssistantInput - The Zod schema defining the input for the flow.
+ * - AiAssistantOutput - The Zod schema defining the output of the flow.
  */
 
 import { genkit, z } from 'genkit';
@@ -14,14 +16,14 @@ import { googleAI } from '@genkit-ai/google-genai';
 import { ai } from '@/ai/genkit';
 
 const AiAssistantInputSchema = z.object({
-  prompt: z.string().describe('The user\'s request or question.'),
-  context: z.string().optional().describe('The content of files selected by the user to provide context.'),
-  apiKey: z.string().optional().describe('The user-provided Google AI API key.'),
+  prompt: z.string().describe('The user\'s natural language request or question.'),
+  context: z.string().optional().describe('A string containing the content of files selected by the user to provide context to the AI.'),
+  apiKey: z.string().optional().describe('The user-provided Google AI API key for authentication.'),
 });
 export type AiAssistantInput = z.infer<typeof AiAssistantInputSchema>;
 
 const AiAssistantOutputSchema = z.object({
-  generatedCode: z.string().describe('The AI-generated response, which could be code or natural language.'),
+  generatedCode: z.string().describe('The AI-generated response, which could be code, natural language, or a mix of both.'),
 });
 export type AiAssistantOutput = z.infer<typeof AiAssistantOutputSchema>;
 
@@ -62,7 +64,7 @@ const aiAssistantFlow = ai.defineFlow(
     outputSchema: AiAssistantOutputSchema,
   },
   async (input) => {
-    // Create a temporary Genkit instance with the user's API key
+    // Create a temporary Genkit instance with the user's API key for security and scalability.
     const userAi = genkit({
       plugins: [
         googleAI({
