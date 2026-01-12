@@ -13,7 +13,6 @@ import { SettingsPanel } from "./settings-panel";
 import { TasksPanel } from "./tasks-panel";
 import { useToast } from "@/hooks/use-toast";
 import { suggestCodeCompletion } from "@/ai/flows/ai-suggest-code-completion";
-import { formatCode } from "@/ai/flows/format-code";
 import { useFileSystem } from "@/hooks/useFileSystem";
 import { TooltipProvider } from "../ui/tooltip";
 import type * as monaco from 'monaco-editor';
@@ -31,7 +30,6 @@ function IdeLayoutContent() {
   const [activePanel, setActivePanel] = useState<ActivePanel>("files");
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
-  const [isFormatting, setIsFormatting] = useState<boolean>(false);
   const [editorSettings, setEditorSettings] = useState(defaultEditorSettings);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
@@ -129,39 +127,6 @@ function IdeLayoutContent() {
       setIsSuggesting(false);
     }
   }, [activeFile, toast, updateFileContent]);
-
-  const handleFormat = useCallback(async () => {
-    if (!activeFile) {
-      toast({
-        variant: "destructive",
-        title: "No active file",
-        description: "Please select a file to format.",
-      });
-      return;
-    }
-
-    setIsFormatting(true);
-    try {
-      const result = await formatCode({
-        code: activeFile.content,
-        language: getFileLanguage(activeFile.name),
-      });
-      updateFileContent(activeFile.id, result.formattedCode);
-      toast({
-        title: "Code Formatted",
-        description: `${activeFile.name} has been formatted.`,
-      });
-    } catch (error) {
-      console.error("AI formatting failed:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to format code.",
-      });
-    } finally {
-      setIsFormatting(false);
-    }
-  }, [activeFile, toast, updateFileContent]);
   
   const handleCodeChange = (newCode: string | undefined) => {
     if (activeFileId && newCode !== undefined) {
@@ -244,8 +209,6 @@ function IdeLayoutContent() {
             onRun={handleRun} 
             onSuggest={handleSuggest} 
             isSuggesting={isSuggesting}
-            onFormat={handleFormat}
-            isFormatting={isFormatting} 
           />
           <main className="flex-1 flex overflow-hidden">
             {activePanel !== "none" && (
@@ -267,7 +230,6 @@ function IdeLayoutContent() {
                       key={activeFileId}
                       value={activeFile.content} 
                       onChange={handleCodeChange}
-                      isReadOnly={!activeFileId}
                       language={getFileLanguage(activeFile.name)}
                       options={{ 
                         minimap: {enabled: editorSettings.minimap},

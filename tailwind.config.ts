@@ -19,7 +19,7 @@ export default {
       fontFamily: {
         body: ["Inter", "sans-serif"],
         headline: ["Inter", "sans-serif"],
-        code: ["Source Code Pro", "monospace"],
+        code: ["JetBrains Mono", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -8,7 +8,6 @@ import type * as monaco from 'monaco-editor';
 interface CodeEditorProps {
   value: string | undefined;
   onChange: (value: string | undefined) => void;
-  isReadOnly: boolean;
   language?: string;
   options?: monaco.editor.IStandaloneEditorConstructionOptions;
   onMount?: OnMount;
@@ -17,20 +16,19 @@ interface CodeEditorProps {
 export function CodeEditor({
   value,
   onChange,
-  isReadOnly,
   language = "typescript",
   options = {},
   onMount
 }: CodeEditorProps) {
-  // Hardcoding theme for now as next-themes is removed
   const monacoTheme = "vs-dark";
 
   const defaultOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
-    readOnly: isReadOnly,
     wordWrap: "on",
-    fontFamily: "Source Code Pro, monospace",
+    fontFamily: "JetBrains Mono, monospace",
     scrollBeyondLastLine: false,
     minimap: { enabled: true },
+    readOnly: false,
+    automaticLayout: true,
   };
 
   return (

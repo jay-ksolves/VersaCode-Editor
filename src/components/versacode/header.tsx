@@ -1,16 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Play, Sparkles, LoaderCircle, Code, CaseSensitive } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Play, Sparkles, LoaderCircle, Code } from "lucide-react";
 
 interface HeaderProps {
   onRun: () => void;
   onSuggest: () => void;
   isSuggesting: boolean;
-  onFormat: () => void;
-  isFormatting: boolean;
 }
 
-export function Header({ onRun, onSuggest, isSuggesting, onFormat, isFormatting }: HeaderProps) {
+export function Header({ onRun, onSuggest, isSuggesting }: HeaderProps) {
   return (
     <header className="flex items-center justify-between h-16 px-4 border-b bg-card">
       <div className="flex items-center gap-4">
@@ -31,26 +30,30 @@ export function Header({ onRun, onSuggest, isSuggesting, onFormat, isFormatting 
         </Select>
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="outline" onClick={onFormat} disabled={isFormatting}>
-          {isFormatting ? (
-            <LoaderCircle className="animate-spin" />
-          ) : (
-            <CaseSensitive />
-          )}
-          Format
-        </Button>
-        <Button variant="outline" onClick={onSuggest} disabled={isSuggesting}>
-          {isSuggesting ? (
-            <LoaderCircle className="animate-spin" />
-          ) : (
-            <Sparkles />
-          )}
-          Suggest
-        </Button>
-        <Button onClick={onRun} className="bg-accent hover:bg-accent/90">
-          <Play />
-          Run
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={onSuggest} disabled={isSuggesting}>
+              {isSuggesting ? (
+                <LoaderCircle className="h-5 w-5 animate-spin" />
+              ) : (
+                <Sparkles className="h-5 w-5" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>AI Code Suggestion</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size="icon" onClick={onRun} className="bg-accent text-accent-foreground hover:bg-accent/90">
+              <Play className="h-5 w-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Run Code</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
     </header>
   );
