@@ -16,6 +16,7 @@ import { suggestCodeCompletion } from "@/ai/flows/ai-suggest-code-completion";
 import { useFileSystem } from "@/hooks/useFileSystem";
 import { TooltipProvider } from "../ui/tooltip";
 import type * as monaco from 'monaco-editor';
+import { Breadcrumbs } from "./breadcrumbs";
 
 
 type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "none";
@@ -87,7 +88,7 @@ function IdeLayoutContent() {
         ...prev,
         `> Executing ${activeFile.name}...`,
         `> Simulating output:`,
-        ...activeFile.content.split('\n'),
+        ...(activeFile.content || '').split('\n'),
         `> Execution finished.`
       ]);
     } else {
@@ -177,10 +178,10 @@ function IdeLayoutContent() {
           files={files} 
           activeFileId={activeFileId} 
           onSelectFile={openFile}
-          onCreateFile={createFile}
-          onCreateFolder={createFolder}
-          onRename={renameNode}
-          onDeleteNode={deleteNode}
+          createFile={createFile}
+          createFolder={createFolder}
+          renameNode={renameNode}
+          deleteNode={deleteNode}
           getTargetFolder={getTargetFolder}
           expandedFolders={expandedFolders}
           onToggleFolder={toggleFolder}
@@ -218,6 +219,11 @@ function IdeLayoutContent() {
               </div>
             )}
             <div className="flex-1 flex flex-col min-w-0">
+               <Breadcrumbs
+                activeFile={activeFile}
+                findNodeById={findNodeById}
+                onSelect={openFile}
+              />
               <EditorTabs
                   openFileIds={openFileIds}
                   activeFileId={activeFileId}

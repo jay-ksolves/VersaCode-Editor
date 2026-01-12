@@ -51,7 +51,7 @@ export function Terminal({ output, onClear, onGoToProblem }: TerminalProps) {
         </TabsList>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClear}>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClear} title="Clear Terminal">
               <Trash2 className="h-4 w-4"/>
             </Button>
           </TooltipTrigger>
@@ -70,7 +70,7 @@ export function Terminal({ output, onClear, onGoToProblem }: TerminalProps) {
                     </div>
                     ))}
                     <div className="flex items-center">
-                        <span className="text-green-400">versa-code &gt;</span>
+                        <span className="text-green-400">versa-code {'>'}</span>
                         <span className="flex-1 ml-2 bg-transparent outline-none" contentEditable></span>
                     </div>
                 </div>
@@ -80,7 +80,7 @@ export function Terminal({ output, onClear, onGoToProblem }: TerminalProps) {
             <h3 className="text-sm font-semibold mb-2">Problems ({problems.length})</h3>
             <div className="space-y-2">
               {problems.map((problem, index) => (
-                <div key={index} className="flex items-start space-x-2 text-xs cursor-pointer hover:bg-muted p-1 rounded-md" onClick={() => onGoToProblem(problem)}>
+                <div key={index} className="flex items-start space-x-2 text-xs cursor-pointer hover:bg-muted p-1 rounded-md" onClick={() => onGoToProblem(problem)} title={`Go to ${problem.file}, line ${problem.line}`}>
                   {problem.severity === 'error' ? (
                     <XCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                   ) : (

@@ -32,7 +32,7 @@ export function Header({ onRun, onSuggest, isSuggesting }: HeaderProps) {
       <div className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={onSuggest} disabled={isSuggesting}>
+            <Button variant="ghost" size="icon" onClick={onSuggest} disabled={isSuggesting} title="AI Code Suggestion">
               {isSuggesting ? (
                 <LoaderCircle className="h-5 w-5 animate-spin" />
               ) : (
@@ -46,7 +46,7 @@ export function Header({ onRun, onSuggest, isSuggesting }: HeaderProps) {
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button size="icon" onClick={onRun} className="bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button size="icon" onClick={onRun} className="bg-accent text-accent-foreground hover:bg-accent/90" title="Run Code">
               <Play className="h-5 w-5" />
             </Button>
           </TooltipTrigger>

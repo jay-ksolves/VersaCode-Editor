@@ -22,7 +22,9 @@ export function EditorTabs({
   findNodeById,
 }: EditorTabsProps) {
   if (openFileIds.length === 0) {
-    return null;
+    return (
+        <div className="h-[41px] border-b bg-card" /> // Maintain layout consistency
+    );
   }
 
   return (
@@ -43,6 +45,7 @@ export function EditorTabs({
                 ? 'bg-background text-foreground'
                 : 'bg-card text-muted-foreground hover:bg-muted'
             )}
+            title={file.path}
           >
             <span>{file.name}</span>
             <Button
@@ -53,6 +56,7 @@ export function EditorTabs({
                 e.stopPropagation();
                 onCloseTab(id);
               }}
+              title={`Close ${file.name}`}
             >
               <X className="h-3 w-3" />
             </Button>
