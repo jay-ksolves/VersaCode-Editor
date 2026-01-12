@@ -175,6 +175,18 @@ function IdeLayoutContent() {
     }
   }, [findNodeByPath, openFile, toast]);
 
+  const handleBreadcrumbSelect = (path: string) => {
+    const node = findNodeByPath(path);
+    if (node) {
+      if (node.type === 'file') {
+        openFile(node.id);
+      } else if (node.type === 'folder') {
+        // Just toggle the folder, don't change the active file
+        toggleFolder(node.id, true);
+      }
+    }
+  }
+
   const renderPanel = () => {
     switch (activePanel) {
       case "files":
@@ -230,11 +242,7 @@ function IdeLayoutContent() {
             <div className="flex-1 flex flex-col min-w-0">
                <Breadcrumbs
                 activeFile={activeFile}
-                findNodeByPath={findNodeByPath}
-                onSelectPath={path => {
-                  const node = findNodeByPath(path);
-                  if (node) openFile(node.id);
-                }}
+                onSelectPath={handleBreadcrumbSelect}
               />
               <EditorTabs
                   openFileIds={openFileIds}

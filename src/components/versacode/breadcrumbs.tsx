@@ -8,11 +8,10 @@ import { cn } from '@/lib/utils';
 
 interface BreadcrumbsProps {
   activeFile: FileSystemNode | null;
-  findNodeByPath: (path: string) => FileSystemNode | null;
   onSelectPath: (path: string) => void;
 }
 
-export function Breadcrumbs({ activeFile, findNodeByPath, onSelectPath }: BreadcrumbsProps) {
+export function Breadcrumbs({ activeFile, onSelectPath }: BreadcrumbsProps) {
   if (!activeFile || !activeFile.path) {
     return <div className="h-10 flex items-center px-4 text-sm text-muted-foreground italic border-b">No file selected</div>;
   }

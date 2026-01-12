@@ -324,10 +324,12 @@ export function useFileSystem() {
     toast({ title: "Deleted", description: `${nodeToDelete.name} was deleted.` });
   }, [files, toast, activeFileId]);
 
-  const toggleFolder = useCallback((folderId: string) => {
+  const toggleFolder = useCallback((folderId: string, forceOpen = false) => {
     setExpandedFolders(prev => {
         const newSet = new Set(prev);
-        if (newSet.has(folderId)) {
+        if (forceOpen) {
+            newSet.add(folderId);
+        } else if (newSet.has(folderId)) {
             newSet.delete(folderId);
         } else {
             newSet.add(folderId);
