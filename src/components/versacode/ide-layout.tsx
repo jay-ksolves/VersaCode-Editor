@@ -97,6 +97,8 @@ function IdeLayoutContent() {
     closeAllFiles,
     closeOtherFiles,
     closeToTheRight,
+    closeToTheLeft,
+    reorderOpenTabs,
     findNodeById,
     findNodeByPath,
   } = useFileSystem();
@@ -467,6 +469,14 @@ function IdeLayoutContent() {
     closeToTheRight(fileId);
   }
 
+  const handleCloseToTheLeft = (fileId: string) => {
+    const fileIndex = openFileIds.indexOf(fileId);
+    if (fileIndex === -1) return;
+    const filesToTheLeft = openFileIds.slice(0, fileIndex);
+    if (!confirmClose(filesToTheLeft)) return;
+    closeToTheLeft(fileId);
+  }
+
 
   const renderPanel = () => {
     switch (activePanel) {
@@ -537,6 +547,8 @@ function IdeLayoutContent() {
                             onCloseAllTabs={handleCloseAllTabs}
                             onCloseOtherTabs={handleCloseOtherTabs}
                             onCloseToTheRight={handleCloseToTheRight}
+                            onCloseToTheLeft={handleCloseToTheLeft}
+                            onReorderTabs={reorderOpenTabs}
                             findNodeById={findNodeById}
                             dirtyFileIds={dirtyFiles}
                         />

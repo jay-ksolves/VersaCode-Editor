@@ -365,6 +365,15 @@ export function useFileSystem() {
       return prev.slice(0, fileIndex + 1);
     });
   }, []);
+  
+  const closeToTheLeft = useCallback((fileId: string) => {
+    setOpenFileIds(prev => {
+      const fileIndex = prev.indexOf(fileId);
+      if (fileIndex === -1) return prev;
+      return prev.slice(fileIndex);
+    });
+  }, []);
+
 
   const deleteNode = useCallback((id: string) => {
     let nodeToDelete: FileSystemNode | null = null;
@@ -466,6 +475,21 @@ export function useFileSystem() {
     }
   }, [files, openFileIds, toggleFolder]);
 
+  const reorderOpenTabs = useCallback((draggedId: string, targetId: string) => {
+    setOpenFileIds(prev => {
+      const newOrder = [...prev];
+      const draggedIndex = newOrder.indexOf(draggedId);
+      const targetIndex = newOrder.indexOf(targetId);
+
+      if (draggedIndex === -1 || targetIndex === -1) return prev;
+
+      const [removed] = newOrder.splice(draggedIndex, 1);
+      newOrder.splice(targetIndex, 0, removed);
+
+      return newOrder;
+    });
+  }, []);
+
 
   return {
     files,
@@ -488,6 +512,8 @@ export function useFileSystem() {
     closeAllFiles,
     closeOtherFiles,
     closeToTheRight,
+    closeToTheLeft,
+    reorderOpenTabs,
     findNodeById: (id: string, useOriginal = false) => {
       const source = useOriginal ? originalFiles : files;
       return findNodeByIdInOriginal(source, id);
