@@ -181,7 +181,7 @@ export function useFileSystem() {
   const createFile = useCallback(async (name: string, parentId: string | null, content: string = '') => {
     const parentNode = parentId ? findNodeById(parentId) : null;
     const parentPath = parentNode?.path ?? '';
-    const filePath = parentPath ? `${parentPath}/${name}` : name;
+    const filePath = parentPath ? `\${parentPath}/\${name}` : name;
     
     try {
         await writeFile(filePath, content);
@@ -202,7 +202,7 @@ export function useFileSystem() {
   const createFolder = useCallback(async (name: string, parentId: string | null) => {
     const parentNode = parentId ? findNodeById(parentId) : null;
     const parentPath = parentNode?.path ?? '';
-    const folderPath = parentPath ? `${parentPath}/${name}` : name;
+    const folderPath = parentPath ? `\${parentPath}/\${name}` : name;
 
     try {
         await createDirectory(folderPath);
@@ -295,7 +295,7 @@ export function useFileSystem() {
     }
     
     const newParentPath = dropTargetNode ? dropTargetNode.path : '';
-    const newPath = newParentPath ? `${newParentPath}/${draggedNode.name}` : draggedNode.name;
+    const newPath = newParentPath ? `\${newParentPath}/\${draggedNode.name}` : draggedNode.name;
 
     try {
         await rename(draggedNode.path, newPath);

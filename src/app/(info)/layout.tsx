@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Github, Moon, Rss, Sun, Twitter, Youtube } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { IdeLayout } from '@/components/versacode/ide-layout';
 import { useTheme } from '@/context/theme-context';
 
 interface InfoLayoutProps {
@@ -17,7 +16,7 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
   const { theme, setTheme } = useTheme();
 
   if (pathname === '/editor') {
-    return <IdeLayout />;
+    return <>{children}</>;
   }
   
   const toggleTheme = () => {
