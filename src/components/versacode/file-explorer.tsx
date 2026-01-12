@@ -521,7 +521,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
                 <Alert className="mt-4">
                     <Info className="h-4 w-4" />
                     <AlertDescription className="text-xs">
-                        This is a virtual file system stored in your browser. For native file system access, use the File System Access API (coming soon).
+                        This is a virtual file system stored in your browser&apos;s local storage.
                     </AlertDescription>
                 </Alert>
               </div>

@@ -29,10 +29,9 @@ export async function runAiAssistant(input: AiAssistantInput): Promise<AiAssista
   return aiAssistantFlow(input);
 }
 
-const prompt = ai.definePrompt({
+const assistantPrompt = ai.definePrompt({
   name: 'aiAssistantPrompt',
   input: { schema: AiAssistantInputSchema },
-  output: { schema: AiAssistantOutputSchema },
   prompt: `You are an expert AI pair programmer. Your purpose is to help users with their coding tasks.
   
   You will be given a prompt from a user. You may also be given a context of one or more files from the user's project.
@@ -73,10 +72,10 @@ const aiAssistantFlow = ai.defineFlow(
     });
 
     const { output } = await userAi.generate({
-      model: 'googleai/gemini-pro',
-      prompt: (await prompt.render(input)).prompt,
+      model: 'gemini-pro',
+      prompt: (await assistantPrompt.render(input)).prompt,
     });
     
-    return output as AiAssistantOutput;
+    return { generatedCode: output as string };
   }
 );

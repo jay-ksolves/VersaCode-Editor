@@ -49,7 +49,9 @@ const suggestCodeCompletionFlow = ai.defineFlow(
     outputSchema: SuggestCodeCompletionOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const response = await prompt.generate({
+        input,
+    });
+    return response.output()!;
   }
 );
