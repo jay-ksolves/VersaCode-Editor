@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Folder, File as FileIcon, ChevronRight, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen, FileJson, FileCode, FileText, RefreshCw, ChevronDown, X, Info } from "lucide-react";
+import { Folder, File as FileIcon, ChevronRight, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen, FileJson, FileCode as FileCodeIcon, FileText, RefreshCw, ChevronDown, X, Info } from "lucide-react";
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { cn } from "@/lib/utils";
 import type { FileSystemNode } from "@/hooks/useFileSystem";
@@ -37,13 +37,13 @@ export const FileIconComponent = ({ filename }: { filename: string }) => {
             return <FileJson className="w-4 h-4 text-yellow-500" />;
         case 'css':
         case 'tailwind':
-            return <FileCode className="w-4 h-4 text-blue-500" />;
+            return <FileCodeIcon className="w-4 h-4 text-blue-500" />;
         case 'tsx':
         case 'jsx':
-            return <FileCode className="w-4 h-4 text-cyan-400" />;
+            return <FileCodeIcon className="w-4 h-4 text-cyan-400" />;
         case 'ts':
         case 'js':
-            return <FileCode className="w-4 h-4 text-yellow-400" />;
+            return <FileCodeIcon className="w-4 h-4 text-yellow-400" />;
         case 'md':
             return <FileText className="w-4 h-4 text-gray-400" />;
         default:
@@ -181,7 +181,7 @@ function EditNode({
   return (
     <div className="flex items-center space-x-2 py-1.5 px-2" style={{ paddingLeft: `${level * 1 + 0.5}rem` }}>
        <div className="w-4" />
-       {isFolder ? <Folder className="w-4 h-4 text-accent" /> : <FileIcon className="w-4 h-4 text-muted-foreground" />}
+       {isFolder ? <Folder className="w-4 h-4 text-accent" /> : <FileIconComponent filename={name} />}
        <input
           ref={inputRef}
           type="text"
