@@ -6,59 +6,17 @@ import {
   Download,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useRef, useCallback, useState } from 'react';
-import Script from 'next/script';
+import { useCallback } from 'react';
 import JSZip from 'jszip';
 import { useToast } from '@/hooks/use-toast';
 import { useOPFS } from '@/hooks/useOPFS';
-import { useTheme } from '@/context/theme-context';
 import type { FileSystemNode } from '@/hooks/useFileSystem';
 
-
-declare global {
-    interface Window {
-        VANTA: any;
-    }
-}
-
 export default function HomePage() {
-  const { theme } = useTheme();
-  const vantaRef = useRef(null);
-  const vantaEffectRef = useRef<any>(null);
   const { toast } = useToast();
   const { readDirectory, isLoaded } = useOPFS();
-  const [isThreeLoaded, setIsThreeLoaded] = useState(false);
-
-
-  useEffect(() => {
-    if (!isThreeLoaded || !window.VANTA || !vantaRef.current) return;
-
-    if (vantaEffectRef.current) {
-        vantaEffectRef.current.destroy();
-    }
-
-    vantaEffectRef.current = window.VANTA.RINGS({
-        el: vantaRef.current,
-        mouseControls: true,
-        touchControls: true,
-        gyroControls: false,
-        minHeight: 200.00,
-        minWidth: 200.00,
-        scale: 1.00,
-        scaleMobile: 1.00,
-        color: 0x4caf50,
-        backgroundColor: theme === 'dark' ? 0x202429 : 0xf0f8f0,
-    });
-
-    return () => {
-        if (vantaEffectRef.current) {
-            vantaEffectRef.current.destroy();
-        }
-    };
-  }, [theme, isThreeLoaded]);
-
-
-    const handleDownloadZip = useCallback(async () => {
+  
+  const handleDownloadZip = useCallback(async () => {
     if (!isLoaded) {
       toast({ variant: 'destructive', title: 'File system not ready', description: 'Please wait a moment and try again.' });
       return;
@@ -103,73 +61,35 @@ export default function HomePage() {
   }, [isLoaded, readDirectory, toast]);
   
   return (
-    <>
-       <Script 
-        src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" 
-        strategy="lazyOnload" 
-        onLoad={() => setIsThreeLoaded(true)}
-       />
-       {isThreeLoaded && (
-        <Script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.rings.min.js" strategy="lazyOnload" />
-       )}
-       
-      <div className="relative w-full h-full">
-        <div 
-          ref={vantaRef} 
-          className="absolute inset-0 z-0"
-        ></div>
-        <div className="relative z-10">
-          <div className="container mx-auto px-4 py-24 text-center flex items-center justify-center h-screen">
-            <div className="mx-auto max-w-4xl animate-fade-in">
-              <div className="mb-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                <Link
-                  href="/updates"
-                  className="inline-block rounded-full bg-secondary px-4 py-1 text-sm text-secondary-foreground"
-                >
-                  Version 1.0 is now available!
-                </Link>
-              </div>
-              <h1 className="text-4xl font-bold tracking-tight md:text-6xl animate-slide-up" style={{ animationDelay: '0.3s' }}>
-                The AI-Native Web IDE
-              </h1>
-              <p className="mt-6 text-lg text-muted-foreground md:text-xl animate-slide-up" style={{ animationDelay: '0.4s' }}>
-                Free, open-source, and built for the modern developer. The future of coding is in your browser.
-              </p>
-
-              <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row animate-slide-up" style={{ animationDelay: '0.5s' }}>
-                <Button asChild size="lg" className="w-full sm:w-auto">
-                  <Link href="/editor">
-                    Launch Editor
-                  </Link>
-                </Button>
-                <Button variant="outline" size="lg" className="w-full sm:w-auto" onClick={handleDownloadZip}>
-                  <Download className="mr-2 h-5 w-5" />
-                  Download Project
-                </Button>
-              </div>
-            </div>
+    <div className="relative z-10 text-center flex items-center justify-center h-full">
+        <div className="mx-auto max-w-4xl animate-fade-in">
+          <div className="mb-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+            <Link
+              href="/updates"
+              className="inline-block rounded-full bg-secondary px-4 py-1 text-sm text-secondary-foreground"
+            >
+              Version 1.0 is now available!
+            </Link>
           </div>
-          
-          <div className="container mx-auto px-4 py-24">
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-              <div className="card-hover-effect rounded-lg bg-card p-6 text-left animate-slide-up" style={{ animationDelay: '0.6s' }}>
-                <h3 className="text-lg font-semibold">AI-Powered</h3>
-                <p className="mt-2 text-sm text-muted-foreground">Leverage generative AI for code suggestions, generation, and formatting to boost your productivity.</p>
-              </div>
-              <div className="card-hover-effect rounded-lg bg-card p-6 text-left animate-slide-up" style={{ animationDelay: '0.7s' }}>
-                <h3 className="text-lg font-semibold">Fully Featured</h3>
-                <p className="mt-2 text-sm text-muted-foreground">A complete IDE experience with a file explorer, multi-tab editor, and integrated terminal.</p>
-              </div>
-              <div className="card-hover-effect rounded-lg bg-card p-6 text-left animate-slide-up" style={{ animationDelay: '0.8s' }}>
-                <h3 className="text-lg font-semibold">Open Source</h3>
-                <p className="mt-2 text-sm text-muted-foreground">Built on modern, open-source technologies like Next.js, Monaco, and Genkit. Contributions are welcome.</p>
-              </div>
-            </div>
+          <h1 className="text-4xl font-bold tracking-tight md:text-6xl animate-slide-up" style={{ animationDelay: '0.3s' }}>
+            The AI-Native Web IDE
+          </h1>
+          <p className="mt-6 text-lg text-muted-foreground md:text-xl animate-slide-up" style={{ animationDelay: '0.4s' }}>
+            Free, open-source, and built for the modern developer. The future of coding is in your browser.
+          </p>
+
+          <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row animate-slide-up" style={{ animationDelay: '0.5s' }}>
+            <Button asChild size="lg" className="w-full sm:w-auto">
+              <Link href="/editor">
+                Launch Editor
+              </Link>
+            </Button>
+            <Button variant="outline" size="lg" className="w-full sm:w-auto" onClick={handleDownloadZip}>
+              <Download className="mr-2 h-5 w-5" />
+              Download Project
+            </Button>
           </div>
         </div>
-      </div>
-    </>
+    </div>
   );
 }
-
-    
