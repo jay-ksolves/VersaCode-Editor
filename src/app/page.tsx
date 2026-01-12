@@ -3,16 +3,9 @@
 
 import { Button } from '@/components/ui/button';
 import {
-  ChevronDown,
   Download,
 } from 'lucide-react';
 import Link from 'next/link';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Script from 'next/script';
 import JSZip from 'jszip';
@@ -54,7 +47,8 @@ export default function HomePage({ theme }: { theme: string }) {
     return () => {
       if (effect) effect.destroy();
     };
-  }, [theme]); // Removed vantaEffect from dependencies to prevent re-triggering
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [theme]);
 
     const handleDownloadZip = useCallback(async () => {
     if (files.length === 0) {
@@ -100,8 +94,8 @@ export default function HomePage({ theme }: { theme: string }) {
        <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" strategy="lazyOnload" />
        <Script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.rings.min.js" strategy="lazyOnload" />
        
-      <div ref={vantaRef} id="vanta-target" className="relative isolate overflow-hidden -mt-16 h-screen">
-        <div className="vanta-background"></div>
+      <div className="relative isolate overflow-hidden -mt-16 h-screen">
+        <div ref={vantaRef} className="vanta-background"></div>
         <div className="container mx-auto px-4 py-24 text-center flex items-center justify-center h-full">
           <div className="mx-auto max-w-4xl animate-fade-in">
             <div className="mb-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
