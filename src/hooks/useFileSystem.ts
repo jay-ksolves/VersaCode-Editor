@@ -176,7 +176,7 @@ export function useFileSystem() {
   const [openFileIds, setOpenFileIds] = useState<string[]>([]);
   const { toast } = useToast();
 
-  useEffect(() => {
+  const loadFromLocalStorage = useCallback(() => {
     try {
       const storedFiles = localStorage.getItem(FS_LOCAL_STORAGE_KEY);
       const storedExpanded = localStorage.getItem(EXPANDED_FOLDERS_LOCAL_STORAGE_KEY);
@@ -211,6 +211,10 @@ export function useFileSystem() {
       setExpandedFolders(new Set(['1']));
     }
   }, []);
+  
+  useEffect(() => {
+    loadFromLocalStorage();
+  }, [loadFromLocalStorage]);
 
   const hasUnsavedChanges = useRef(false);
 
@@ -508,5 +512,6 @@ export function useFileSystem() {
     },
     findNodeByPath: (path: string) => findNodeByPath(files, path),
     searchFiles,
+    refreshFileSystem: loadFromLocalStorage,
   };
 }

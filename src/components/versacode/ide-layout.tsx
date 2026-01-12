@@ -97,6 +97,7 @@ function IdeLayoutContent() {
     findNodeById,
     findNodeByPath,
     searchFiles,
+    refreshFileSystem,
   } = useFileSystem();
 
   useHotkeys('ctrl+n, cmd+n', (e) => {
@@ -487,6 +488,7 @@ function IdeLayoutContent() {
           expandedFolders={expandedFolders}
           onToggleFolder={toggleFolder}
           onOpenFile={openFile}
+          refreshFileSystem={refreshFileSystem}
         />;
       case "search":
         return <SearchPanel 

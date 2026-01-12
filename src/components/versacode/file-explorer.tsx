@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Folder, File as FileIcon, ChevronRight, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen, FileJson, FileCode, FileText } from "lucide-react";
+import { Folder, File as FileIcon, ChevronRight, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen, FileJson, FileCode, FileText, RefreshCw } from "lucide-react";
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { cn } from "@/lib/utils";
 import type { FileSystemNode } from "@/hooks/useFileSystem";
@@ -207,6 +207,7 @@ interface FileExplorerProps {
     moveNode: (draggedNodeId: string, dropTargetId: string | null) => void;
     getTargetFolder: (id: string | null) => FileSystemNode | null;
     onOpenFile: (id: string) => void;
+    refreshFileSystem: () => void;
 }
 
 export type FileExplorerRef = {
@@ -214,7 +215,7 @@ export type FileExplorerRef = {
 };
 
 
-export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ files, activeFileId, onSelectFile, createFile, createFolder, expandedFolders, onToggleFolder, renameNode, deleteNode, moveNode, getTargetFolder, onOpenFile }, ref) => {
+export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ files, activeFileId, onSelectFile, createFile, createFolder, expandedFolders, onToggleFolder, renameNode, deleteNode, moveNode, getTargetFolder, onOpenFile, refreshFileSystem }, ref) => {
   const [deleteOperation, setDeleteOperation] = useState<DeleteOperation>(null);
   const [generateOperation, setGenerateOperation] = useState<GenerateOperation>(null);
   const [generatePrompt, setGeneratePrompt] = useState('');
@@ -376,6 +377,11 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
       setDropTargetId(null);
   };
   
+  const handleRefresh = () => {
+      refreshFileSystem();
+      toast({ title: "Refreshed", description: "File explorer has been refreshed." });
+  };
+  
   const renderFileTree = (nodes: FileSystemNode[], level = 0): React.ReactNode[] => {
     const sortedNodes = [...nodes].sort((a, b) => {
         if (a.type === 'folder' && b.type === 'file') return -1;
@@ -459,6 +465,14 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom"><p>New Folder</p></TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleRefresh} title="Refresh Explorer">
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Refresh Explorer</p></TooltipContent>
           </Tooltip>
         </div>
       </div>
