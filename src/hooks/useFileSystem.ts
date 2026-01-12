@@ -65,7 +65,7 @@ function findNodeById(nodes: FileSystemNode[], id: string): FileSystemNode | nul
 function findNodeByPath(nodes: FileSystemNode[], path: string): FileSystemNode | null {
   for (const node of nodes) {
     if (node.path === path) return node;
-    if (node.type === 'folder' && path.startsWith(node.path + '/')) {
+    if (node.type === 'folder' && path && path.startsWith(node.path + '/')) {
       const found = findNodeByPath(node.children, path);
       if (found) return found;
     }
