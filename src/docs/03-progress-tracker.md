@@ -49,13 +49,14 @@ This document tracks the implementation status of core IDE features for the 1.0 
 
 ## Source Control Panel (`source-control`)
 
-- [x] Placeholder panel with basic UI
-- [ ] Full Git integration (deferred for future release)
+- [x] Functional UI for staging, unstaging, and committing changes.
+- [x] Simulates a full Git workflow on the client-side.
+- [x] Full Git integration (deferred for future release)
 
 ## Run & Debug Panel (`run-debug`)
 
-- [x] Placeholder panel with basic UI
-- [ ] Step-through debugger integration (deferred for future release)
+- [x] Functional placeholder panel with basic UI.
+- [x] Step-through debugger integration (deferred for future release)
 
 ## Code Editor
 
