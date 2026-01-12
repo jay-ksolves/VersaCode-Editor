@@ -62,12 +62,22 @@ export function Header({
           <MenubarMenu>
             <MenubarTrigger>Edit</MenubarTrigger>
             <MenubarContent>
-              <MenubarItem disabled>Undo</MenubarItem>
-              <MenubarItem disabled>Redo</MenubarItem>
+              <MenubarItem disabled>
+                Undo <MenubarShortcut>Ctrl+Z</MenubarShortcut>
+              </MenubarItem>
+              <MenubarItem disabled>
+                Redo <MenubarShortcut>Ctrl+Y</MenubarShortcut>
+              </MenubarItem>
               <MenubarSeparator />
-              <MenubarItem disabled>Cut</MenubarItem>
-              <MenubarItem disabled>Copy</MenubarItem>
-              <MenubarItem disabled>Paste</MenubarItem>
+              <MenubarItem disabled>
+                Cut <MenubarShortcut>Ctrl+X</MenubarShortcut>
+              </MenubarItem>
+              <MenubarItem disabled>
+                Copy <MenubarShortcut>Ctrl+C</MenubarShortcut>
+              </MenubarItem>
+              <MenubarItem disabled>
+                Paste <MenubarShortcut>Ctrl+V</MenubarShortcut>
+              </MenubarItem>
               <MenubarSeparator />
               <MenubarItem onClick={onFormat}>
                 Format Document <MenubarShortcut>Ctrl+Alt+F</MenubarShortcut>
@@ -99,6 +109,7 @@ export function Header({
             <MenubarTrigger>Terminal</MenubarTrigger>
             <MenubarContent>
               <MenubarItem onClick={onNewTerminal}>New Terminal</MenubarItem>
+              <MenubarItem disabled>Split Terminal</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
           <MenubarMenu>
@@ -123,6 +134,7 @@ export function Header({
           </TooltipTrigger>
           <TooltipContent>
             <p>Format Document</p>
+             <p className="text-xs text-muted-foreground">Ctrl+Alt+F</p>
           </TooltipContent>
         </Tooltip>
         <Tooltip>
@@ -137,6 +149,7 @@ export function Header({
           </TooltipTrigger>
           <TooltipContent>
             <p>AI Code Suggestion</p>
+            <p className="text-xs text-muted-foreground">Ctrl+Space</p>
           </TooltipContent>
         </Tooltip>
         <Tooltip>

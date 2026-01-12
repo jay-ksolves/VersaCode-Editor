@@ -4,7 +4,7 @@
 import React, { useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, XCircle, Trash2, X } from "lucide-react";
+import { AlertTriangle, XCircle, Trash2, X, Split } from "lucide-react";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
@@ -45,6 +45,16 @@ export function Terminal({ output, problems, onClear, onGoToProblem, onClose }: 
           <TabsTrigger value="debug">DEBUG CONSOLE</TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-1">
+           <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7" title="Split Terminal" disabled>
+                <Split className="h-4 w-4"/>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>Split Terminal</p>
+            </TooltipContent>
+          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClear} title="Clear Terminal">
