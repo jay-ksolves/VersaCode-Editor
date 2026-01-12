@@ -87,8 +87,8 @@ function IdeLayoutContent() {
     }
   };
 
+  // When the active file ID changes, swap the model in the editor
   useEffect(() => {
-    // When the active file ID changes, swap the model in the editor
     if (editorRef.current && activeFileId) {
       const model = modelsRef.current.get(activeFileId);
       if (model && editorRef.current.getModel() !== model) {
@@ -98,32 +98,12 @@ function IdeLayoutContent() {
         // If no file is active, clear the editor
         editorRef.current.setModel(null);
     }
-  }, [activeFileId, files]);
+  }, [activeFileId]);
 
 
   const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor, monacoInstance: typeof monaco) => {
     editorRef.current = editor;
     monacoRef.current = monacoInstance;
-
-    // Create models for already open files
-    openFileIds.forEach(fileId => {
-        const file = findNodeById(fileId);
-        if (file?.type === 'file' && !modelsRef.current.has(fileId)) {
-             const model = monacoInstance.editor.createModel(
-                file.content,
-                getFileLanguage(file.name),
-                monacoInstance.Uri.parse(`file:///${file.path}`)
-            );
-
-            // Listen for content changes in the model and update our file system state
-            model.onDidChangeContent(() => {
-                const currentContent = model.getValue();
-                updateFileContent(file.id, currentContent);
-            });
-
-            modelsRef.current.set(fileId, model);
-        }
-    });
 
     // Set the initial model if there's an active file
     if (activeFileId) {
@@ -134,11 +114,12 @@ function IdeLayoutContent() {
     }
   };
   
-    // Effect to handle model creation when a new file is opened
+  // Effect to handle model creation/deletion when open files change
   useEffect(() => {
     const monaco = monacoRef.current;
     if (!monaco) return;
 
+    // Create models for newly opened files
     openFileIds.forEach(fileId => {
       if (!modelsRef.current.has(fileId)) {
         const file = findNodeById(fileId);
@@ -151,7 +132,11 @@ function IdeLayoutContent() {
           
           model.onDidChangeContent(() => {
             const newContent = model.getValue();
-            updateFileContent(fileId, newContent);
+            // This check prevents an infinite loop where updating the model
+            // triggers a state update, which might re-trigger a model update.
+            if (newContent !== findNodeById(fileId)?.content) {
+                updateFileContent(fileId, newContent);
+            }
           });
           
           modelsRef.current.set(fileId, model);
@@ -168,7 +153,29 @@ function IdeLayoutContent() {
       }
     });
 
-  }, [openFileIds, findNodeById, updateFileContent]);
+    // When the active file changes, ensure its model is set in the editor
+    const editor = editorRef.current;
+    if (editor && activeFileId) {
+        const newModel = modelsRef.current.get(activeFileId);
+        if (newModel && editor.getModel() !== newModel) {
+            editor.setModel(newModel);
+        }
+    } else if (editor && !activeFileId) {
+        editor.setModel(null);
+    }
+
+  }, [openFileIds, findNodeById, updateFileContent, activeFileId]);
+
+  // Effect to update model content if it changes externally (e.g., from AI generation)
+  useEffect(() => {
+    if (activeFile) {
+        const model = modelsRef.current.get(activeFile.id);
+        if (model && model.getValue() !== activeFile.content) {
+            model.setValue(activeFile.content);
+        }
+    }
+  }, [activeFile?.content, activeFile?.id]);
+
 
   const handleRun = useCallback(() => {
     if (activeFile) {
@@ -338,7 +345,6 @@ function IdeLayoutContent() {
               <div className="flex-1 relative overflow-auto bg-card">
                  {openFileIds.length > 0 && activeFile ? (
                     <CodeEditor 
-                      key={activeFileId} // This is no longer strictly necessary for state, but fine for re-renders
                       onMount={handleEditorMount}
                       options={{ 
                         minimap: {enabled: editorSettings.minimap},
@@ -378,5 +384,3 @@ export function IdeLayout() {
     </TooltipProvider>
   );
 }
-
-    
