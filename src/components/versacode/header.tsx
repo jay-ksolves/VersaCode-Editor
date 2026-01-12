@@ -1,14 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Play, Sparkles, LoaderCircle, Code } from "lucide-react";
+import { Play, Sparkles, LoaderCircle, Code, CaseSensitive } from "lucide-react";
 
 interface HeaderProps {
   onRun: () => void;
   onSuggest: () => void;
   isSuggesting: boolean;
+  onFormat: () => void;
+  isFormatting: boolean;
 }
 
-export function Header({ onRun, onSuggest, isSuggesting }: HeaderProps) {
+export function Header({ onRun, onSuggest, isSuggesting, onFormat, isFormatting }: HeaderProps) {
   return (
     <header className="flex items-center justify-between h-16 px-4 border-b bg-card">
       <div className="flex items-center gap-4">
@@ -29,6 +31,14 @@ export function Header({ onRun, onSuggest, isSuggesting }: HeaderProps) {
         </Select>
       </div>
       <div className="flex items-center gap-2">
+        <Button variant="outline" onClick={onFormat} disabled={isFormatting}>
+          {isFormatting ? (
+            <LoaderCircle className="animate-spin" />
+          ) : (
+            <CaseSensitive />
+          )}
+          Format
+        </Button>
         <Button variant="outline" onClick={onSuggest} disabled={isSuggesting}>
           {isSuggesting ? (
             <LoaderCircle className="animate-spin" />
