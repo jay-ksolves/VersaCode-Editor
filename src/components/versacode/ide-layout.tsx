@@ -12,7 +12,6 @@ import { SettingsPanel } from "./settings-panel";
 import { useToast } from "@/hooks/use-toast";
 import { suggestCodeCompletion } from "@/ai/flows/ai-suggest-code-completion";
 import { useFileSystem, SearchResult, FileSystemNode } from "@/hooks/useFileSystem";
-import { TooltipProvider } from "../ui/tooltip";
 import type * as monaco from 'monaco-editor';
 import { Breadcrumbs } from "./breadcrumbs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -32,6 +31,8 @@ const defaultEditorSettings = {
   fontSize: 14,
   autoSave: true,
 };
+
+const UI_STATE_STORAGE_KEY = 'versacode-ui-state';
 
 function createNewTerminalSession(): TerminalSession {
     const welcomeMessage = (
@@ -58,31 +59,35 @@ function createNewTerminalSession(): TerminalSession {
     };
 }
 
+interface IdeLayoutProps {
+  theme: string;
+  setTheme: (theme: string) => void;
+}
 
-function IdeLayoutContent() {
+function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
   const [activePanel, setActivePanel] = useState<ActivePanel>("files");
   const [output, setOutput] = useState<string[]>([]);
   const [problems, setProblems] = useState<Problem[]>([]);
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
   const [isFormatting, setIsFormatting] = useState<boolean>(false);
   const [editorSettings, setEditorSettings] = useState(defaultEditorSettings);
-  const [bottomPanelSize, setBottomPanelSize] = useState(25);
   const [isBottomPanelOpen, setIsBottomPanelOpen] = useState(true);
   const [terminalSessions, setTerminalSessions] = useState<TerminalSession[]>([]);
   const [activeTerminalId, setActiveTerminalId] = useState<string | null>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   
+  // Refs for managing complex components and state
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);
   const fileExplorerRef = useRef<FileExplorerRef>(null);
   const modelsRef = useRef<Map<string, monaco.editor.ITextModel>>(new Map());
-
+  const mainPanelGroupRef = useRef<any>(null);
+  const sidePanelGroupRef = useRef<any>(null);
 
   const { toast } = useToast();
 
   const {
     files,
-    setFiles,
     activeFile,
     activeFileId,
     setActiveFileId,
@@ -105,26 +110,47 @@ function IdeLayoutContent() {
     refreshFileSystem,
   } = useFileSystem({ autoSave: editorSettings.autoSave });
 
-  useHotkeys('ctrl+n, cmd+n', (e) => {
-    e.preventDefault();
-    handleNewFile();
-  }, [files]);
-  
-  useHotkeys('ctrl+s, cmd+s', (e) => {
-    e.preventDefault();
-    toast({ title: "Auto-Save Enabled", description: "Your changes are saved automatically."});
+  // Load and save UI state
+  useEffect(() => {
+    try {
+      const storedUiState = localStorage.getItem(UI_STATE_STORAGE_KEY);
+      if (storedUiState) {
+        const {
+          activePanel: storedActivePanel,
+          bottomPanelOpen,
+          editorSettings: storedSettings,
+        } = JSON.parse(storedUiState);
+
+        if (storedActivePanel) setActivePanel(storedActivePanel);
+        setIsBottomPanelOpen(bottomPanelOpen);
+        if (storedSettings) setEditorSettings(storedSettings);
+      }
+    } catch (e) {
+      console.error("Failed to load UI state from localStorage", e);
+    }
   }, []);
 
-  useHotkeys('ctrl+alt+f, cmd+alt+f', (e) => {
-    e.preventDefault();
-    handleFormatCode();
-  });
-  
-  useHotkeys('ctrl+shift+p, cmd+shift+p', (e) => {
-    e.preventDefault();
-    setIsCommandPaletteOpen(true);
-  });
-  
+  const saveUiState = useCallback(() => {
+    const uiState = {
+      activePanel,
+      bottomPanelOpen: isBottomPanelOpen,
+      editorSettings,
+    };
+    localStorage.setItem(UI_STATE_STORAGE_KEY, JSON.stringify(uiState));
+  }, [activePanel, isBottomPanelOpen, editorSettings]);
+
+  useEffect(() => {
+    saveUiState();
+  }, [saveUiState]);
+
+  // Hotkeys
+  useHotkeys('ctrl+n, cmd+n', (e) => { e.preventDefault(); handleNewFile(); }, { preventDefault: true }, [files]);
+  useHotkeys('ctrl+s, cmd+s', (e) => { e.preventDefault(); toast({ title: "Auto-Save Enabled", description: "Your changes are saved automatically."}); }, { preventDefault: true });
+  useHotkeys('ctrl+alt+f, cmd+alt+f', (e) => { e.preventDefault(); handleFormatCode(); }, { preventDefault: true });
+  useHotkeys('ctrl+shift+p, cmd+shift+p', (e) => { e.preventDefault(); setIsCommandPaletteOpen(true); }, { preventDefault: true });
+  useHotkeys('ctrl+b, cmd+b', (e) => { e.preventDefault(); setActivePanel(p => p === 'none' ? 'files' : 'none')}, { preventDefault: true });
+
+
   const logToOutput = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setOutput(prev => [...prev, `[${timestamp}] ${message}`]);
@@ -337,6 +363,7 @@ function IdeLayoutContent() {
   const handleNewUntitledFile = useCallback(() => {
     let i = 1;
     let newName = `Untitled-${i}`;
+    // The findNodeByPath now correctly handles its input
     while (findNodeByPath(newName)) {
       i++;
       newName = `Untitled-${i}`;
@@ -378,6 +405,13 @@ function IdeLayoutContent() {
   const handleToggleTerminal = () => {
     setIsBottomPanelOpen(prev => !prev);
   };
+  
+  const handleToggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('versacode-theme', newTheme);
+  };
+
 
   const goToLine = useCallback((line: number, column: number = 1) => {
     editorRef.current?.revealLineInCenter(line, monaco.editor.ScrollType.Smooth);
@@ -438,7 +472,7 @@ function IdeLayoutContent() {
   const handleCommand = (commandId: string) => {
       switch (commandId) {
           case 'theme:toggle':
-              toast({title: "Theme Toggle", description: "Theme toggling is not yet implemented."});
+              handleToggleTheme();
               break;
           case 'file:new':
               handleNewFile();
@@ -549,19 +583,34 @@ function IdeLayoutContent() {
             logOutput={logToOutput}
             onCommandPalette={() => setIsCommandPaletteOpen(true)}
             onDownloadZip={handleDownloadZip}
+            theme={theme}
+            onToggleTheme={handleToggleTheme}
           />
           <main className="flex-1 flex overflow-hidden">
-            <ResizablePanelGroup direction="horizontal">
-              <ResizablePanel defaultSize={20} minSize={15} maxSize={40} id="side-panel" order={1} className={cn("min-w-[200px] bg-card", activePanel === 'none' && "hidden")}>
+            <ResizablePanelGroup direction="horizontal" ref={mainPanelGroupRef} onLayout={(sizes) => {
+              const state = { side: sizes[0], main: sizes[1] };
+              localStorage.setItem('versacode-main-layout', JSON.stringify(state));
+            }}>
+              <ResizablePanel 
+                defaultSize={20} 
+                minSize={15} 
+                maxSize={40} 
+                id="side-panel" 
+                order={1} 
+                className={cn("min-w-[200px] bg-card", activePanel === 'none' && "hidden")}
+                collapsible
+                collapsedSize={0}
+              >
                 {renderPanel()}
               </ResizablePanel>
               {activePanel !== 'none' && <ResizableHandle withHandle />}
               <ResizablePanel id="main-panel" order={2}>
-                 <ResizablePanelGroup direction="vertical" onLayout={(sizes) => {
-                     setIsBottomPanelOpen(sizes[1] > 5);
-                     setBottomPanelSize(sizes[1]);
+                 <ResizablePanelGroup direction="vertical" ref={sidePanelGroupRef} onLayout={(sizes) => {
+                    setIsBottomPanelOpen(sizes[1] > 5);
+                    const state = { main: sizes[0], bottom: sizes[1] };
+                    localStorage.setItem('versacode-side-layout', JSON.stringify(state));
                  }}>
-                    <ResizablePanel defaultSize={100 - bottomPanelSize} minSize={20} order={1}>
+                    <ResizablePanel defaultSize={75} minSize={20} order={1}>
                        <div className="flex-1 flex flex-col min-w-0 h-full">
                         <EditorTabs
                             openFileIds={openFileIds}
@@ -588,7 +637,7 @@ function IdeLayoutContent() {
                                 }}
                               />
                           ) : (
-                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground animate-fade-in">
                               <svg
                                   className="w-24 h-24 mb-4 text-gray-600"
                                   viewBox="0 0 24 24"
@@ -609,8 +658,8 @@ function IdeLayoutContent() {
                     </ResizablePanel>
                     <ResizableHandle withHandle className={cn(!isBottomPanelOpen && "hidden")} />
                     <ResizablePanel 
-                      defaultSize={bottomPanelSize}
-                      collapsedSize={5}
+                      defaultSize={25}
+                      collapsedSize={0}
                       collapsible={true}
                       minSize={15} 
                       maxSize={80} 
@@ -644,20 +693,20 @@ function IdeLayoutContent() {
   );
 }
 
-export function IdeLayout() {
-  const [isMounted, useState] = React.useState(false);
+export function IdeLayout(props: IdeLayoutProps) {
+  const [isMounted, setIsMounted] = React.useState(false);
 
   useEffect(() => {
-    useState(true);
+    setIsMounted(true);
   }, []);
 
   if (!isMounted) {
-    return null; 
+    return (
+        <div className="flex h-screen w-full items-center justify-center bg-background">
+            <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
+        </div>
+    ); 
   }
   
-  return (
-    <TooltipProvider>
-      <IdeLayoutContent />
-    </TooltipProvider>
-  );
+  return <IdeLayoutContent {...props} />;
 }

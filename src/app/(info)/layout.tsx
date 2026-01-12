@@ -1,13 +1,27 @@
 
+'use client';
+
 import { Button } from '@/components/ui/button';
-import { Download, Github, Moon, Rss, Twitter, Youtube } from 'lucide-react';
+import { Download, Github, Moon, Rss, Sun, Twitter, Youtube } from 'lucide-react';
 import Link from 'next/link';
+
+interface InfoLayoutProps {
+  children: React.ReactNode;
+  theme: string;
+  setTheme: (theme: string) => void;
+}
 
 export default function InfoLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+  theme,
+  setTheme,
+}: InfoLayoutProps) {
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('versacode-theme', newTheme);
+  };
+  
   return (
     <div className="bg-background text-foreground flex flex-col min-h-screen">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -60,8 +74,9 @@ export default function InfoLayout({
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" title="Toggle Theme (coming soon)">
-              <Moon className="h-5 w-5" />
+            <Button variant="ghost" size="icon" title="Toggle Theme" onClick={toggleTheme} aria-label="Toggle Theme">
+              <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             </Button>
             <Link href="/editor" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
               Go to Editor
@@ -83,10 +98,10 @@ export default function InfoLayout({
               <h3 className="font-semibold mb-2">VersaCode</h3>
               <p className="text-sm text-muted-foreground">The AI-Native Web IDE.</p>
                <div className="flex items-center gap-4 text-muted-foreground mt-4">
-                <a href="#" className="hover:text-foreground" title="GitHub"><Github className="h-5 w-5" /></a>
-                <a href="#" className="hover:text-foreground" title="Twitter"><Twitter className="h-5 w-5" /></a>
-                <a href="#" className="hover:text-foreground" title="YouTube"><Youtube className="h-5 w-5" /></a>
-                <a href="#" className="hover:text-foreground" title="RSS Feed"><Rss className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-foreground" title="GitHub" aria-label="GitHub"><Github className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-foreground" title="Twitter" aria-label="Twitter"><Twitter className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-foreground" title="YouTube" aria-label="YouTube"><Youtube className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-foreground" title="RSS Feed" aria-label="RSS Feed"><Rss className="h-5 w-5" /></a>
               </div>
             </div>
             <div>

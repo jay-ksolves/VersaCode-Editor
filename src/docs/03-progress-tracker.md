@@ -1,61 +1,85 @@
 
 # IDE Feature Progress Tracker
 
-This document tracks the implementation status of core IDE features.
+This document tracks the implementation status of core IDE features for the 1.0 release.
 
 ## Core Shell & Layout
 
-- [x] Basic IDE Layout (Sidebar, Main Panel, Terminal)
-- [x] Collapsible Side Panels
+- [x] Main landing page (VS Code style)
+- [x] Basic IDE Layout (Activity Bar, Side Panel, Main Panel, Status Bar) at `/editor` route
+- [x] Resizable panels (Side Panel, Editor, Bottom Panel)
+- [x] Collapsible Side Panels with persistence
+- [x] Command Palette (`Ctrl+Shift+P`)
 - [x] Theme Toggle (Light/Dark)
 - [x] Persist Theme and Panel State in `localStorage`
 
 ## File Explorer Panel (`files`)
 
+- [x] "Open Editors" section in sidebar with close action
 - [x] Dynamic File Tree from an in-memory source
 - [x] File selection and opening in editor
 - [x] Persist file system state in `localStorage`
 - [x] Create, rename, and delete file actions
-- [x] Context menu for file operations
+- [x] Context menu for file operations (Rename, Delete)
 - [x] Confirmation dialog for delete
 - [x] Inline renaming UI
 - [x] Prevent duplicate names
 - [x] Persist folder expansion state
 - [x] Empty state for file explorer
 - [x] Drag-and-drop files and folders
+- [x] Folder icons change on expand/collapse
+- [x] File-specific icons based on extension
+- [x] Refresh button to reload from `localStorage`
+
+## Search Panel (`search`)
+
+- [x] UI for global search
+- [x] Implement search logic across all files
+- [x] Display search results with context
+- [x] Link search results to lines in the code editor
+
+## AI Assistant Panel (`ai-assistant`)
+
+- [x] Dedicated, resizable panel for AI interaction
+- [x] User-provided API key management (saved to `localStorage`)
+- [x] File context selector tree
+- [x] Conversational prompt input
+- [x] Display AI response in a read-only code editor
 
 ## Code Editor
 
-- [x] Basic Text Area with Line Numbers
+- [x] Monaco Editor integration with stable model management
+- [x] Multi-tab support with advanced context menus (Close, Close All, etc.)
+- [x] Scrollable editor tabs with drag-and-drop reordering
 - [x] AI Code Suggestion (`Ctrl+Space` or button click)
 - [x] Displays content of selected file
-- [x] Syntax Highlighting
-- [x] Show Minimap
-- [x] Code Formatting (via AI)
-- [x] AI Code Generation from Prompt
+- [x] Syntax Highlighting and problem markers
+- [x] Per-file undo/redo history
+- [x] Auto-save functionality
+- [x] Show/Hide Minimap setting
+- [x] Code Formatting (via Monaco's built-in formatter)
+- [x] AI Code Generation from Prompt (in File Explorer)
+- [x] Double-click tab area to create new untitled file
 
-## Terminal / Output Panel
+## Bottom Panel (Terminal / Output)
 
-- [x] Basic Terminal UI with Tabs
-- [x] Mock Code Execution Output
-- [x] "Problems" tab with mock data
+- [x] Functional Terminal UI with Tabs
+- [x] Client-side JavaScript code execution in terminal
+- [x] "Problems" tab with dynamic data from editor diagnostics
+- [x] "Output" tab for logging IDE actions
 - [x] Clear terminal output
 - [x] Link problems to lines in the code editor
-- [ ] Implement actual code execution environment (e.g., using WebContainers)
+- [x] Close/hide bottom panel
+- [x] Multi-terminal support with tabs and close action
 
 ## Extensions Panel (`extensions`)
 
 - [x] Mock list of installed extensions
-- [ ] Connect to an extension marketplace
-- [ ] Install / Uninstall extensions
+- [ ] Connect to an extension marketplace (deferred for future release)
+- [ ] Install / Uninstall extensions (deferred for future release)
 
 ## Settings Panel (`settings`)
 
-- [x] Mock UI for theme and editor settings
-- [x] Implement setting logic (e.g., change font size)
+- [x] UI for theme and editor settings
+- [x] Implement setting logic (font size, minimap, auto-save)
 - [x] Reset settings to default
-
-## Tasks Panel (`tasks`)
-
-- [x] Initial UI with mock feature/bug lists
-- [x] Link tasks to progress/bug tracker docs

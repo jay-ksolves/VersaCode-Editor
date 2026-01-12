@@ -1,4 +1,6 @@
 
+'use client';
+
 import { Button } from "@/components/ui/button";
 import {
   Menubar,
@@ -11,7 +13,8 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Play, Sparkles, LoaderCircle, Indent, Command } from "lucide-react";
+import { Play, Sparkles, LoaderCircle, Indent, Command, Sun, Moon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   onSuggest: () => void;
@@ -28,6 +31,8 @@ interface HeaderProps {
   logOutput: (message: string) => void;
   onCommandPalette: () => void;
   onDownloadZip: () => void;
+  theme: string;
+  onToggleTheme: () => void;
 }
 
 export function Header({
@@ -45,6 +50,8 @@ export function Header({
   logOutput,
   onCommandPalette,
   onDownloadZip,
+  theme,
+  onToggleTheme,
 }: HeaderProps) {
   
   const handleRun = () => {
@@ -54,9 +61,9 @@ export function Header({
   return (
     <header className="flex items-center justify-between h-12 px-4 border-b bg-card">
       <div className="flex items-center gap-4">
-        <Menubar className="border-none bg-transparent">
+        <Menubar className="border-none bg-transparent p-0">
           <MenubarMenu>
-              <MenubarTrigger>
+              <MenubarTrigger className="p-2" aria-label="Application Menu">
                 <svg
                     width="20"
                     height="20"
@@ -126,6 +133,12 @@ export function Header({
                 >
                     Show Minimap
                 </MenubarCheckboxItem>
+                 <MenubarCheckboxItem
+                    checked={theme === 'dark'}
+                    onCheckedChange={onToggleTheme}
+                >
+                    Dark Mode
+                </MenubarCheckboxItem>
                 <MenubarSeparator />
                 <MenubarItem disabled>Explorer</MenubarItem>
                 <MenubarItem onClick={onToggleTerminal}>Terminal</MenubarItem>
@@ -157,7 +170,7 @@ export function Header({
       <div className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
-             <Button variant="ghost" size="icon" onClick={onFormat} disabled={isFormatting} title="Format Code (Ctrl+Alt+F)">
+             <Button variant="ghost" size="icon" onClick={onFormat} disabled={isFormatting} aria-label="Format Code">
               {isFormatting ? (
                 <LoaderCircle className="h-5 w-5 animate-spin" />
               ) : (
@@ -172,7 +185,7 @@ export function Header({
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={onSuggest} disabled={isSuggesting} title="AI Code Suggestion (Ctrl+Space)">
+            <Button variant="ghost" size="icon" onClick={onSuggest} disabled={isSuggesting} aria-label="AI Code Suggestion">
               {isSuggesting ? (
                 <LoaderCircle className="h-5 w-5 animate-spin" />
               ) : (
@@ -187,7 +200,7 @@ export function Header({
         </Tooltip>
         <Tooltip>
             <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={onCommandPalette} title="Command Palette (Ctrl+Shift+P)">
+                <Button variant="ghost" size="icon" onClick={onCommandPalette} aria-label="Command Palette">
                     <Command className="h-5 w-5" />
                 </Button>
             </TooltipTrigger>
@@ -198,7 +211,7 @@ export function Header({
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button size="icon" onClick={handleRun} className="bg-accent text-accent-foreground hover:bg-accent/90" title="Run Code">
+            <Button size="icon" onClick={handleRun} className="bg-accent text-accent-foreground hover:bg-accent/90" aria-label="Run Code">
               <Play className="h-5 w-5" />
             </Button>
           </TooltipTrigger>
@@ -206,6 +219,10 @@ export function Header({
             <p>Run Code</p>
           </TooltipContent>
         </Tooltip>
+         <Button variant="ghost" size="icon" title="Toggle Theme" onClick={onToggleTheme} aria-label="Toggle Theme">
+            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+        </Button>
       </div>
     </header>
   );

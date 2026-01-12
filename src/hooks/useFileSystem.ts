@@ -8,6 +8,7 @@ export type FileSystemNode = {
   content: string;
   type: 'file';
   path: string;
+  isDirty?: boolean;
 } | {
   id: string;
   name: string;
@@ -38,10 +39,10 @@ const initialFileSystem: FileSystemNode[] = [
   { id: '4', name: 'package.json', type: 'file', content: '{ "name": "versacode-app" }', path: 'package.json' },
 ];
 
-function findNodeById(nodes: FileSystemNode[], id: string): FileSystemNode | null {
+function findNodeById(nodes: FileSystemNode[], id: string, searchInside: boolean = true): FileSystemNode | null {
   for (const node of nodes) {
     if (node.id === id) return node;
-    if (node.type === 'folder') {
+    if (node.type === 'folder' && searchInside) {
       const found = findNodeById(node.children, id);
       if (found) return found;
     }
@@ -49,11 +50,11 @@ function findNodeById(nodes: FileSystemNode[], id: string): FileSystemNode | nul
   return null;
 }
 
-function findNodeByPath(nodes: FileSystemNode[], path: string): FileSystemNode | null {
+function findNodeByPath(nodes: FileSystemNode[], path: string | null): FileSystemNode | null {
   if (!path) return null;
   for (const node of nodes) {
     if (node.path === path) return node;
-    if (node.type === 'folder' && path && path.startsWith(node.path + '/')) {
+    if (node.type === 'folder' && path.startsWith(node.path + '/')) {
       const found = findNodeByPath(node.children, path);
       if (found) return found;
     }
@@ -76,16 +77,16 @@ function findParentNode(nodes: FileSystemNode[], childId: string): FileSystemNod
     return null;
 }
 
-function updateNodeContentInTree(nodes: FileSystemNode[], id: string, content: string): FileSystemNode[] {
-  return nodes.map(node => {
-    if (node.id === id && node.type === 'file') {
-      return { ...node, content };
-    }
-    if (node.type === 'folder') {
-      return { ...node, children: updateNodeContentInTree(node.children, id, content) };
-    }
-    return node;
-  });
+function updateNodeInTree(nodes: FileSystemNode[], id: string, updates: Partial<FileSystemNode>): FileSystemNode[] {
+    return nodes.map(node => {
+        if (node.id === id) {
+            return { ...node, ...updates };
+        }
+        if (node.type === 'folder') {
+            return { ...node, children: updateNodeInTree(node.children, id, updates) };
+        }
+        return node;
+    });
 }
 
 function updatePaths(nodes: FileSystemNode[], parentPath = ''): FileSystemNode[] {
@@ -165,7 +166,6 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
   const { toast } = useToast();
 
   const loadFromLocalStorage = useCallback(() => {
-    console.warn("VersaCode is currently using localStorage for the file system. To work with local device files, the File System Access API needs to be implemented.");
     try {
       const storedFiles = localStorage.getItem(FS_LOCAL_STORAGE_KEY);
       const storedExpanded = localStorage.getItem(EXPANDED_FOLDERS_LOCAL_STORAGE_KEY);
@@ -222,12 +222,18 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
     if (autoSave) {
         saveToLocalStorage();
     }
-  }, [files, autoSave, saveToLocalStorage]);
+  }, [files, expandedFolders, openFileIds, activeFileId, autoSave, saveToLocalStorage]);
 
   const activeFile = activeFileId ? findNodeById(files, activeFileId) : null;
 
   const updateFileContent = useCallback((id: string, content: string) => {
-    setFiles(prevFiles => updateNodeContentInTree(prevFiles, id, content));
+    setFiles(prevFiles => {
+        const node = findNodeById(prevFiles, id);
+        if (node?.type === 'file' && node.content !== content) {
+            return updateNodeInTree(prevFiles, id, { content, isDirty: true });
+        }
+        return prevFiles;
+    });
   }, []);
   
   const getTargetFolder = useCallback((selectedNodeId: string | null) => {
@@ -270,6 +276,7 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
         type: 'file',
         content: content || `// ${name}\n`,
         path: '', 
+        isDirty: false,
     };
     setFiles(prevFiles => addNodeToTree(prevFiles, parentId, newFile));
     if (parentId) setExpandedFolders(prev => new Set(prev).add(parentId));
@@ -471,11 +478,8 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
     openFileIds,
     setOpenFileIds,
     closeFile,
-    findNodeById: (id: string) => findNodeById(files, id),
-    findNodeByPath: (path: string | null) => {
-      if (!path) return null;
-      return findNodeByPath(files, path);
-    },
+    findNodeById,
+    findNodeByPath,
     searchFiles,
     refreshFileSystem: loadFromLocalStorage,
   };
