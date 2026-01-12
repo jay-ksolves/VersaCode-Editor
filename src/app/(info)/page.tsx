@@ -14,6 +14,7 @@ import JSZip from 'jszip';
 import { useToast } from '@/hooks/use-toast';
 import { useOPFS } from '@/hooks/useOPFS';
 import type { FileSystemNode } from '@/hooks/useFileSystem';
+import { posts } from '@/lib/blog-posts';
 
 export default function HomePage() {
   const { toast } = useToast();
@@ -62,11 +63,13 @@ export default function HomePage() {
       toast({ variant: 'destructive', title: 'Error', description: 'Could not create the zip file.' });
     }
   }, [isLoaded, readDirectory, toast]);
+
+  const latestPosts = posts.slice(0, 2);
   
   return (
     <>
-      <div className="relative z-10 text-center flex items-center justify-center h-full pt-16 sm:pt-0">
-          <div className="mx-auto max-w-4xl animate-fade-in pt-4">
+      <section className="relative z-10 text-center flex items-center justify-center h-screen">
+          <div className="mx-auto max-w-4xl animate-fade-in pt-16">
             <div className="mb-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
               <Link
                 href="/updates"
@@ -94,8 +97,9 @@ export default function HomePage() {
               </Button>
             </div>
           </div>
-      </div>
-      <div className="relative z-10 bg-background py-24 sm:py-32">
+      </section>
+
+      <section className="relative z-10 bg-background py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="grid grid-cols-1 gap-x-8 gap-y-16 text-center lg:grid-cols-3">
                 <div className="mx-auto flex max-w-xs flex-col gap-y-4 card-hover-effect p-8 rounded-lg">
@@ -115,7 +119,40 @@ export default function HomePage() {
                 </div>
             </div>
         </div>
-      </div>
+      </section>
+
+       <section className="relative z-10 bg-background py-24 sm:py-32 border-t">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">From the Blog</h2>
+            <p className="mt-2 text-lg leading-8 text-muted-foreground">
+              Read the latest news and insights from the VersaCode team.
+            </p>
+          </div>
+          <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-2">
+            {latestPosts.map((post) => (
+              <article key={post.id} className="card-hover-effect flex flex-col items-start justify-between p-8 rounded-lg">
+                <div className="w-full">
+                  <div className="flex items-center gap-x-4 text-xs">
+                    <time dateTime={post.date} className="text-muted-foreground">
+                      {post.date}
+                    </time>
+                  </div>
+                  <div className="group relative">
+                    <h3 className="mt-3 text-lg font-semibold leading-6 group-hover:text-primary">
+                      <Link href={`/blog/${post.slug}`}>
+                        <span className="absolute inset-0" />
+                        {post.title}
+                      </Link>
+                    </h3>
+                    <p className="mt-5 line-clamp-3 text-sm leading-6 text-muted-foreground">{post.excerpt}</p>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
     </>
   );
 }

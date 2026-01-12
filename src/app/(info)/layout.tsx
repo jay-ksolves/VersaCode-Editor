@@ -81,7 +81,7 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
         <Script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.rings.min.js" strategy="lazyOnload" />
       )}
       <div className="bg-background text-foreground flex flex-col min-h-screen relative">
-        {isHomePage && <div ref={vantaRef} className="absolute inset-0 z-0 h-[70vh]" />}
+        {isHomePage && <div ref={vantaRef} className="absolute inset-0 z-0 h-screen" />}
 
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -146,7 +146,7 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
 
         <main className="flex-1">
           {isHomePage ? (
-            <div>{children}</div>
+            <>{children}</>
           ) : (
              <div className="container mx-auto flex-1 px-4 py-8">
               <div className='max-w-4xl mx-auto'>
