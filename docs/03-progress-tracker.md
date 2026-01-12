@@ -14,8 +14,14 @@ This document tracks the implementation status of core IDE features.
 - [x] Dynamic File Tree from an in-memory source
 - [x] File selection and opening in editor
 - [x] Persist file system state in `localStorage`
-- [ ] Create, rename, and delete file actions
-- [ ] Context menu for file operations
+- [x] Create, rename, and delete file actions
+- [x] Context menu for file operations
+- [x] Confirmation dialog for delete
+- [x] Inline renaming UI
+- [x] Prevent duplicate names
+- [x] Persist folder expansion state
+- [x] Empty state for file explorer
+- [ ] Drag-and-drop files and folders
 
 ## Code Editor
 

@@ -31,6 +31,11 @@ export function IdeLayout() {
     updateFileContent,
     createFile,
     createFolder,
+    renameNode,
+    deleteNode,
+    getTargetFolder,
+    expandedFolders,
+    toggleFolder,
   } = useFileSystem();
 
   useEffect(() => {
@@ -97,8 +102,13 @@ export function IdeLayout() {
           files={files} 
           activeFileId={activeFileId} 
           onSelectFile={setActiveFileId}
-          onCreateFile={() => createFile()}
-          onCreateFolder={() => createFolder()}
+          onCreateFile={createFile}
+          onCreateFolder={createFolder}
+          onRename={renameNode}
+          onDeleteNode={deleteNode}
+          getTargetFolder={getTargetFolder}
+          expandedFolders={expandedFolders}
+          onToggleFolder={toggleFolder}
         />;
       case "extensions":
         return <ExtensionsPanel />;

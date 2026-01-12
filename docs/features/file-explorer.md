@@ -13,23 +13,25 @@ The File Explorer provides a user-friendly, VS Code–like tree view of the proj
 
 - **Trigger:** The explorer is visible when the "Files" icon in the sidebar is active.
 - **Components:**
-  - **`FileExplorer.tsx`**: Renders the file tree and action buttons (New File, New Folder). It handles user interactions and calls functions from the `useFileSystem` hook.
+  - **`FileExplorer.tsx`**: Renders the file tree and action buttons (New File, New Folder). It handles user interactions like inline renaming and delete confirmations, calling functions from the `useFileSystem` hook.
   - **`IdeLayout.tsx`**: The main parent component that initializes the `useFileSystem` hook and provides the state down to the `FileExplorer` and `CodeEditor`.
-  - **`hooks/useFileSystem.ts`**: A custom hook that encapsulates all logic for managing the file system state, including CRUD operations and `localStorage` synchronization.
+  - **`hooks/useFileSystem.ts`**: A custom hook that encapsulates all logic for managing the file system state, including CRUD operations, validation (e.g., duplicate names), and `localStorage` synchronization for both file structure and folder expansion state.
 - **Visual Flow:**
-  - Users can click on a folder to expand or collapse it.
+  - Users can click on a folder to expand or collapse it; this state is persisted.
   - Clicking a file makes it the "active" file, and its content is loaded into the `CodeEditor`.
-  - Buttons at the top of the panel allow for the creation of new files and folders within the currently selected directory (or at the root).
+  - A context menu (popover) on each item allows for renaming and deleting.
+  - Renaming happens inline within the file tree.
+  - Deleting an item brings up a confirmation dialog to prevent accidental data loss.
 
 ## 3. State Management
 
-- **State:** The entire file system is managed by the `useFileSystem` hook.
-  - `const { files, activeFileId, ... } = useFileSystem();` in `IdeLayout.tsx`.
+- **State:** The entire file system, active file, and expanded folder states are managed by the `useFileSystem` hook.
+  - `const { files, activeFileId, expandedFolders, ... } = useFileSystem();` in `IdeLayout.tsx`.
 - **Data Flow:**
-  - The `files` array (the tree structure) is passed from `IdeLayout` to `FileExplorer`.
+  - The `files` array and `expandedFolders` set are passed from `IdeLayout` to `FileExplorer`.
   - The content of the file corresponding to `activeFileId` is passed to `CodeEditor`.
   - When the user edits code, the `onChange` handler updates the content of the active file in the main `files` state via a function provided by the hook. This ensures that when the user switches between files, their changes are not lost.
-  - All modifications (create, rename, delete, edit) are immediately saved to `localStorage`.
+  - All modifications (create, rename, delete, edit, expand/collapse) are immediately saved to `localStorage`.
 
 ## 4. AI Integration Details (if applicable)
 
@@ -37,7 +39,9 @@ N/A
 
 ## 5. Future Improvements
 
-- [ ] Add a right-click context menu for file operations (Rename, Delete).
+- [x] Add a right-click context menu for file operations (Rename, Delete).
+- [x] Replace prompts with dialogs.
+- [x] Implement inline renaming.
 - [ ] Drag-and-drop functionality for moving files and folders.
 - [ ] Integrate with a real backend file system instead of `localStorage`.
 - [ ] Show file-specific icons (e.g., a React icon for `.tsx` files).
