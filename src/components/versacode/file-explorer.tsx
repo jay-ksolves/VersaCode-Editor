@@ -27,7 +27,6 @@ type EditState = {
 type DeleteOperation = { type: 'delete', nodeId: string, nodeName: string } | null;
 type GenerateOperation = { type: 'generate_code', parentId: string | null } | null;
 
-
 function FileNode({ 
   node, 
   level = 0, 
@@ -35,7 +34,11 @@ function FileNode({
   activeFileId, 
   onSetEditState,
   onSetDeleteOperation,
-  onToggleFolder,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  isBeingDragged,
+  isDropTarget,
 }: { 
   node: FileSystemNode; 
   level?: number; 
@@ -43,7 +46,11 @@ function FileNode({
   activeFileId: string | null; 
   onSetEditState: (id: string) => void;
   onSetDeleteOperation: (operation: DeleteOperation) => void;
-  onToggleFolder: (folderId: string) => void;
+  onDragStart: (e: React.DragEvent, nodeId: string) => void;
+  onDragOver: (e: React.DragEvent, nodeId: string) => void;
+  onDrop: (e: React.DragEvent, dropTargetId: string | null) => void;
+  isBeingDragged: boolean;
+  isDropTarget: boolean;
 }) {
   const isFolder = node.type === 'folder';
   const isActive = activeFileId === node.id;
@@ -66,10 +73,20 @@ function FileNode({
 
   return (
     <div
+      draggable
+      onDragStart={(e) => onDragStart(e, node.id)}
       className={cn("flex items-center space-x-2 py-1 px-2 rounded-md hover:bg-muted group cursor-pointer", {
         "bg-muted": isActive && !isFolder,
+        "opacity-50": isBeingDragged,
+        "bg-accent/20 border-2 border-dashed border-accent": isDropTarget && isFolder,
       })}
       onClick={handleNodeClick}
+      onDragOver={(e) => onDragOver(e, node.id)}
+      onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onDrop(e, node.type === 'folder' ? node.id : null);
+      }}
       style={{ paddingLeft: `${level * 1.25 + 0.5}rem` }}
       title={node.path}
     >
@@ -156,6 +173,7 @@ interface FileExplorerProps {
     onToggleFolder: (folderId: string, forceOpen?: boolean) => void;
     renameNode: (id: string, newName: string) => void;
     deleteNode: (id: string) => void;
+    moveNode: (draggedNodeId: string, dropTargetId: string | null) => void;
     getTargetFolder: (id: string | null) => FileSystemNode | null;
     onOpenFile: (id: string) => void;
 }
@@ -165,7 +183,7 @@ export type FileExplorerRef = {
 };
 
 
-export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ files, activeFileId, onSelectFile, createFile, createFolder, expandedFolders, onToggleFolder, renameNode, deleteNode, getTargetFolder, onOpenFile }, ref) => {
+export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ files, activeFileId, onSelectFile, createFile, createFolder, expandedFolders, onToggleFolder, renameNode, deleteNode, moveNode, getTargetFolder, onOpenFile }, ref) => {
   const [deleteOperation, setDeleteOperation] = useState<DeleteOperation>(null);
   const [generateOperation, setGenerateOperation] = useState<GenerateOperation>(null);
   const [generatePrompt, setGeneratePrompt] = useState('');
@@ -173,6 +191,8 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
   const [editState, setEditState] = useState<EditState>(null);
+  const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
+  const [dropTargetId, setDropTargetId] = useState<string | null>(null);
   
   const findNodeInfo = (nodes: FileSystemNode[], id: string): {node: FileSystemNode, level: number, parentId: string | null} | null => {
     const find = (nodes: FileSystemNode[], level: number, parentId: string | null): {node: FileSystemNode, level: number, parentId: string | null} | null => {
@@ -290,6 +310,40 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
       onCancel: () => setEditState(null),
     })
   }
+
+  const handleDragStart = (e: React.DragEvent, nodeId: string) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', nodeId);
+    setDraggedNodeId(nodeId);
+  };
+
+  const handleDragOver = (e: React.DragEvent, nodeId: string) => {
+    e.preventDefault();
+    const nodeInfo = findNodeInfo(files, nodeId);
+    if (nodeInfo?.node.type === 'folder') {
+        setDropTargetId(nodeId);
+        onToggleFolder(nodeId, true);
+    } else {
+        const parentInfo = nodeInfo?.parentId ? findNodeInfo(files, nodeInfo.parentId) : null;
+        setDropTargetId(parentInfo?.node.id ?? null);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, dropTargetId: string | null) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const draggedNodeId = e.dataTransfer.getData('text/plain');
+    if (draggedNodeId) {
+        moveNode(draggedNodeId, dropTargetId);
+    }
+    setDraggedNodeId(null);
+    setDropTargetId(null);
+  };
+
+  const handleDragEnd = () => {
+      setDraggedNodeId(null);
+      setDropTargetId(null);
+  };
   
   const renderFileTree = (nodes: FileSystemNode[], level = 0): React.ReactNode[] => {
     const sortedNodes = [...nodes].sort((a, b) => {
@@ -319,7 +373,11 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
                 activeFileId={activeFileId}
                 onSetEditState={startRename}
                 onSetDeleteOperation={setDeleteOperation}
-                onToggleFolder={onToggleFolder}
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                isBeingDragged={draggedNodeId === node.id}
+                isDropTarget={dropTargetId === node.id && node.type === 'folder'}
             />
           </div>
         );
@@ -347,7 +405,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
   );
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col" onDragEnd={handleDragEnd} onDrop={(e) => handleDrop(e, null)}>
       <div className="p-2 border-b flex items-center justify-between">
         <h2 className="text-lg font-semibold tracking-tight px-2">Explorer</h2>
         <div className="flex items-center gap-1">
@@ -377,7 +435,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
           </Tooltip>
         </div>
       </div>
-      <div className="flex-1 p-2 overflow-y-auto">
+      <div className="flex-1 p-2 overflow-y-auto" onDragOver={(e) => e.preventDefault()}>
         {files.length === 0 && !editState ? renderEmptyState() : (
           <div className="space-y-1">
             {renderFileTree(files)}
@@ -435,3 +493,5 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
 });
 
 FileExplorer.displayName = 'FileExplorer';
+
+    

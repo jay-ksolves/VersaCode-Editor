@@ -1,3 +1,4 @@
+
 # IDE Feature Progress Tracker
 
 This document tracks the implementation status of core IDE features.
@@ -40,13 +41,13 @@ This document tracks the implementation status of core IDE features.
 - [x] "Problems" tab with mock data
 - [x] Clear terminal output
 - [x] Link problems to lines in the code editor
-- [x] Implement actual code execution environment (e.g., using WebContainers)
+- [ ] Implement actual code execution environment (e.g., using WebContainers)
 
 ## Extensions Panel (`extensions`)
 
 - [x] Mock list of installed extensions
-- [x] Connect to an extension marketplace
-- [x] Install / Uninstall extensions
+- [ ] Connect to an extension marketplace
+- [ ] Install / Uninstall extensions
 
 ## Settings Panel (`settings`)
 
@@ -58,3 +59,5 @@ This document tracks the implementation status of core IDE features.
 
 - [x] Initial UI with mock feature/bug lists
 - [x] Link tasks to progress/bug tracker docs
+
+    

@@ -90,6 +90,28 @@ function updatePaths(nodes: FileSystemNode[], parentPath = ''): FileSystemNode[]
     });
 }
 
+function removeNodeFromTree(nodes: FileSystemNode[], id: string): { tree: FileSystemNode[], removedNode: FileSystemNode | null } {
+    let removedNode: FileSystemNode | null = null;
+    
+    const findAndRemove = (nodes: FileSystemNode[]): FileSystemNode[] => {
+        return nodes.filter(node => {
+            if (node.id === id) {
+                removedNode = node;
+                return false;
+            }
+            if (node.type === 'folder') {
+                const { tree: newChildren, removedNode: childRemoved } = removeNodeFromTree(node.children, id);
+                if (childRemoved) removedNode = childRemoved;
+                node.children = newChildren;
+            }
+            return true;
+        });
+    }
+    
+    const tree = findAndRemove(nodes);
+    return { tree, removedNode };
+}
+
 function addNodeToTree(nodes: FileSystemNode[], parentId: string | null, newNode: FileSystemNode): FileSystemNode[] {
     if (!parentId) {
         return updatePaths([...nodes, newNode]);
@@ -114,16 +136,6 @@ function renameNodeInTree(nodes: FileSystemNode[], id: string, newName: string):
         }
         if (node.type === 'folder') {
             return { ...node, children: renameNodeInTree(node.children, id, newName) };
-        }
-        return node;
-    });
-    return updatePaths(tree);
-}
-
-function deleteNodeFromTree(nodes: FileSystemNode[], id: string): FileSystemNode[] {
-    const tree = nodes.filter(node => node.id !== id).map(node => {
-        if (node.type === 'folder') {
-            return { ...node, children: deleteNodeFromTree(node.children, id) };
         }
         return node;
     });
@@ -298,7 +310,13 @@ export function useFileSystem() {
   }, [activeFileId]);
 
   const deleteNode = useCallback((id: string) => {
-    const nodeToDelete = findNodeById(files, id);
+    let nodeToDelete: FileSystemNode | null = null;
+    setFiles(prevFiles => {
+      const { tree, removedNode } = removeNodeFromTree(prevFiles, id);
+      nodeToDelete = removedNode;
+      return tree;
+    });
+
     if (!nodeToDelete) return;
     
     const idsToClose = new Set<string>();
@@ -311,8 +329,6 @@ export function useFileSystem() {
     }
     findIds(nodeToDelete);
 
-    setFiles(prevFiles => deleteNodeFromTree(prevFiles, id));
-    
     setOpenFileIds(prevOpen => {
       const newOpenFiles = prevOpen.filter(openId => !idsToClose.has(openId));
       if (idsToClose.has(activeFileId ?? '')) {
@@ -322,7 +338,42 @@ export function useFileSystem() {
     });
     
     toast({ title: "Deleted", description: `${nodeToDelete.name} was deleted.` });
-  }, [files, toast, activeFileId]);
+  }, [toast, activeFileId]);
+
+  const moveNode = useCallback((draggedNodeId: string, dropTargetId: string | null) => {
+    const draggedNode = findNodeById(files, draggedNodeId);
+    if (!draggedNode) return;
+
+    if (dropTargetId) {
+        const dropTargetNode = findNodeById(files, dropTargetId);
+        if (!dropTargetNode || dropTargetNode.type !== 'folder') return;
+        
+        let current = dropTargetNode;
+        while(current) {
+            if (current.id === draggedNodeId) {
+                toast({ variant: 'destructive', title: "Invalid Move", description: "Cannot move a folder into itself."});
+                return;
+            }
+            const parent = findParentNode(files, current.id);
+            current = parent!;
+        }
+    }
+    
+    let newFiles: FileSystemNode[] = files;
+    let movedNode: FileSystemNode | null = null;
+
+    setFiles(currentFiles => {
+        const { tree, removedNode } = removeNodeFromTree(currentFiles, draggedNodeId);
+        movedNode = removedNode;
+        newFiles = tree;
+
+        if (movedNode) {
+            newFiles = addNodeToTree(newFiles, dropTargetId, movedNode);
+        }
+        return newFiles;
+    });
+    
+  }, [files, toast]);
 
   const toggleFolder = useCallback((folderId: string, forceOpen = false) => {
     setExpandedFolders(prev => {
@@ -365,6 +416,7 @@ export function useFileSystem() {
     createFolder,
     renameNode,
     deleteNode,
+    moveNode,
     getTargetFolder,
     expandedFolders,
     toggleFolder,
@@ -375,3 +427,5 @@ export function useFileSystem() {
     findNodeByPath: (path: string) => findNodeByPath(files, path),
   };
 }
+
+    

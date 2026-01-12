@@ -51,6 +51,7 @@ function IdeLayoutContent() {
     createFolder,
     renameNode,
     deleteNode,
+    moveNode,
     getTargetFolder,
     expandedFolders,
     toggleFolder,
@@ -134,7 +135,8 @@ function IdeLayoutContent() {
             const newContent = model.getValue();
             // This check prevents an infinite loop where updating the model
             // triggers a state update, which might re-trigger a model update.
-            if (newContent !== findNodeById(fileId)?.content) {
+            const currentNode = findNodeById(fileId)
+            if (currentNode && currentNode.type === 'file' && newContent !== currentNode.content) {
                 updateFileContent(fileId, newContent);
             }
           });
@@ -166,15 +168,21 @@ function IdeLayoutContent() {
 
   }, [openFileIds, findNodeById, updateFileContent, activeFileId]);
 
-  // Effect to update model content if it changes externally (e.g., from AI generation)
+  // Effect to update model content if it changes externally (e.g., from AI generation or drag-and-drop path change)
   useEffect(() => {
-    if (activeFile) {
-        const model = modelsRef.current.get(activeFile.id);
-        if (model && model.getValue() !== activeFile.content) {
-            model.setValue(activeFile.content);
+    modelsRef.current.forEach((model, fileId) => {
+      const file = findNodeById(fileId);
+      if (file?.type === 'file') {
+        if (model.getValue() !== file.content) {
+          model.pushEditOperations([], [{ range: model.getFullModelRange(), text: file.content }], () => null);
         }
-    }
-  }, [activeFile?.content, activeFile?.id]);
+        if (model.uri.path !== `/${file.path}`) {
+          // Model URI is immutable, but this shows the intent. In a real scenario, might need to recreate.
+          // For now, we accept this limitation as path changes are cosmetic for the editor itself.
+        }
+      }
+    });
+  }, [files, findNodeById]);
 
 
   const handleRun = useCallback(() => {
@@ -290,6 +298,7 @@ function IdeLayoutContent() {
           createFolder={createFolder}
           renameNode={renameNode}
           deleteNode={deleteNode}
+          moveNode={moveNode}
           getTargetFolder={getTargetFolder}
           expandedFolders={expandedFolders}
           onToggleFolder={toggleFolder}
@@ -384,3 +393,5 @@ export function IdeLayout() {
     </TooltipProvider>
   );
 }
+
+    
