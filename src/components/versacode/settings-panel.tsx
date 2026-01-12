@@ -14,9 +14,8 @@ interface SettingsPanelProps {
   settings: {
     minimap: boolean;
     fontSize: number;
-    autoSave: boolean;
   },
-  onSettingsChange: (newSettings: Partial<{ minimap: boolean; fontSize: number; autoSave: boolean; }>) => void;
+  onSettingsChange: (newSettings: Partial<{ minimap: boolean; fontSize: number; }>) => void;
   onResetSettings: () => void;
 }
 
@@ -62,17 +61,6 @@ export function SettingsPanel({ settings, onSettingsChange, onResetSettings }: S
         </div>
         <div className="space-y-4">
             <h3 className="font-medium">Editor</h3>
-            <div className="flex items-center justify-between">
-                <Label htmlFor="auto-save" className="flex flex-col gap-1">
-                  <span>Auto Save</span>
-                  <span className="text-xs text-muted-foreground">Automatically save changes.</span>
-                </Label>
-                <Switch 
-                  id="auto-save"
-                  checked={settings.autoSave}
-                  onCheckedChange={(checked) => onSettingsChange({ autoSave: checked })}
-                />
-            </div>
             <div className="flex items-center justify-between">
                 <Label htmlFor="word-wrap">Word Wrap</Label>
                 <Switch id="word-wrap" defaultChecked disabled />

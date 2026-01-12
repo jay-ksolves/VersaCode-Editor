@@ -32,7 +32,6 @@ export type Problem = { severity: 'error' | 'warning'; message: string; file: st
 const defaultEditorSettings = {
   minimap: true,
   fontSize: 14,
-  autoSave: true,
 };
 
 const UI_STATE_STORAGE_KEY = 'versacode-ui-state';
@@ -120,7 +119,9 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
     stageFile,
     unstageFile,
     commitChanges,
-  } = useFileSystem({ autoSave: editorSettings.autoSave });
+    isLoaded,
+    importFromLocal,
+  } = useFileSystem();
 
   // Load and save UI state
   useEffect(() => {
@@ -192,7 +193,7 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
   
   useEffect(() => {
     const monaco = monacoRef.current;
-    if (!monaco) return;
+    if (!monaco || !isLoaded) return;
 
     const openFilesSet = new Set(openFileIds);
     const disposables = new Map<string, monaco.IDisposable>();
@@ -229,7 +230,7 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
     return () => {
       disposables.forEach(d => d.dispose());
     };
-  }, [openFileIds, findNodeById, updateFileContent]);
+  }, [openFileIds, findNodeById, updateFileContent, isLoaded]);
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -242,7 +243,7 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
 
   useEffect(() => {
     const monaco = monacoRef.current;
-    if (!monaco) return;
+    if (!monaco || !isLoaded) return;
 
     const onMarkerChange = () => {
       const allProblems: Problem[] = [];
@@ -272,7 +273,7 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
     return () => {
       disposable.dispose();
     };
-  }, [openFileIds]);
+  }, [openFileIds, isLoaded]);
 
 
   const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor, monacoInstance: typeof monaco) => {
@@ -372,97 +373,27 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
   const handleNewFile = () => fileExplorerRef.current?.startCreate('create_file');
   const handleNewFolder = () => fileExplorerRef.current?.startCreate('create_folder');
   
-  const handleUploadFolderClick = () => {
-    folderUploadRef.current?.click();
-  };
-
-  const handleFolderUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    toast({ title: "Uploading Folder...", description: "Processing your project files." });
-
-    const newFileTree: FileSystemNode[] = [];
-    const folderCache: { [key: string]: FileSystemNode } = {};
-
-    const getOrCreateFolder = (path: string): FileSystemNode => {
-        if (folderCache[path]) return folderCache[path];
-
-        const parts = path.split('/');
-        const folderName = parts.pop()!;
-        const parentPath = parts.join('/');
-        
-        const parentFolder = getOrCreateFolder(parentPath);
-        
-        const newFolder: FileSystemNode = {
-            id: `folder_${path}`,
-            name: folderName,
-            type: 'folder',
-            path: path,
-            children: [],
-        };
-        
-        if (parentFolder) {
-            (parentFolder as any).children.push(newFolder);
-        } else {
-            newFileTree.push(newFolder);
-        }
-        
-        folderCache[path] = newFolder;
-        return newFolder;
-    };
-    
-    // Create a root node for the top-level files
-    const rootName = files[0].webkitRelativePath.split('/')[0];
-    const rootNode: FileSystemNode = {
-        id: 'root',
-        name: rootName,
-        type: 'folder',
-        path: rootName,
-        children: [],
-    };
-    folderCache[rootName] = rootNode;
-
-
-    for (const file of Array.from(files)) {
-        const pathParts = file.webkitRelativePath.split('/');
-        const fileName = pathParts.pop()!;
-        const folderPath = pathParts.join('/');
-        
-        const parentFolder = folderCache[folderPath];
-        if (!parentFolder || parentFolder.type !== 'folder') continue;
-
-        const content = await file.text();
-        const newFile: FileSystemNode = {
-            id: `file_${file.webkitRelativePath}`,
-            name: fileName,
-            type: 'file',
-            path: file.webkitRelativePath,
-            content: content
-        };
-        parentFolder.children.push(newFile);
+  const handleUploadFolderClick = async () => {
+    try {
+        await importFromLocal();
+        toast({ title: "Folder Uploaded", description: `Project is ready.` });
+    } catch (error) {
+        console.error("Failed to import from local file system", error);
+        toast({ variant: 'destructive', title: "Upload Failed", description: "Could not read the selected folder." });
     }
-
-    setFiles([rootNode]);
-    setOpenFileIds([]);
-    setActiveFileId(null);
-    setExpandedFolders(new Set([rootNode.id]));
-    toast({ title: "Folder Uploaded", description: `Project "${rootName}" is ready.` });
-    
-    // Reset file input
-    if(event.target) event.target.value = '';
   };
 
 
-  const handleNewUntitledFile = useCallback(() => {
+  const handleNewUntitledFile = useCallback(async () => {
     let i = 1;
     let newName = `Untitled-${i}`;
-    // The findNodeByPath now correctly handles its input
-    while (findNodeByPath(newName)) {
+    let nodeExists = await findNodeByPath(newName);
+    while (nodeExists) {
       i++;
       newName = `Untitled-${i}`;
+      nodeExists = await findNodeByPath(newName);
     }
-    const newFileId = createFile(newName, null, '');
+    const newFileId = await createFile(newName, null, '');
     if (newFileId) {
       openFile(newFileId);
     }
@@ -490,12 +421,12 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
 
 
   useEffect(() => {
-    if (terminalSessions.length === 0) {
+    if (isLoaded && terminalSessions.length === 0) {
       const newId = handleNewTerminal();
       setActiveTerminalId(newId);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isLoaded]);
 
   const handleToggleTerminal = () => {
     setIsBottomPanelOpen(prev => !prev);
@@ -514,8 +445,8 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
     editorRef.current?.focus();
   }, []);
 
-  const handleGoToProblem = useCallback((problem: Problem) => {
-    const targetNode = findNodeByPath(problem.file);
+  const handleGoToProblem = useCallback(async (problem: Problem) => {
+    const targetNode = await findNodeByPath(problem.file);
     if (targetNode && targetNode.type === 'file') {
       openFile(targetNode.id);
       setTimeout(() => goToLine(problem.line), 100);
@@ -528,16 +459,16 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
     }
   }, [findNodeByPath, openFile, toast, goToLine]);
 
-  const handleGoToSearchResult = useCallback((result: SearchResult) => {
-    const targetNode = findNodeById(result.fileId);
+  const handleGoToSearchResult = useCallback(async (result: SearchResult) => {
+    const targetNode = await findNodeById(result.fileId);
     if (targetNode && targetNode.type === 'file') {
       openFile(targetNode.id);
       setTimeout(() => goToLine(result.line, result.column), 100);
     }
   }, [findNodeById, openFile, goToLine]);
 
-  const handleBreadcrumbSelect = (path: string) => {
-    const node = findNodeByPath(path);
+  const handleBreadcrumbSelect = async (path: string) => {
+    const node = await findNodeByPath(path);
     if (node) {
       if (node.type === 'file') {
         openFile(node.id);
@@ -591,20 +522,20 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
     toast({ title: 'Zipping project...', description: 'Please wait while we prepare your download.' });
     const zip = new JSZip();
 
-    function addFilesToZip(zipFolder: JSZip, nodes: FileSystemNode[]) {
+    async function addFilesToZip(zipFolder: JSZip, nodes: FileSystemNode[]) {
       for (const node of nodes) {
         if (node.type === 'file') {
           zipFolder.file(node.name, node.content);
-        } else if (node.type === 'folder') {
+        } else if (node.type === 'folder' && node.children) {
           const newFolder = zipFolder.folder(node.name);
           if (newFolder) {
-            addFilesToZip(newFolder, node.children);
+            await addFilesToZip(newFolder, node.children);
           }
         }
       }
     }
 
-    addFilesToZip(zip, files);
+    await addFilesToZip(zip, files);
 
     try {
       const content = await zip.generateAsync({ type: 'blob' });
@@ -675,12 +606,21 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
   };
 
 
+  if (!isLoaded) {
+    return (
+        <div className="flex h-screen w-full items-center justify-center bg-background">
+            <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
+            <p className="ml-4 text-muted-foreground">Initializing file system...</p>
+        </div>
+    );
+  }
+
   return (
       <div className="flex h-screen bg-background text-foreground font-body">
         <input 
             type="file" 
             ref={folderUploadRef}
-            onChange={handleFolderUpload}
+            onChange={() => {}}
             className="hidden"
             // @ts-ignore
             webkitdirectory="true" 

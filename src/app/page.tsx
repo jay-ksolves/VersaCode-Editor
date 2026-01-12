@@ -22,44 +22,57 @@ export default function HomePage({ theme }: { theme: string }) {
   const [vantaEffect, setVantaEffect] = useState<any>(null);
   const vantaRef = useRef(null);
   const { toast } = useToast();
-  const { files } = useFileSystem({ autoSave: false }); // We don't need autoSave here
+  const { files } = useFileSystem();
+
+  const startVanta = useCallback(() => {
+    if (!window.VANTA || !vantaRef.current) {
+        return null;
+    }
+    
+    return window.VANTA.RINGS({
+        el: vantaRef.current,
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.00,
+        minWidth: 200.00,
+        scale: 1.00,
+        scaleMobile: 1.00,
+        color: 0x88ff00,
+        backgroundColor: 0x202428,
+    });
+  }, []);
+
 
   useEffect(() => {
-    if (!window.VANTA || !vantaRef.current) {
-        return;
+    let effect: any = null;
+
+    const tryToStart = () => {
+        if (theme === 'dark') {
+            effect = startVanta();
+            if (effect) {
+                setVantaEffect(effect);
+            } else {
+                // Retry if VANTA is not ready yet
+                setTimeout(tryToStart, 500);
+            }
+        }
+    };
+    
+    if (vantaEffect) {
+        vantaEffect.destroy();
+        setVantaEffect(null);
     }
     
-    if (theme === 'dark') {
-        if (!vantaEffect) {
-            const effect = window.VANTA.RINGS({
-                el: vantaRef.current,
-                mouseControls: true,
-                touchControls: true,
-                gyroControls: false,
-                minHeight: 200.00,
-                minWidth: 200.00,
-                scale: 1.00,
-                scaleMobile: 1.00,
-                color: 0x88ff00,
-                backgroundColor: 0x202428,
-            });
-            setVantaEffect(effect);
-        }
-    } else {
-        if (vantaEffect) {
-            vantaEffect.destroy();
-            setVantaEffect(null);
-        }
-    }
-    
+    tryToStart();
+
     return () => {
-        if (vantaEffect) {
-            vantaEffect.destroy();
-            setVantaEffect(null);
-        }
+        if (vantaEffect) vantaEffect.destroy();
+        if (effect) effect.destroy();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme]);
+
 
     const handleDownloadZip = useCallback(async () => {
     if (files.length === 0) {
@@ -69,20 +82,20 @@ export default function HomePage({ theme }: { theme: string }) {
     toast({ title: 'Zipping project...', description: 'Please wait while we prepare your download.' });
     const zip = new JSZip();
 
-    function addFilesToZip(zipFolder: JSZip, nodes: any[]) {
+    async function addFilesToZip(zipFolder: JSZip, nodes: any[]) {
       for (const node of nodes) {
         if (node.type === 'file') {
           zipFolder.file(node.name, node.content);
         } else if (node.type === 'folder') {
           const newFolder = zipFolder.folder(node.name);
-          if (newFolder) {
-            addFilesToZip(newFolder, node.children);
+          if (newFolder && node.children) {
+            await addFilesToZip(newFolder, node.children);
           }
         }
       }
     }
 
-    addFilesToZip(zip, files);
+    await addFilesToZip(zip, files);
 
     try {
       const content = await zip.generateAsync({ type: 'blob' });

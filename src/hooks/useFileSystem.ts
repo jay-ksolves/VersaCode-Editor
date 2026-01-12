@@ -1,6 +1,7 @@
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
+import { useOPFS } from './useOPFS';
 
 export type FileSystemNode = {
   id: string;
@@ -25,163 +26,47 @@ export interface SearchResult {
     lineContent: string;
 }
 
-const initialFileSystem: FileSystemNode[] = [];
-
-function findNodeById(nodes: FileSystemNode[], id: string, searchInside: boolean = true): FileSystemNode | null {
-  for (const node of nodes) {
-    if (node.id === id) return node;
-    if (node.type === 'folder' && searchInside) {
-      const found = findNodeById(node.children, id);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-function findNodeByPath(nodes: FileSystemNode[], path: string | null): FileSystemNode | null {
-  if (!path) return null;
-  for (const node of nodes) {
-    if (node.path === path) return node;
-    if (node.type === 'folder' && path.startsWith(node.path + '/')) {
-      const found = findNodeByPath(node.children, path);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-function findParentNode(nodes: FileSystemNode[], childId: string): FileSystemNode | null {
-    for (const node of nodes) {
-        if (node.type === 'folder') {
-            if (node.children.some(child => child.id === childId)) {
-                return node;
-            }
-            const foundParent = findParentNode(node.children, childId);
-            if (foundParent) {
-                return foundParent;
-            }
-        }
-    }
-    return null;
-}
-
-function updateNodeInTree(nodes: FileSystemNode[], id: string, updates: Partial<FileSystemNode>): FileSystemNode[] {
-    return nodes.map(node => {
-        if (node.id === id) {
-            return { ...node, ...updates };
-        }
-        if (node.type === 'folder') {
-            return { ...node, children: updateNodeInTree(node.children, id, updates) };
-        }
-        return node;
-    });
-}
-
-function updatePaths(nodes: FileSystemNode[], parentPath = ''): FileSystemNode[] {
-    return nodes.map(node => {
-        const currentPath = parentPath ? `${parentPath}/${node.name}` : node.name;
-        const updatedNode = { ...node, path: currentPath };
-        if (updatedNode.type === 'folder') {
-            updatedNode.children = updatePaths(updatedNode.children, currentPath);
-        }
-        return updatedNode;
-    });
-}
-
-function removeNodeFromTree(nodes: FileSystemNode[], id: string): { tree: FileSystemNode[], removedNode: FileSystemNode | null } {
-    let removedNode: FileSystemNode | null = null;
-    
-    const findAndRemove = (nodes: FileSystemNode[]): FileSystemNode[] => {
-        return nodes.filter(node => {
-            if (node.id === id) {
-                removedNode = node;
-                return false;
-            }
-            if (node.type === 'folder') {
-                const { tree: newChildren, removedNode: childRemoved } = removeNodeFromTree(node.children, id);
-                if (childRemoved) removedNode = childRemoved;
-                node.children = newChildren;
-            }
-            return true;
-        });
-    }
-    
-    const tree = findAndRemove(nodes);
-    return { tree, removedNode };
-}
-
-function addNodeToTree(nodes: FileSystemNode[], parentId: string | null, newNode: FileSystemNode): FileSystemNode[] {
-    if (!parentId) {
-        return updatePaths([...nodes, newNode]);
-    }
-
-    const tree = nodes.map(node => {
-        if (node.id === parentId && node.type === 'folder') {
-            return { ...node, children: [...node.children, newNode] };
-        }
-        if (node.type === 'folder') {
-            return { ...node, children: addNodeToTree(node.children, parentId, newNode) };
-        }
-        return node;
-    });
-    return updatePaths(tree);
-}
-
-function renameNodeInTree(nodes: FileSystemNode[], id: string, newName: string): FileSystemNode[] {
-    return updatePaths(nodes.map(node => {
-        if (node.id === id) {
-            return { ...node, name: newName };
-        }
-        if (node.type === 'folder') {
-            return { ...node, children: renameNodeInTree(node.children, id, newName) };
-        }
-        return node;
-    }));
-}
-
-function getAllFiles(nodes: FileSystemNode[]): (FileSystemNode & {type: 'file'})[] {
-  let allFiles: (FileSystemNode & {type: 'file'})[] = [];
-  for (const node of nodes) {
-    if (node.type === 'file') {
-      allFiles.push(node);
-    } else if (node.type === 'folder') {
-      allFiles = allFiles.concat(getAllFiles(node.children));
-    }
-  }
-  return allFiles;
-}
+const OPEN_FILES_LOCAL_STORAGE_KEY = 'versacode_opfs_open_files';
+const ACTIVE_FILE_LOCAL_STORAGE_KEY = 'versacode_opfs_active_file';
+const STAGED_FILES_LOCAL_STORAGE_KEY = 'versacode_opfs_staged_files';
+const EXPANDED_FOLDERS_LOCAL_STORAGE_KEY = 'versacode_opfs_expanded_folders';
 
 
-const FS_LOCAL_STORAGE_KEY = 'versacode_filesystem';
-const EXPANDED_FOLDERS_LOCAL_STORAGE_KEY = 'versacode_expanded_folders';
-const OPEN_FILES_LOCAL_STORAGE_KEY = 'versacode_open_files';
-const ACTIVE_FILE_LOCAL_STORAGE_KEY = 'versacode_active_file';
-const STAGED_FILES_LOCAL_STORAGE_KEY = 'versacode_staged_files';
-
-export function useFileSystem({ autoSave }: { autoSave: boolean }) {
+export function useFileSystem() {
   const [files, setFiles] = useState<FileSystemNode[]>([]);
   const [activeFileId, setActiveFileId] = useState<string | null>(null);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['1']));
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [openFileIds, setOpenFileIds] = useState<string[]>([]);
   const [stagedFiles, setStagedFiles] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+  const { 
+      isLoaded, 
+      readDirectory, 
+      readFile, 
+      writeFile, 
+      createDirectory, 
+      deleteFile, 
+      deleteDirectory, 
+      rename,
+      importFromLocal,
+      isDirtyMap,
+      resetDirty,
+      resetAll,
+   } = useOPFS();
+  
+  const loadFileSystem = useCallback(async () => {
+    if (!isLoaded) return;
+    const tree = await readDirectory('');
+    setFiles(tree);
 
-  const loadFromLocalStorage = useCallback(() => {
-    try {
-      const storedFiles = localStorage.getItem(FS_LOCAL_STORAGE_KEY);
+     try {
       const storedExpanded = localStorage.getItem(EXPANDED_FOLDERS_LOCAL_STORAGE_KEY);
       const storedOpenFiles = localStorage.getItem(OPEN_FILES_LOCAL_STORAGE_KEY);
       const storedActiveFile = localStorage.getItem(ACTIVE_FILE_LOCAL_STORAGE_KEY);
       const storedStagedFiles = localStorage.getItem(STAGED_FILES_LOCAL_STORAGE_KEY);
-
-      const parsedFiles = storedFiles ? JSON.parse(storedFiles) : initialFileSystem;
-      setFiles(parsedFiles);
-
+      
       if (storedExpanded) setExpandedFolders(new Set(JSON.parse(storedExpanded)));
-      else setExpandedFolders(new Set(['1']));
-
       if (storedStagedFiles) setStagedFiles(new Set(JSON.parse(storedStagedFiles)));
-
 
       if (storedOpenFiles) {
         const parsedOpenFiles = JSON.parse(storedOpenFiles);
@@ -193,138 +78,162 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
             setActiveFileId(parsedOpenFiles[0]);
         }
       }
-
-    } catch (error) {
-      console.error("Failed to parse from localStorage", error);
-      setFiles(initialFileSystem);
-      setExpandedFolders(new Set(['1']));
-      setStagedFiles(new Set());
+    } catch (e) {
+      console.error("Failed to load UI state from local storage", e);
     }
-  }, []);
+
+  }, [isLoaded, readDirectory]);
+
+  useEffect(() => {
+    loadFileSystem();
+  }, [loadFileSystem]);
+
+  const saveUIState = useCallback(() => {
+    localStorage.setItem(EXPANDED_FOLDERS_LOCAL_STORAGE_KEY, JSON.stringify(Array.from(expandedFolders)));
+    localStorage.setItem(OPEN_FILES_LOCAL_STORAGE_KEY, JSON.stringify(openFileIds));
+    localStorage.setItem(STAGED_FILES_LOCAL_STORAGE_KEY, JSON.stringify(Array.from(stagedFiles)));
+    if (activeFileId) {
+      localStorage.setItem(ACTIVE_FILE_LOCAL_STORAGE_KEY, activeFileId);
+    } else {
+      localStorage.removeItem(ACTIVE_FILE_LOCAL_STORAGE_KEY);
+    }
+  }, [expandedFolders, openFileIds, stagedFiles, activeFileId]);
+
+  useEffect(() => {
+    if(isLoaded) {
+      saveUIState();
+    }
+  }, [isLoaded, saveUIState]);
   
-  useEffect(() => {
-    loadFromLocalStorage();
-  }, [loadFromLocalStorage]);
-
-  const saveToLocalStorage = useCallback(() => {
-    try {
-      localStorage.setItem(FS_LOCAL_STORAGE_KEY, JSON.stringify(files));
-      localStorage.setItem(EXPANDED_FOLDERS_LOCAL_STORAGE_KEY, JSON.stringify(Array.from(expandedFolders)));
-      localStorage.setItem(OPEN_FILES_LOCAL_STORAGE_KEY, JSON.stringify(openFileIds));
-      localStorage.setItem(STAGED_FILES_LOCAL_STORAGE_KEY, JSON.stringify(Array.from(stagedFiles)));
-      if (activeFileId) {
-          localStorage.setItem(ACTIVE_FILE_LOCAL_STORAGE_KEY, activeFileId);
-      } else {
-          localStorage.removeItem(ACTIVE_FILE_LOCAL_STORAGE_KEY);
-      }
-    } catch (error) {
-      console.error("Failed to save to localStorage", error);
-    }
-  }, [files, expandedFolders, openFileIds, activeFileId, stagedFiles]);
-
-  useEffect(() => {
-    if (autoSave) {
-        saveToLocalStorage();
-    }
-  }, [files, expandedFolders, openFileIds, activeFileId, stagedFiles, autoSave, saveToLocalStorage]);
-
-  const activeFile = activeFileId ? findNodeById(files, activeFileId) : null;
-
-  const updateFileContent = useCallback((id: string, content: string) => {
-    setFiles(prevFiles => {
-        const node = findNodeById(prevFiles, id);
-        if (node?.type === 'file' && node.content !== content) {
-            return updateNodeInTree(prevFiles, id, { content, isDirty: true });
+  const findNodeById = useCallback((id: string, searchInside: boolean = true): FileSystemNode | null => {
+    const find = (nodes: FileSystemNode[]): FileSystemNode | null => {
+        for (const node of nodes) {
+            if (node.id === id) return node;
+            if (node.type === 'folder' && searchInside && node.children) {
+            const found = find(node.children);
+            if (found) return found;
+            }
         }
-        return prevFiles;
-    });
-  }, []);
+        return null;
+    }
+    return find(files);
+  }, [files]);
+
+  const findNodeByPath = useCallback(async (path: string | null): Promise<FileSystemNode | null> => {
+    if (!path) return null;
+    const find = (nodes: FileSystemNode[]): FileSystemNode | null => {
+        for (const node of nodes) {
+            if (node.path === path) return node;
+            if (node.type === 'folder' && node.children && path.startsWith(node.path + '/')) {
+            const found = find(node.children);
+            if (found) return found;
+            }
+        }
+        return null;
+    }
+    return find(files);
+  }, [files]);
   
+  const getParentNode = useCallback((childId: string): FileSystemNode | null => {
+      const findParent = (nodes: FileSystemNode[]): FileSystemNode | null => {
+        for (const node of nodes) {
+            if (node.type === 'folder' && node.children) {
+                if (node.children.some(child => child.id === childId)) {
+                    return node;
+                }
+                const found = findParent(node.children);
+                if (found) return found;
+            }
+        }
+        return null;
+      }
+      return findParent(files);
+  }, [files]);
+
   const getTargetFolder = useCallback((selectedNodeId: string | null) => {
     if (!selectedNodeId) return null;
-    const selectedNode = findNodeById(files, selectedNodeId);
+    const selectedNode = findNodeById(selectedNodeId);
     if (selectedNode?.type === 'folder') {
         return selectedNode;
     }
-    return findParentNode(files, selectedNodeId);
-  }, [files]);
+    return getParentNode(selectedNodeId);
+  }, [findNodeById, getParentNode]);
 
-  const validateName = (name: string, parentId: string | null, nodeIdToIgnore: string | null = null) => {
-    if (!name) return "Name cannot be empty.";
-    if (name.includes('/') || name.includes('\\')) return "Name cannot contain slashes.";
-    
-    let siblingNodes: FileSystemNode[] = [];
-    const parentNode = parentId ? findNodeById(files, parentId) : null;
 
-    if (parentNode && parentNode.type === 'folder') {
-        siblingNodes = parentNode.children;
-    } else if (!parentId) {
-        siblingNodes = files;
+  const activeFile = activeFileId ? findNodeById(activeFileId) : null;
+
+  const updateFileContent = useCallback(async (id: string, content: string) => {
+    const node = findNodeById(id);
+    if (node?.type === 'file' && node.content !== content) {
+        await writeFile(node.path, content);
+        setFiles(prev => {
+            const updateContent = (nodes: FileSystemNode[]): FileSystemNode[] => {
+                return nodes.map(n => {
+                    if (n.id === id) return { ...n, content, isDirty: isDirtyMap.get(node.path) };
+                    if (n.type === 'folder' && n.children) return { ...n, children: updateContent(n.children) };
+                    return n;
+                });
+            };
+            return updateContent(prev);
+        });
     }
-    
-    if (siblingNodes.some(node => node.name === name && node.id !== nodeIdToIgnore)) {
-        return "A file or folder with this name already exists in this directory.";
-    }
-    return null;
-  }
+  }, [findNodeById, writeFile, isDirtyMap]);
 
-  const createFile = useCallback((name: string, parentId: string | null, content: string = '') => {
-    const validationError = validateName(name, parentId);
-    if (validationError) {
-        toast({ variant: 'destructive', title: "Invalid Name", description: validationError });
+
+  const createFile = useCallback(async (name: string, parentId: string | null, content: string = '') => {
+    const parentNode = parentId ? findNodeById(parentId) : null;
+    const parentPath = parentNode?.path ?? '';
+    const filePath = parentPath ? `${parentPath}/${name}` : name;
+    
+    try {
+        await writeFile(filePath, content);
+        await loadFileSystem();
+        if (parentId) {
+            setExpandedFolders(prev => new Set(prev).add(parentId!));
+        }
+        toast({ title: "File Created", description: `${name} was added.` });
+        
+        const newNode = await findNodeByPath(filePath);
+        return newNode?.id ?? null;
+
+    } catch (error) {
+        console.error(error);
+        toast({ variant: 'destructive', title: "Error creating file", description: String(error) });
         return null;
     }
-    const newFile: FileSystemNode = {
-        id: Date.now().toString(),
-        name,
-        type: 'file',
-        content: content || `// ${name}\n`,
-        path: '', 
-        isDirty: true, // New files are considered changed
-    };
-    setFiles(prevFiles => addNodeToTree(prevFiles, parentId, newFile));
-    if (parentId) {
-      setExpandedFolders(prev => new Set(prev).add(parentId!));
-    }
-    toast({ title: "File Created", description: `${name} was added.` });
-    return newFile.id;
-  }, [toast]);
+  }, [findNodeById, writeFile, loadFileSystem, toast, findNodeByPath]);
 
-  const createFolder = useCallback((name: string, parentId: string | null) => {
-    const validationError = validateName(name, parentId);
-    if (validationError) {
-        toast({ variant: 'destructive', title: "Invalid Name", description: validationError });
-        return;
-    }
-    const newFolder: FileSystemNode = {
-        id: Date.now().toString(),
-        name,
-        type: 'folder',
-        children: [],
-        path: '',
-    };
-    setFiles(prevFiles => addNodeToTree(prevFiles, parentId, newFolder));
-     if (parentId) {
-      setExpandedFolders(prev => new Set(prev).add(parentId!));
-    }
-    toast({ title: "Folder Created", description: `${name} was added.` });
-  }, [toast]);
+  const createFolder = useCallback(async (name: string, parentId: string | null) => {
+    const parentNode = parentId ? findNodeById(parentId) : null;
+    const parentPath = parentNode?.path ?? '';
+    const folderPath = parentPath ? `${parentPath}/${name}` : name;
 
-  const renameNode = useCallback((id: string, newName: string) => {
-    const node = findNodeById(files, id);
+    try {
+        await createDirectory(folderPath);
+        await loadFileSystem();
+        if (parentId) {
+            setExpandedFolders(prev => new Set(prev).add(parentId!));
+        }
+        toast({ title: "Folder Created", description: `${name} was added.` });
+    } catch(error) {
+        console.error(error);
+        toast({ variant: 'destructive', title: "Error creating folder", description: String(error) });
+    }
+  }, [findNodeById, createDirectory, loadFileSystem, toast]);
+
+  const renameNode = useCallback(async (id: string, newName: string) => {
+    const node = findNodeById(id);
     if (!node) return;
-    const parent = findParentNode(files, id);
-    const parentId = parent ? parent.id : null;
-
-    const validationError = validateName(newName, parentId, id);
-    if (validationError) {
-        toast({ variant: 'destructive', title: "Invalid Name", description: validationError });
-        return;
-    }
     
-    setFiles(prevFiles => renameNodeInTree(prevFiles, id, newName));
-    toast({ title: "Renamed", description: `Renamed to ${newName}.` });
-  }, [files, toast]);
+    try {
+        await rename(node.path, newName);
+        await loadFileSystem();
+        toast({ title: "Renamed", description: `Renamed to ${newName}.` });
+    } catch(error) {
+        console.error(error);
+        toast({ variant: 'destructive', title: "Error renaming", description: String(error) });
+    }
+  }, [findNodeById, rename, loadFileSystem, toast]);
 
   const closeFile = useCallback((fileId: string) => {
     setOpenFileIds(prev => {
@@ -342,77 +251,71 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
     });
   }, [activeFileId]);
 
-
-  const deleteNode = useCallback((id: string) => {
-    let nodeToDelete: FileSystemNode | null = null;
-    setFiles(prevFiles => {
-      const { tree, removedNode } = removeNodeFromTree(prevFiles, id);
-      nodeToDelete = removedNode;
-      return tree;
-    });
-
-    if (!nodeToDelete) return;
+  const deleteNode = useCallback(async (id: string) => {
+    const node = findNodeById(id);
+    if (!node) return;
     
     const idsToClose = new Set<string>();
-    function findIds(node: FileSystemNode) {
-        if (node.type === 'file') {
-            idsToClose.add(node.id);
-        } else if (node.type === 'folder') {
-            node.children.forEach(findIds);
-        }
-    }
-    findIds(nodeToDelete);
+    const collectIds = (n: FileSystemNode) => {
+        idsToClose.add(n.id);
+        if (n.type === 'folder') n.children?.forEach(collectIds);
+    };
+    collectIds(node);
 
-    setOpenFileIds(prevOpen => {
-      const newOpenFiles = prevOpen.filter(openId => !idsToClose.has(openId));
+    try {
+      if (node.type === 'file') {
+        await deleteFile(node.path);
+      } else {
+        await deleteDirectory(node.path);
+      }
+      await loadFileSystem();
+
+      setOpenFileIds(prevOpen => prevOpen.filter(openId => !idsToClose.has(openId)));
       if (idsToClose.has(activeFileId ?? '')) {
+        const newOpenFiles = openFileIds.filter(openId => !idsToClose.has(openId));
         setActiveFileId(newOpenFiles[0] ?? null);
       }
-      return newOpenFiles;
-    });
-    
-    setStagedFiles(prev => {
+       setStagedFiles(prev => {
         const newStaged = new Set(prev);
         idsToClose.forEach(id => newStaged.delete(id));
         return newStaged;
     });
 
-    toast({ title: "Deleted", description: `${nodeToDelete.name} was deleted.` });
-  }, [toast, activeFileId]);
+      toast({ title: "Deleted", description: `${node.name} was deleted.` });
 
-  const moveNode = useCallback((draggedNodeId: string, dropTargetId: string | null) => {
-    const draggedNode = findNodeById(files, draggedNodeId);
+    } catch (error) {
+      console.error(error);
+      toast({ variant: 'destructive', title: "Error deleting", description: String(error) });
+    }
+  }, [findNodeById, deleteFile, deleteDirectory, toast, loadFileSystem, activeFileId, openFileIds]);
+
+  const moveNode = useCallback(async (draggedNodeId: string, dropTargetId: string | null) => {
+    const draggedNode = findNodeById(draggedNodeId);
     if (!draggedNode) return;
+    
+    const dropTargetNode = dropTargetId ? findNodeById(dropTargetId) : null;
+    if (dropTargetNode && dropTargetNode.type !== 'folder') return;
 
-    if (dropTargetId) {
-        const dropTargetNode = findNodeById(files, dropTargetId);
-        if (!dropTargetNode || dropTargetNode.type !== 'folder') return;
-        
-        let current = dropTargetNode;
-        while(current) {
-            if (current.id === draggedNodeId) {
-                toast({ variant: 'destructive', title: "Invalid Move", description: "Cannot move a folder into itself."});
-                return;
-            }
-            const parent = findParentNode(files, current.id);
-            current = parent!;
+    let current = dropTargetNode;
+    while(current) {
+        if (current.id === draggedNodeId) {
+            toast({ variant: 'destructive', title: "Invalid Move", description: "Cannot move a folder into itself."});
+            return;
         }
+        current = getParentNode(current.id);
     }
     
-    let movedNode: FileSystemNode | null = null;
+    const newParentPath = dropTargetNode ? dropTargetNode.path : '';
+    const newPath = newParentPath ? `${newParentPath}/${draggedNode.name}` : draggedNode.name;
 
-    setFiles(currentFiles => {
-        const { tree, removedNode } = removeNodeFromTree(currentFiles, draggedNodeId);
-        movedNode = removedNode;
-        let newFiles = tree;
-
-        if (movedNode) {
-            newFiles = addNodeToTree(newFiles, dropTargetId, movedNode);
-        }
-        return newFiles;
-    });
-    
-  }, [files, toast]);
+    try {
+        await rename(draggedNode.path, newPath);
+        await loadFileSystem();
+    } catch(e) {
+        console.error("Move failed:", e);
+        toast({variant: 'destructive', title: 'Move Failed', description: String(e) });
+    }
+  }, [findNodeById, getParentNode, rename, loadFileSystem, toast]);
 
   const toggleFolder = useCallback((folderId: string, forceOpen = false) => {
     setExpandedFolders(prev => {
@@ -428,8 +331,8 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
     });
   }, []);
 
-  const openFile = useCallback((fileId: string) => {
-    const node = findNodeById(files, fileId);
+  const openFile = useCallback(async (fileId: string) => {
+    const node = findNodeById(fileId);
     if (node?.type === 'folder') {
         toggleFolder(fileId);
         return;
@@ -437,11 +340,22 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
 
     if (node?.type === 'file') {
         if (!openFileIds.includes(fileId)) {
+            const content = await readFile(node.path);
+            setFiles(prev => {
+                 const updateContent = (nodes: FileSystemNode[]): FileSystemNode[] => {
+                    return nodes.map(n => {
+                        if (n.id === fileId) return { ...n, content };
+                        if (n.type === 'folder') return { ...n, children: updateContent(n.children) };
+                        return n;
+                    });
+                };
+                return updateContent(prev);
+            });
             setOpenFileIds(prev => [...prev, fileId]);
         }
         setActiveFileId(fileId);
     }
-  }, [files, openFileIds, toggleFolder]);
+  }, [findNodeById, toggleFolder, openFileIds, readFile]);
 
   const searchFiles = useCallback((query: string): SearchResult[] => {
     const results: SearchResult[] = [];
@@ -449,7 +363,7 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
 
     function searchInNodes(nodes: FileSystemNode[]) {
         for (const node of nodes) {
-            if (node.type === 'file') {
+            if (node.type === 'file' && node.content) {
                 const lines = node.content.split('\n');
                 lines.forEach((lineContent, index) => {
                     const matchIndex = lineContent.toLowerCase().indexOf(lowerCaseQuery);
@@ -463,7 +377,7 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
                         });
                     }
                 });
-            } else if (node.type === 'folder') {
+            } else if (node.type === 'folder' && node.children) {
                 searchInNodes(node.children);
             }
         }
@@ -472,6 +386,18 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
     return results;
   }, [files]);
   
+  const getAllFiles = useCallback((nodes: FileSystemNode[]): (FileSystemNode & {type: 'file'})[] => {
+    let allFiles: (FileSystemNode & {type: 'file'})[] = [];
+    for (const node of nodes) {
+      if (node.type === 'file') {
+        allFiles.push({ ...node, isDirty: isDirtyMap.get(node.path) });
+      } else if (node.type === 'folder' && node.children) {
+        allFiles = allFiles.concat(getAllFiles(node.children));
+      }
+    }
+    return allFiles;
+  }, [isDirtyMap]);
+
   // Git-like features
   const allProjectFiles = getAllFiles(files);
   const changedButNotStagedFiles = allProjectFiles.filter(file => file.isDirty && !stagedFiles.has(file.id));
@@ -490,14 +416,13 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
   };
 
   const commitChanges = (message: string) => {
-    setFiles(prevFiles => {
-      let newFiles = prevFiles;
-      for (const fileId of stagedFiles) {
-        newFiles = updateNodeInTree(newFiles, fileId, { isDirty: false });
-      }
-      return newFiles;
-    });
+    resetDirty(Array.from(stagedFiles).map(id => findNodeById(id)?.path).filter(Boolean) as string[]);
     setStagedFiles(new Set());
+  };
+
+  const handleImportFromLocal = async () => {
+    await importFromLocal();
+    await loadFileSystem();
   };
 
   return {
@@ -505,7 +430,7 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
     setFiles,
     activeFileId,
     setActiveFileId,
-    activeFile: activeFile?.type === 'file' ? activeFile : null,
+    activeFile: activeFile?.type === 'file' ? activeFile as FileSystemNode & { type: 'file' } : null,
     updateFileContent,
     createFile,
     createFolder,
@@ -523,12 +448,14 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
     findNodeById,
     findNodeByPath,
     searchFiles,
-    refreshFileSystem: loadFromLocalStorage,
-    // Source control state and actions
+    refreshFileSystem: loadFileSystem,
     changedFiles: changedButNotStagedFiles,
     stagedFiles: stagedFileObjects,
     stageFile,
     unstageFile,
     commitChanges,
+    isLoaded,
+    importFromLocal: handleImportFromLocal,
+    resetAll,
   };
 }
