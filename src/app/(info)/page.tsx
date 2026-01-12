@@ -6,7 +6,7 @@ import {
   Download,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import Script from 'next/script';
 import JSZip from 'jszip';
 import { useToast } from '@/hooks/use-toast';
@@ -27,9 +27,11 @@ export default function HomePage() {
   const vantaEffectRef = useRef<any>(null);
   const { toast } = useToast();
   const { readDirectory, isLoaded } = useOPFS();
+  const [isThreeLoaded, setIsThreeLoaded] = useState(false);
+
 
   useEffect(() => {
-    if (!window.VANTA || !vantaRef.current) return;
+    if (!isThreeLoaded || !window.VANTA || !vantaRef.current) return;
 
     // Destroy the previous instance if it exists
     if (vantaEffectRef.current) {
@@ -46,8 +48,8 @@ export default function HomePage() {
         minWidth: 200.00,
         scale: 1.00,
         scaleMobile: 1.00,
-        color: 0x4caf50, // Parrot green
-        backgroundColor: theme === 'dark' ? 0x202429 : 0xf0f8f0, // Dark slate and light green
+        color: 0x4caf50,
+        backgroundColor: theme === 'dark' ? 0x202429 : 0xf0f8f0,
     });
 
     // Cleanup function to destroy the instance on component unmount
@@ -56,7 +58,7 @@ export default function HomePage() {
             vantaEffectRef.current.destroy();
         }
     };
-  }, [theme]);
+  }, [theme, isThreeLoaded]);
 
 
     const handleDownloadZip = useCallback(async () => {
@@ -105,8 +107,14 @@ export default function HomePage() {
   
   return (
     <>
-       <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" strategy="lazyOnload" />
-       <Script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.rings.min.js" strategy="lazyOnload" />
+       <Script 
+        src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" 
+        strategy="lazyOnload" 
+        onLoad={() => setIsThreeLoaded(true)}
+       />
+       {isThreeLoaded && (
+        <Script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.rings.min.js" strategy="lazyOnload" />
+       )}
        
       <div className="relative isolate overflow-hidden h-screen">
         <div 
