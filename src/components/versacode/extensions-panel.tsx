@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Puzzle, CheckCircle } from "lucide-react";
-import extensions from '@/lib/extensions.json';
-
-const { extensions: installedExtensions } = extensions;
+import { extensions } from '@/lib/extensions';
 
 export function ExtensionsPanel() {
   return (
@@ -15,14 +13,15 @@ export function ExtensionsPanel() {
       <div className="flex-1 p-4 overflow-y-auto">
         <h3 className="mb-4 text-sm font-medium text-muted-foreground">Installed</h3>
         <div className="space-y-4">
-          {installedExtensions.map((ext) => (
-            <div key={ext.name} className="flex items-start space-x-4">
+          {extensions.map((ext) => (
+            <div key={ext.id} className="flex items-start space-x-4">
               <div className="bg-muted p-2 rounded-lg">
                 <Puzzle className="w-6 h-6" />
               </div>
               <div className="flex-1">
                 <p className="font-semibold">{ext.name}</p>
-                <p className="text-sm text-muted-foreground">{ext.version}</p>
+                <p className="text-sm text-muted-foreground">{ext.description}</p>
+                 <p className="text-xs text-muted-foreground mt-1">Version: {ext.version}</p>
               </div>
               <CheckCircle className="w-5 h-5 text-green-500" />
             </div>
