@@ -9,7 +9,14 @@ import {
 } from "@/components/ui/select";
 import { Button } from "../ui/button";
 
-export function SettingsPanel() {
+interface SettingsPanelProps {
+  settings: {
+    minimap: boolean;
+  },
+  onSettingsChange: (newSettings: Partial<{ minimap: boolean }>) => void;
+}
+
+export function SettingsPanel({ settings, onSettingsChange }: SettingsPanelProps) {
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 border-b">
@@ -20,7 +27,7 @@ export function SettingsPanel() {
             <h3 className="font-medium">Appearance</h3>
             <div className="flex items-center justify-between">
                 <Label htmlFor="theme-mode">Theme</Label>
-                <Select defaultValue="system">
+                <Select defaultValue="dark" disabled>
                     <SelectTrigger className="w-[150px]">
                         <SelectValue placeholder="Select theme" />
                     </SelectTrigger>
@@ -50,11 +57,15 @@ export function SettingsPanel() {
             <h3 className="font-medium">Editor</h3>
             <div className="flex items-center justify-between">
                 <Label htmlFor="word-wrap">Word Wrap</Label>
-                <Switch id="word-wrap" />
+                <Switch id="word-wrap" defaultChecked disabled />
             </div>
              <div className="flex items-center justify-between">
                 <Label htmlFor="minimap">Show Minimap</Label>
-                <Switch id="minimap" defaultChecked />
+                <Switch 
+                  id="minimap" 
+                  checked={settings.minimap}
+                  onCheckedChange={(checked) => onSettingsChange({ minimap: checked })}
+                />
             </div>
         </div>
       </div>

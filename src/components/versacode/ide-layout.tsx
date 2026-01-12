@@ -23,6 +23,10 @@ function IdeLayoutContent() {
   const [activePanel, setActivePanel] = useState<ActivePanel>("files");
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
+  const [editorSettings, setEditorSettings] = useState({
+    minimap: true,
+  });
+
   const { toast } = useToast();
 
   const {
@@ -76,7 +80,7 @@ function IdeLayoutContent() {
     try {
       const result = await suggestCodeCompletion({
         codeContext: activeFile.content,
-        programmingLanguage: "typescript", 
+        programmingLanguage: getFileLanguage(activeFile.name), 
       });
       updateFileContent(activeFile.id, activeFile.content + result.suggestedCode);
       toast({
@@ -100,6 +104,32 @@ function IdeLayoutContent() {
       updateFileContent(activeFileId, newCode);
     }
   };
+  
+  const handleSettingsChange = (newSettings: Partial<typeof editorSettings>) => {
+    setEditorSettings(prev => ({...prev, ...newSettings}));
+  }
+
+  const getFileLanguage = (filename: string | undefined) => {
+    if (!filename) return 'plaintext';
+    const extension = filename.split('.').pop();
+    switch (extension) {
+      case 'js':
+        return 'javascript';
+      case 'ts':
+      case 'tsx':
+        return 'typescript';
+      case 'css':
+        return 'css';
+      case 'json':
+        return 'json';
+      case 'md':
+        return 'markdown';
+      case 'html':
+        return 'html';
+      default:
+        return 'plaintext';
+    }
+  };
 
   const renderPanel = () => {
     switch (activePanel) {
@@ -119,30 +149,11 @@ function IdeLayoutContent() {
       case "extensions":
         return <ExtensionsPanel />;
       case "settings":
-        return <SettingsPanel />;
+        return <SettingsPanel settings={editorSettings} onSettingsChange={handleSettingsChange}/>;
       case "tasks":
         return <TasksPanel />;
       default:
         return null;
-    }
-  };
-
-  const getFileLanguage = (filename: string) => {
-    const extension = filename.split('.').pop();
-    switch (extension) {
-      case 'js':
-        return 'javascript';
-      case 'ts':
-      case 'tsx':
-        return 'typescript';
-      case 'css':
-        return 'css';
-      case 'json':
-        return 'json';
-      case 'md':
-        return 'markdown';
-      default:
-        return 'plaintext';
     }
   };
 
@@ -174,6 +185,7 @@ function IdeLayoutContent() {
                       onChange={handleCodeChange}
                       isReadOnly={!activeFileId}
                       language={getFileLanguage(activeFile.name)}
+                      options={{ minimap: {enabled: editorSettings.minimap}}}
                     />
                  ) : (
                   <div className="flex items-center justify-center h-full text-muted-foreground">
