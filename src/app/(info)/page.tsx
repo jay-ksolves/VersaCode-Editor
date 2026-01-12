@@ -72,8 +72,7 @@ export default function HomePage() {
         if (vantaEffect) vantaEffect.destroy();
         if (effect) effect.destroy();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [theme]);
+  }, [theme, startVanta, vantaEffect]);
 
 
     const handleDownloadZip = useCallback(async () => {
