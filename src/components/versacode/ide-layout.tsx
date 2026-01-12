@@ -23,6 +23,7 @@ import { StatusBar } from "./status-bar";
 import { CommandPalette } from "./command-palette";
 import { AiAssistantPanel } from "./ai-assistant-panel";
 import JSZip from 'jszip';
+import { LoaderCircle } from "lucide-react";
 
 export type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
 
