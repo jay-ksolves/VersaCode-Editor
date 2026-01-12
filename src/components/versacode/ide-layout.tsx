@@ -87,41 +87,16 @@ function IdeLayoutContent() {
         return 'plaintext';
     }
   };
-
-  // When the active file ID changes, swap the model in the editor
-  useEffect(() => {
-    if (editorRef.current && activeFileId) {
-      const model = modelsRef.current.get(activeFileId);
-      if (model && editorRef.current.getModel() !== model) {
-        editorRef.current.setModel(model);
-      }
-    } else if (editorRef.current) {
-        // If no file is active, clear the editor
-        editorRef.current.setModel(null);
-    }
-  }, [activeFileId]);
-
-
-  const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor, monacoInstance: typeof monaco) => {
-    editorRef.current = editor;
-    monacoRef.current = monacoInstance;
-
-    // Set the initial model if there's an active file
-    if (activeFileId) {
-        const model = modelsRef.current.get(activeFileId);
-        if (model) {
-            editor.setModel(model);
-        }
-    }
-  };
   
-  // Effect to handle model creation/deletion when open files change
+  // Effect for managing model lifecycle (creation and disposal)
   useEffect(() => {
     const monaco = monacoRef.current;
     if (!monaco) return;
 
+    const openFilesSet = new Set(openFileIds);
+
     // Create models for newly opened files
-    openFileIds.forEach(fileId => {
+    openFilesSet.forEach(fileId => {
       if (!modelsRef.current.has(fileId)) {
         const file = findNodeById(fileId);
         if (file?.type === 'file') {
@@ -133,11 +108,9 @@ function IdeLayoutContent() {
           
           model.onDidChangeContent(() => {
             const newContent = model.getValue();
-            // This check prevents an infinite loop where updating the model
-            // triggers a state update, which might re-trigger a model update.
-            const currentNode = findNodeById(fileId)
+            const currentNode = findNodeById(fileId);
             if (currentNode && currentNode.type === 'file' && newContent !== currentNode.content) {
-                updateFileContent(fileId, newContent);
+              updateFileContent(fileId, newContent);
             }
           });
           
@@ -146,45 +119,56 @@ function IdeLayoutContent() {
       }
     });
 
-    // Clean up models that are no longer open
-    const openFileIdSet = new Set(openFileIds);
+    // Clean up models for closed files
     modelsRef.current.forEach((model, fileId) => {
-      if (!openFileIdSet.has(fileId)) {
+      if (!openFilesSet.has(fileId)) {
         model.dispose();
         modelsRef.current.delete(fileId);
       }
     });
 
-    // When the active file changes, ensure its model is set in the editor
-    const editor = editorRef.current;
-    if (editor && activeFileId) {
-        const newModel = modelsRef.current.get(activeFileId);
-        if (newModel && editor.getModel() !== newModel) {
-            editor.setModel(newModel);
-        }
-    } else if (editor && !activeFileId) {
-        editor.setModel(null);
-    }
-
-  }, [openFileIds, findNodeById, updateFileContent, activeFileId]);
-
-  // Effect to update model content if it changes externally (e.g., from AI generation or drag-and-drop path change)
-  useEffect(() => {
+    // Also update paths for existing models in case of renames/moves
     modelsRef.current.forEach((model, fileId) => {
       const file = findNodeById(fileId);
-      if (file?.type === 'file') {
-        if (model.getValue() !== file.content) {
-          model.pushEditOperations([], [{ range: model.getFullModelRange(), text: file.content }], () => null);
-        }
-        if (model.uri.path !== `/${file.path}`) {
-          // Model URI is immutable, but this shows the intent. In a real scenario, might need to recreate.
-          // For now, we accept this limitation as path changes are cosmetic for the editor itself.
-        }
+      if (file?.type === 'file' && model.uri.path !== `/${file.path}`) {
+          // A model's URI is immutable, but this is where you'd handle path changes if needed.
+          // For this app, since URI is mainly for language detection hints, we can ignore it.
+          // In a more complex app, you might dispose and recreate the model.
       }
     });
-  }, [files, findNodeById]);
+
+  }, [openFileIds, findNodeById, updateFileContent]);
+
+  // Effect for switching the editor's active model
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    
+    if (activeFileId) {
+      const model = modelsRef.current.get(activeFileId);
+      if (model && editor.getModel() !== model) {
+        editor.setModel(model);
+      }
+    } else {
+      // If no file is active, clear the editor by setting model to null
+      editor.setModel(null);
+    }
+  }, [activeFileId]);
 
 
+  const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor, monacoInstance: typeof monaco) => {
+    editorRef.current = editor;
+    monacoRef.current = monacoInstance;
+
+    // Set the initial model if there's an active file on mount
+    if (activeFileId) {
+        const model = modelsRef.current.get(activeFileId);
+        if (model) {
+            editor.setModel(model);
+        }
+    }
+  };
+  
   const handleRun = useCallback(() => {
     if (activeFile) {
       setTerminalOutput((prev) => [
@@ -393,5 +377,3 @@ export function IdeLayout() {
     </TooltipProvider>
   );
 }
-
-    
