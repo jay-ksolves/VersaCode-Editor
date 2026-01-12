@@ -20,47 +20,47 @@ test.describe('VersaCode IDE', () => {
     await expect(page.getByRole('heading', { name: 'Explorer' })).toBeVisible();
     
     // Check that the default welcome file is visible in the editor
-    await expect(page.getByText('welcome.md')).toBeVisible();
+    await expect(page.getByTestId('editor-tab-welcome.md')).toBeVisible();
   });
   
   test('should create, rename, and delete a file', async ({ page }) => {
     await page.goto('/editor');
 
     // Wait for file system to be ready
-    await expect(page.getByRole('heading', { name: 'Explorer' })).toBeVisible();
+    await expect(page.getByTestId('file-explorer')).toBeVisible();
 
     const newFileName = 'test-file.ts';
     const renamedFileName = 'renamed-file.ts';
 
     // Create a new file
-    await page.getByRole('button', { name: 'New File' }).click();
-    await page.locator('input[type="text"]').fill(newFileName);
-    await page.locator('input[type="text"]').press('Enter');
+    await page.getByTestId('file-explorer-new-file-button').click();
+    await page.getByTestId('file-explorer-edit-input').fill(newFileName);
+    await page.getByTestId('file-explorer-edit-input').press('Enter');
 
     // Verify the new file is created and opened
-    await expect(page.getByText(newFileName).first()).toBeVisible();
-    await expect(page.getByTitle(newFileName)).toBeVisible(); // Check editor tab
+    await expect(page.getByTestId(`file-explorer-node-${newFileName}`)).toBeVisible();
+    await expect(page.getByTestId(`editor-tab-${newFileName}`)).toBeVisible();
 
     // Rename the file
-    await page.getByText(newFileName).first().hover();
-    await page.getByRole('button', { name: `Actions for ${newFileName}` }).click();
-    await page.getByRole('button', { name: 'Rename' }).click();
-    await page.locator('input[type="text"]').fill(renamedFileName);
-    await page.locator('input[type="text"]').press('Enter');
+    await page.getByTestId(`file-explorer-node-${newFileName}`).hover();
+    await page.getByTestId(`file-explorer-node-actions-${newFileName}`).click();
+    await page.getByTestId(`file-explorer-node-rename-${newFileName}`).click();
+    await page.getByTestId('file-explorer-edit-input').fill(renamedFileName);
+    await page.getByTestId('file-explorer-edit-input').press('Enter');
     
     // Verify file was renamed
-    await expect(page.getByText(renamedFileName).first()).toBeVisible();
+    await expect(page.getByTestId(`file-explorer-node-${renamedFileName}`)).toBeVisible();
     
     // Delete the file
-    await page.getByText(renamedFileName).first().hover();
-    await page.getByRole('button', { name: `Actions for ${renamedFileName}` }).click();
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByTestId(`file-explorer-node-${renamedFileName}`).hover();
+    await page.getByTestId(`file-explorer-node-actions-${renamedFileName}`).click();
+    await page.getByTestId(`file-explorer-node-delete-${renamedFileName}`).click();
     
     // Confirm deletion in the dialog
-    await expect(page.getByRole('heading', { name: 'Are you sure?' })).toBeVisible();
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await expect(page.getByTestId('delete-confirmation-dialog')).toBeVisible();
+    await page.getByTestId('delete-confirmation-delete-button').click();
     
     // Verify the file is gone
-    await expect(page.getByText(renamedFileName)).not.toBeVisible();
+    await expect(page.getByTestId(`file-explorer-node-${renamedFileName}`)).not.toBeVisible();
   });
 });

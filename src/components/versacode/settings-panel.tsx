@@ -21,7 +21,7 @@ interface SettingsPanelProps {
 
 export function SettingsPanel({ settings, onSettingsChange, onResetSettings }: SettingsPanelProps) {
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col" data-testid="settings-panel">
       <div className="p-4 border-b">
         <h2 className="text-lg font-semibold tracking-tight">Settings</h2>
       </div>
@@ -30,7 +30,7 @@ export function SettingsPanel({ settings, onSettingsChange, onResetSettings }: S
             <h3 className="font-medium">Appearance</h3>
             <div className="flex items-center justify-between">
                 <Label htmlFor="theme-mode">Theme</Label>
-                <Select defaultValue="dark" disabled>
+                <Select defaultValue="dark" disabled data-testid="settings-theme-select">
                     <SelectTrigger className="w-[150px]">
                         <SelectValue placeholder="Select theme" />
                     </SelectTrigger>
@@ -46,6 +46,7 @@ export function SettingsPanel({ settings, onSettingsChange, onResetSettings }: S
                 <Select 
                   value={String(settings.fontSize)} 
                   onValueChange={(value) => onSettingsChange({ fontSize: Number(value) })}
+                  data-testid="settings-font-size-select"
                 >
                     <SelectTrigger className="w-[150px]">
                         <SelectValue placeholder="Select size" />
@@ -63,7 +64,7 @@ export function SettingsPanel({ settings, onSettingsChange, onResetSettings }: S
             <h3 className="font-medium">Editor</h3>
             <div className="flex items-center justify-between">
                 <Label htmlFor="word-wrap">Word Wrap</Label>
-                <Switch id="word-wrap" defaultChecked disabled />
+                <Switch id="word-wrap" defaultChecked disabled data-testid="settings-word-wrap-switch" />
             </div>
              <div className="flex items-center justify-between">
                 <Label htmlFor="minimap">Show Minimap</Label>
@@ -71,12 +72,13 @@ export function SettingsPanel({ settings, onSettingsChange, onResetSettings }: S
                   id="minimap" 
                   checked={settings.minimap}
                   onCheckedChange={(checked) => onSettingsChange({ minimap: checked })}
+                  data-testid="settings-minimap-switch"
                 />
             </div>
         </div>
       </div>
        <div className="p-4 border-t">
-        <Button className="w-full" onClick={onResetSettings}>Reset to Defaults</Button>
+        <Button className="w-full" onClick={onResetSettings} data-testid="settings-reset-button">Reset to Defaults</Button>
       </div>
     </div>
   );

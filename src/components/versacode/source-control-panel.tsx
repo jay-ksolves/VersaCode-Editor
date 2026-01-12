@@ -27,17 +27,17 @@ const ChangeItem = ({ file, onAction, onOpenFile, actionIcon: ActionIcon, action
     actionIcon: React.ElementType;
     actionTitle: string;
 }) => (
-    <div className="flex items-center group p-1 rounded-md hover:bg-muted">
+    <div className="flex items-center group p-1 rounded-md hover:bg-muted" data-testid={`source-control-item-${file.path}`}>
         <div className="flex items-center gap-2 flex-1 cursor-pointer" onClick={() => onOpenFile(file.id)}>
             <FileIconComponent filename={file.name} />
             <span className="text-sm truncate">{file.name}</span>
             <span className="text-xs text-muted-foreground truncate">{file.path.substring(0, file.path.lastIndexOf('/'))}</span>
         </div>
         <div className="flex items-center opacity-0 group-hover:opacity-100">
-            <Button variant="ghost" size="icon" className="h-7 w-7" title="Open File" onClick={() => onOpenFile(file.id)}>
+            <Button variant="ghost" size="icon" className="h-7 w-7" title="Open File" onClick={() => onOpenFile(file.id)} data-testid={`source-control-open-file-${file.path}`}>
                 <Eye className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7" title={actionTitle} onClick={(e) => { e.stopPropagation(); onAction(file.id); }}>
+            <Button variant="ghost" size="icon" className="h-7 w-7" title={actionTitle} onClick={(e) => { e.stopPropagation(); onAction(file.id); }} data-testid={`source-control-action-${file.path}`}>
                 <ActionIcon className="h-4 w-4" />
             </Button>
         </div>
@@ -63,11 +63,11 @@ export function SourceControlPanel({ changedFiles, stagedFiles, onStageFile, onU
     };
     
     return (
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col" data-testid="source-control-panel">
             <div className="p-4 border-b flex items-center justify-between">
                 <h2 className="text-lg font-semibold tracking-tight">Source Control</h2>
                 <div className="flex items-center gap-1">
-                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCommit} title="Commit">
+                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCommit} title="Commit" data-testid="source-control-commit-header-button">
                         <Check className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
@@ -85,15 +85,16 @@ export function SourceControlPanel({ changedFiles, stagedFiles, onStageFile, onU
                     value={commitMessage}
                     onChange={(e) => setCommitMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleCommit()}
+                    data-testid="source-control-commit-message-input"
                 />
-                <Button className="w-full" onClick={handleCommit}>Commit</Button>
+                <Button className="w-full" onClick={handleCommit} data-testid="source-control-commit-button">Commit</Button>
             </div>
             
             <ScrollArea className="flex-1 border-t">
                 {stagedFiles.length > 0 && (
                     <Collapsible defaultOpen={true} className="border-b">
-                        <CollapsibleTrigger className="w-full text-left p-2 font-semibold text-sm">Staged Changes ({stagedFiles.length})</CollapsibleTrigger>
-                        <CollapsibleContent className="p-2 space-y-1">
+                        <CollapsibleTrigger className="w-full text-left p-2 font-semibold text-sm" data-testid="source-control-staged-changes-trigger">Staged Changes ({stagedFiles.length})</CollapsibleTrigger>
+                        <CollapsibleContent className="p-2 space-y-1" data-testid="source-control-staged-changes-content">
                             {stagedFiles.map(file => 
                                 <ChangeItem key={`staged-${file.id}`} file={file} onAction={() => onUnstageFile(file.id)} onOpenFile={onOpenFile} actionIcon={Minus} actionTitle="Unstage Changes" />
                             )}
@@ -102,8 +103,8 @@ export function SourceControlPanel({ changedFiles, stagedFiles, onStageFile, onU
                 )}
                  {changedFiles.length > 0 && (
                     <Collapsible defaultOpen={true}>
-                        <CollapsibleTrigger className="w-full text-left p-2 font-semibold text-sm">Changes ({changedFiles.length})</CollapsibleTrigger>
-                        <CollapsibleContent className="p-2 space-y-1">
+                        <CollapsibleTrigger className="w-full text-left p-2 font-semibold text-sm" data-testid="source-control-changes-trigger">Changes ({changedFiles.length})</CollapsibleTrigger>
+                        <CollapsibleContent className="p-2 space-y-1" data-testid="source-control-changes-content">
                              {changedFiles.map(file => 
                                 <ChangeItem key={`changed-${file.id}`} file={file} onAction={() => onStageFile(file.id)} onOpenFile={onOpenFile} actionIcon={Plus} actionTitle="Stage Changes" />
                             )}

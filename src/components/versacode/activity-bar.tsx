@@ -36,7 +36,7 @@ export function ActivityBar({ activePanel, onSelectPanel }: ActivityBarProps) {
   };
 
   return (
-    <div className="w-12 flex flex-col items-center justify-between py-2 gap-2 bg-card border-r">
+    <div className="w-12 flex flex-col items-center justify-between py-2 gap-2 bg-card border-r" data-testid="activity-bar">
       <div className="flex flex-col items-center gap-2">
         {navItems.map((item) => (
           <Tooltip key={item.id}>
@@ -44,6 +44,7 @@ export function ActivityBar({ activePanel, onSelectPanel }: ActivityBarProps) {
               <Button
                 variant="ghost"
                 size="icon"
+                data-testid={`activity-bar-${item.id}-button`}
                 className={cn('h-10 w-10 relative', {
                   'text-accent-foreground': activePanel === item.id,
                 })}
@@ -67,6 +68,7 @@ export function ActivityBar({ activePanel, onSelectPanel }: ActivityBarProps) {
               <Button
                 variant="ghost"
                 size="icon"
+                data-testid={`activity-bar-${item.id}-button`}
                 className={cn('h-10 w-10 relative', {
                   'text-accent-foreground': activePanel === item.id,
                 })}

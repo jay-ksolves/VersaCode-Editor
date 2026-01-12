@@ -1,5 +1,5 @@
 
-"use client";
+'use client';
 
 import { Folder, File as FileIcon, ChevronRight, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2, FolderOpen, FileJson, FileCode as FileCodeIcon, FileText, RefreshCw, ChevronDown, X, Info } from "lucide-react";
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
@@ -106,6 +106,7 @@ function FileNode({
     <div
       draggable
       onDragStart={(e) => onDragStart(e, node.id)}
+      data-testid={`file-explorer-node-${node.path}`}
       className={cn("flex items-center space-x-2 py-1.5 px-2 rounded-md hover:bg-muted group cursor-pointer relative", {
         "bg-muted": isActive,
         "opacity-50": isBeingDragged,
@@ -133,15 +134,15 @@ function FileNode({
 
       <Popover>
           <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto opacity-0 group-hover:opacity-100 absolute right-1 top-1/2 -translate-y-1/2" onClick={e => e.stopPropagation()} title={`Actions for ${node.name}`}>
+              <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto opacity-0 group-hover:opacity-100 absolute right-1 top-1/2 -translate-y-1/2" onClick={e => e.stopPropagation()} title={`Actions for ${node.name}`} data-testid={`file-explorer-node-actions-${node.path}`}>
                   <MoreVertical className="h-4 w-4" />
               </Button>
           </PopoverTrigger>
           <PopoverContent className="w-40 p-1" onClick={e => e.stopPropagation()}>
-              <Button variant="ghost" className="w-full justify-start h-8 px-2" onClick={() => onSetEditState(node.id)}>
+              <Button variant="ghost" className="w-full justify-start h-8 px-2" onClick={() => onSetEditState(node.id)} data-testid={`file-explorer-node-rename-${node.path}`}>
                   <Edit className="mr-2 h-4 w-4" /> Rename
               </Button>
-               <Button variant="ghost" className="w-full justify-start h-8 px-2 text-destructive hover:text-destructive" onClick={() => onSetDeleteOperation({ type: 'delete', nodeId: node.id, nodeName: node.name })}>
+               <Button variant="ghost" className="w-full justify-start h-8 px-2 text-destructive hover:text-destructive" onClick={() => onSetDeleteOperation({ type: 'delete', nodeId: node.id, nodeName: node.name })} data-testid={`file-explorer-node-delete-${node.path}`}>
                   <Trash2 className="mr-2 h-4 w-4" /> Delete
               </Button>
           </PopoverContent>
@@ -189,6 +190,7 @@ function EditNode({
           onChange={(e) => setName(e.target.value)}
           onBlur={handleSubmit}
           onKeyDown={handleKeyDown}
+          data-testid="file-explorer-edit-input"
           className="bg-transparent border border-accent rounded-sm h-7 px-1 text-sm w-full"
        />
     </div>
@@ -434,20 +436,20 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center h-full text-center p-4">
       <p className="text-sm text-muted-foreground mb-4">No files yet.</p>
-      <Button onClick={() => startCreate('create_file')}>
+      <Button onClick={() => startCreate('create_file')} data-testid="file-explorer-create-file-empty-button">
         <FilePlus className="mr-2 h-4 w-4"/> Create a File
       </Button>
     </div>
   );
 
   return (
-    <div className="h-full flex flex-col" onDragEnd={handleDragEnd} onDrop={(e) => handleDrop(e, null)}>
+    <div className="h-full flex flex-col" onDragEnd={handleDragEnd} onDrop={(e) => handleDrop(e, null)} data-testid="file-explorer">
       <div className="p-2 border-b flex items-center justify-between h-12">
         <h2 className="text-sm font-semibold tracking-tight px-2 uppercase text-muted-foreground">Explorer</h2>
         <div className="flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setGenerateOperation({type: 'generate_code', parentId: getParentIdForNewNode() })} title="Generate Code">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setGenerateOperation({type: 'generate_code', parentId: getParentIdForNewNode() })} title="Generate Code" data-testid="file-explorer-generate-code-button">
                 <Wand2 className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -455,7 +457,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startCreate('create_file')} title="New File">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startCreate('create_file')} title="New File" data-testid="file-explorer-new-file-button">
                 <FilePlus className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -463,7 +465,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startCreate('create_folder')} title="New Folder">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startCreate('create_folder')} title="New Folder" data-testid="file-explorer-new-folder-button">
                 <FolderPlus className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -471,7 +473,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleRefresh} title="Refresh Explorer">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleRefresh} title="Refresh Explorer" data-testid="file-explorer-refresh-button">
                 <RefreshCw className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -481,16 +483,16 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
       </div>
       <ScrollArea className="flex-1" onDragOver={(e) => e.preventDefault()}>
         <Collapsible defaultOpen={true}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full text-xs uppercase text-muted-foreground font-semibold p-2 hover:bg-muted">
+          <CollapsibleTrigger className="flex items-center justify-between w-full text-xs uppercase text-muted-foreground font-semibold p-2 hover:bg-muted" data-testid="file-explorer-open-editors-trigger">
             Open Editors
             <ChevronDown className="h-4 w-4" />
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="space-y-0.5 p-2">
+            <div className="space-y-0.5 p-2" data-testid="file-explorer-open-editors-content">
               {openFileIds.map(id => {
                 const file = findNodeInfo(files, id)?.node;
                 return file && file.type === 'file' ? (
-                  <div key={`open-${id}`} className={cn("flex items-center space-x-2 py-1.5 px-2 rounded-md hover:bg-muted group cursor-pointer relative", { "bg-muted": activeFileId === id })} onClick={() => onSelectFile(id)}>
+                  <div key={`open-${id}`} className={cn("flex items-center space-x-2 py-1.5 px-2 rounded-md hover:bg-muted group cursor-pointer relative", { "bg-muted": activeFileId === id })} onClick={() => onSelectFile(id)} data-testid={`file-explorer-open-editor-${file.path}`}>
                       <FileIconComponent filename={file.name} />
                       <span className="truncate text-sm select-none">{file.name}</span>
                       <div role="button" title={`Close ${file.name}`} onClick={(e) => { e.stopPropagation(); onCloseFile(id); }} className="ml-auto opacity-0 group-hover:opacity-100 p-1 rounded-sm hover:bg-background">
@@ -504,12 +506,12 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
         </Collapsible>
 
         <Collapsible defaultOpen={true}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full text-xs uppercase text-muted-foreground font-semibold p-2 hover:bg-muted">
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-xs uppercase text-muted-foreground font-semibold p-2 hover:bg-muted" data-testid="file-explorer-file-system-trigger">
                 File System
                 <ChevronDown className="h-4 w-4" />
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="p-2">
+              <div className="p-2" data-testid="file-explorer-file-system-content">
                 {files.length === 0 && !editState ? renderEmptyState() : (
                   <div className="space-y-0.5">
                     {renderFileTree(files)}
@@ -524,7 +526,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
       </ScrollArea>
 
       <Dialog open={!!generateOperation} onOpenChange={() => { setGenerateOperation(null); setGeneratePrompt(''); setGenerateFileName(''); }}>
-        <DialogContent className="sm:max-w-[625px]">
+        <DialogContent className="sm:max-w-[625px]" data-testid="generate-code-dialog">
           <DialogHeader>
             <DialogTitle>Generate Code in '{getTargetFolder(generateOperation?.parentId ?? null)?.name ?? 'root'}'</DialogTitle>
             <DialogDescription>
@@ -534,15 +536,15 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
           <div className="grid gap-4 py-4">
              <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="filename" className="text-right">File Name</Label>
-              <Input id="filename" value={generateFileName} onChange={(e) => setGenerateFileName(e.target.value)} className="col-span-3" placeholder="e.g., button.tsx" />
+              <Input id="filename" value={generateFileName} onChange={(e) => setGenerateFileName(e.target.value)} className="col-span-3" placeholder="e.g., button.tsx" data-testid="generate-code-filename-input" />
             </div>
             <div className="grid grid-cols-4 items-start gap-4">
               <Label htmlFor="prompt" className="text-right pt-2">Prompt</Label>
-              <Textarea id="prompt" value={generatePrompt} onChange={(e) => setGeneratePrompt(e.target.value)} className="col-span-3" rows={8} placeholder="e.g., a React button component with primary and secondary variants using Tailwind CSS" />
+              <Textarea id="prompt" value={generatePrompt} onChange={(e) => setGeneratePrompt(e.target.value)} className="col-span-3" rows={8} placeholder="e.g., a React button component with primary and secondary variants using Tailwind CSS" data-testid="generate-code-prompt-textarea" />
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit" onClick={handleGenerate} disabled={isGenerating}>
+            <Button type="submit" onClick={handleGenerate} disabled={isGenerating} data-testid="generate-code-submit-button">
               {isGenerating ? 'Generating...' : 'Generate Code'}
             </Button>
           </DialogFooter>
@@ -550,7 +552,7 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
       </Dialog>
       
       <Dialog open={!!deleteOperation} onOpenChange={() => setDeleteOperation(null)}>
-        <DialogContent>
+        <DialogContent data-testid="delete-confirmation-dialog">
           <DialogHeader>
             <DialogTitle>Are you sure?</DialogTitle>
             <DialogDescription>
@@ -558,8 +560,8 @@ export const FileExplorer = forwardRef<FileExplorerRef, FileExplorerProps>(({ fi
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-             <Button variant="outline" onClick={() => setDeleteOperation(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+             <Button variant="outline" onClick={() => setDeleteOperation(null)} data-testid="delete-confirmation-cancel-button">Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete} data-testid="delete-confirmation-delete-button">Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

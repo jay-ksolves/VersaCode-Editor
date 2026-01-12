@@ -64,7 +64,7 @@ function FileContextSelector({
                             style={{ paddingLeft: `${level * 1}rem` }}
                         >
                             {isFolder ? (
-                                <div className="flex items-center gap-2 cursor-pointer flex-1" onClick={() => handleToggleFolder(node.id)}>
+                                <div className="flex items-center gap-2 cursor-pointer flex-1" onClick={() => handleToggleFolder(node.id)} data-testid={`ai-assistant-folder-context-${node.path}`}>
                                     <ChevronRight className={cn("w-4 h-4 transition-transform flex-shrink-0", isExpanded && "rotate-90")} />
                                     {isExpanded ? <FolderOpen className="w-4 h-4 text-accent" /> : <Folder className="w-4 h-4 text-accent" />}
                                     <span className="text-sm select-none">{node.name}</span>
@@ -74,6 +74,7 @@ function FileContextSelector({
                                     <div className="w-4" />
                                     <Checkbox 
                                         id={`file-ctx-${node.id}`}
+                                        data-testid={`ai-assistant-file-context-checkbox-${node.path}`}
                                         checked={selectedFiles.has(node.id)}
                                         onCheckedChange={(checked) => onFileToggle(node.id, !!checked)}
                                     />
@@ -177,7 +178,7 @@ export function AiAssistantPanel({ allFiles }: AiAssistantPanelProps) {
     };
 
     return (
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col" data-testid="ai-assistant-panel">
             <div className="p-4 border-b flex items-center gap-2">
                 <Bot className="h-6 w-6" />
                 <h2 className="text-lg font-semibold tracking-tight">AI Assistant</h2>
@@ -187,26 +188,26 @@ export function AiAssistantPanel({ allFiles }: AiAssistantPanelProps) {
                     <div className="space-y-2">
                         <Label htmlFor="api-key">Google AI API Key</Label>
                         <div className="flex items-center gap-2">
-                            <Input id="api-key" type="password" value={apiKey} onChange={handleApiKeyChange} placeholder="Enter your API key" />
-                            <Button onClick={handleSaveApiKey} variant="outline">Save</Button>
+                            <Input id="api-key" type="password" value={apiKey} onChange={handleApiKeyChange} placeholder="Enter your API key" data-testid="ai-assistant-api-key-input" />
+                            <Button onClick={handleSaveApiKey} variant="outline" data-testid="ai-assistant-save-api-key-button">Save</Button>
                         </div>
                     </div>
                     <div className="space-y-2">
                         <Label>File Context</Label>
-                        <div className="border rounded-md p-2 max-h-48 overflow-y-auto">
+                        <div className="border rounded-md p-2 max-h-48 overflow-y-auto" data-testid="ai-assistant-file-context-selector">
                            <FileContextSelector nodes={allFiles} selectedFiles={selectedFileIds} onFileToggle={handleFileToggle} />
                         </div>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="prompt">Prompt</Label>
-                        <Textarea id="prompt" value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder="e.g., 'Refactor the selected files to use TypeScript' or 'Generate a new React component that...'"/>
+                        <Textarea id="prompt" value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder="e.g., 'Refactor the selected files to use TypeScript' or 'Generate a new React component that...'" data-testid="ai-assistant-prompt-textarea" />
                     </div>
-                    <Button onClick={handleGenerate} disabled={isGenerating} className="w-full">
+                    <Button onClick={handleGenerate} disabled={isGenerating} className="w-full" data-testid="ai-assistant-generate-button">
                         {isGenerating && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                         {isGenerating ? 'Generating...' : 'Generate'}
                     </Button>
                     {aiResponse && (
-                         <div className="space-y-2">
+                         <div className="space-y-2" data-testid="ai-assistant-response-container">
                             <Label>AI Response</Label>
                             <div className="border rounded-md h-96">
                                 <CodeEditor options={{ readOnly: true, domReadOnly: true, value: aiResponse }} />

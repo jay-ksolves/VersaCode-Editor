@@ -1,5 +1,5 @@
 
-"use client";
+'use client';
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,6 +57,7 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
                 autoFocus
                 onKeyDown={handleKeyDown}
                 suppressContentEditableWarning
+                data-testid={`terminal-input-${session.id}`}
             ></span>
         </div>
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -166,7 +167,7 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
 
     return (
         <ScrollArea className="h-full" ref={scrollAreaRef} onClick={() => inputRef.current?.focus()}>
-            <div className="p-4">
+            <div className="p-4" data-testid={`terminal-output-${session.id}`}>
                 {lines.map((line, index) => (
                     <React.Fragment key={index}>
                         {line}
@@ -190,18 +191,18 @@ export function Terminal({
 }: TerminalProps) {
   
   return (
-    <Tabs defaultValue="terminal" className="h-full flex flex-col">
+    <Tabs defaultValue="terminal" className="h-full flex flex-col" data-testid="bottom-panel">
       <div className="flex items-center justify-between border-b pr-2 bg-card">
         <TabsList className="px-2 bg-transparent rounded-none border-b-0 justify-start">
-          <TabsTrigger value="terminal">TERMINAL</TabsTrigger>
-          <TabsTrigger value="problems">PROBLEMS</TabsTrigger>
-          <TabsTrigger value="output">OUTPUT</TabsTrigger>
-          <TabsTrigger value="debug">DEBUG CONSOLE</TabsTrigger>
+          <TabsTrigger value="terminal" data-testid="bottom-panel-terminal-tab">TERMINAL</TabsTrigger>
+          <TabsTrigger value="problems" data-testid="bottom-panel-problems-tab">PROBLEMS</TabsTrigger>
+          <TabsTrigger value="output" data-testid="bottom-panel-output-tab">OUTPUT</TabsTrigger>
+          <TabsTrigger value="debug" data-testid="bottom-panel-debug-tab">DEBUG CONSOLE</TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onNewTerminal} title="New Terminal">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onNewTerminal} title="New Terminal" data-testid="bottom-panel-new-terminal-button">
                 <Plus className="h-4 w-4"/>
               </Button>
             </TooltipTrigger>
@@ -211,7 +212,7 @@ export function Terminal({
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7" title="Split Terminal" disabled>
+              <Button variant="ghost" size="icon" className="h-7 w-7" title="Split Terminal" disabled data-testid="bottom-panel-split-terminal-button">
                 <Split className="h-4 w-4"/>
               </Button>
             </TooltipTrigger>
@@ -221,7 +222,7 @@ export function Terminal({
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => activeTerminalId && onCloseTerminal(activeTerminalId)} title="Kill Terminal">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => activeTerminalId && onCloseTerminal(activeTerminalId)} title="Kill Terminal" data-testid="bottom-panel-kill-terminal-button">
                 <Trash2 className="h-4 w-4"/>
               </Button>
             </TooltipTrigger>
@@ -231,7 +232,7 @@ export function Terminal({
           </Tooltip>
            <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClosePanel} title="Hide Panel">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClosePanel} title="Hide Panel" data-testid="bottom-panel-hide-button">
                 <ChevronDown className="h-4 w-4"/>
               </Button>
             </TooltipTrigger>
@@ -241,7 +242,7 @@ export function Terminal({
           </Tooltip>
            <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClosePanel} title="Close Panel">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClosePanel} title="Close Panel" data-testid="bottom-panel-close-button">
                 <X className="h-4 w-4"/>
               </Button>
             </TooltipTrigger>
@@ -257,9 +258,9 @@ export function Terminal({
             <Tabs value={activeTerminalId ?? ''} onValueChange={setActiveTerminalId} className="border-b">
                 <TabsList className="bg-transparent p-0 rounded-none h-auto">
                     {initialTerminals.map((term, i) => (
-                        <TabsTrigger key={term.id} value={term.id} className="text-xs rounded-none border-r data-[state=active]:bg-background/20 data-[state=active]:shadow-none py-1.5 px-3 relative group">
+                        <TabsTrigger key={term.id} value={term.id} className="text-xs rounded-none border-r data-[state=active]:bg-background/20 data-[state=active]:shadow-none py-1.5 px-3 relative group" data-testid={`terminal-session-tab-${term.id}`}>
                            {i+1}: {term.name}
-                           <div role="button" onClick={(e) => { e.stopPropagation(); onCloseTerminal(term.id)}} className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-0.5 rounded-full hover:bg-muted/50 cursor-pointer"><X className="h-3 w-3"/></div>
+                           <div role="button" onClick={(e) => { e.stopPropagation(); onCloseTerminal(term.id)}} className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-0.5 rounded-full hover:bg-muted/50 cursor-pointer" data-testid={`terminal-session-close-${term.id}`}><X className="h-3 w-3"/></div>
                         </TabsTrigger>
                     ))}
                 </TabsList>
@@ -271,14 +272,14 @@ export function Terminal({
             </div>
            ))}
         </TabsContent>
-        <TabsContent value="problems" className="h-full m-0 font-body">
+        <TabsContent value="problems" className="h-full m-0 font-body" data-testid="bottom-panel-problems-content">
             <ScrollArea className="h-full">
               <div className="p-4">
                 <h3 className="text-sm font-semibold mb-2">Problems ({problems.length})</h3>
                 {problems.length > 0 ? (
                   <div className="space-y-2">
                     {problems.map((problem, index) => (
-                      <div key={index} className="flex items-start space-x-2 text-xs cursor-pointer hover:bg-muted p-1 rounded-md" onClick={() => onGoToProblem(problem)} title={`Go to ${problem.file}, line ${problem.line}`}>
+                      <div key={index} className="flex items-start space-x-2 text-xs cursor-pointer hover:bg-muted p-1 rounded-md" onClick={() => onGoToProblem(problem)} title={`Go to ${problem.file}, line ${problem.line}`} data-testid={`problem-${index}`}>
                         {problem.severity === 'error' ? (
                           <XCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                         ) : (
@@ -298,7 +299,7 @@ export function Terminal({
               </div>
             </ScrollArea>
         </TabsContent>
-        <TabsContent value="output" className="h-full m-0">
+        <TabsContent value="output" className="h-full m-0" data-testid="bottom-panel-output-content">
             <ScrollArea className="h-full">
               <div className="p-4 whitespace-pre-wrap">
                  {output.length > 0 ? output.map((line, i) => <p key={i} className="text-sm">{line}</p>) : (

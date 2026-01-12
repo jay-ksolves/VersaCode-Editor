@@ -77,7 +77,7 @@ export function EditorTabs({
   };
 
   return (
-    <ScrollArea className="w-full whitespace-nowrap bg-card border-b" onDoubleClick={onNewUntitled}>
+    <ScrollArea className="w-full whitespace-nowrap bg-card border-b" onDoubleClick={onNewUntitled} data-testid="editor-tabs-container">
       <div className="flex h-full">
         {openFileIds.map((id) => {
           const file = findNodeById(id);
@@ -96,6 +96,7 @@ export function EditorTabs({
                   onClick={() => onSelectTab(id)}
                   onAuxClick={(e) => handleAuxClick(e, id)}
                   onContextMenu={(e) => e.preventDefault()} // Allow dropdown trigger to handle it
+                  data-testid={`editor-tab-${file.path}`}
                   className={cn(
                     'flex items-center gap-2 pl-4 pr-2 border-r cursor-pointer text-sm group relative min-w-max',
                     isActive ? 'bg-background text-foreground' : 'bg-card text-muted-foreground hover:bg-muted'
@@ -111,19 +112,20 @@ export function EditorTabs({
                     className="h-6 w-6 rounded-full flex items-center justify-center cursor-pointer"
                     onClick={(e) => handleClose(e, id)}
                     title={`Close ${file.name}`}
+                    data-testid={`editor-tab-close-${file.path}`}
                   >
                     <X className="h-4 w-4 opacity-0 group-hover:opacity-100" />
                   </div>
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => onCloseTab(id)}>
+                <DropdownMenuItem onClick={() => onCloseTab(id)} data-testid={`editor-tab-context-menu-close-${file.path}`}>
                   Close
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onCloseOtherTabs(id)}>
+                <DropdownMenuItem onClick={() => onCloseOtherTabs(id)} data-testid={`editor-tab-context-menu-close-others-${file.path}`}>
                   Close Others
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onCloseAllTabs}>
+                <DropdownMenuItem onClick={onCloseAllTabs} data-testid={`editor-tab-context-menu-close-all-${file.path}`}>
                   Close All
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

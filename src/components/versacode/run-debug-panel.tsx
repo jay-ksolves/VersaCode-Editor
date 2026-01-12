@@ -16,23 +16,23 @@ export function RunDebugPanel() {
     };
 
     return (
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col" data-testid="run-debug-panel">
             <div className="p-4 border-b flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold tracking-tight">Run and Debug</h2>
-                    <Button size="sm" onClick={() => handleAction('Run and Debug')}>
+                    <Button size="sm" onClick={() => handleAction('Run and Debug')} data-testid="run-debug-start-button">
                         <Play className="mr-2 h-4 w-4" />
                         Run
                     </Button>
                 </div>
                 <div className="flex items-center justify-center gap-2 bg-muted p-1 rounded-md">
-                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleAction('Continue')}>
+                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleAction('Continue')} data-testid="run-debug-continue-button">
                         <Play className="h-4 w-4" />
                     </Button>
-                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleAction('Pause')}>
+                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleAction('Pause')} data-testid="run-debug-pause-button">
                         <Pause className="h-4 w-4" />
                     </Button>
-                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleAction('Restart')}>
+                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleAction('Restart')} data-testid="run-debug-restart-button">
                         <RefreshCw className="h-4 w-4" />
                     </Button>
                 </div>

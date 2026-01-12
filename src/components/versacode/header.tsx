@@ -63,11 +63,11 @@ export function Header({
   };
 
   return (
-    <header className="flex items-center justify-between h-12 px-4 border-b bg-card">
+    <header className="flex items-center justify-between h-12 px-4 border-b bg-card" data-testid="header">
       <div className="flex items-center gap-4">
         <Menubar className="border-none bg-transparent p-0">
           <MenubarMenu>
-              <MenubarTrigger className="p-2" aria-label="Application Menu">
+              <MenubarTrigger className="p-2" aria-label="Application Menu" data-testid="header-app-menu-trigger">
                 <svg
                     width="20"
                     height="20"
@@ -84,85 +84,87 @@ export function Header({
               </MenubarTrigger>
           </MenubarMenu>
           <MenubarMenu>
-            <MenubarTrigger>File</MenubarTrigger>
+            <MenubarTrigger data-testid="header-file-menu-trigger">File</MenubarTrigger>
             <MenubarContent>
-              <MenubarItem onClick={onNewFile}>
+              <MenubarItem onClick={onNewFile} data-testid="header-file-new-file">
                 New File <MenubarShortcut>Ctrl+N</MenubarShortcut>
               </MenubarItem>
-              <MenubarItem onClick={onNewFolder}>New Folder</MenubarItem>
-               <MenubarItem onClick={onUploadFolder}>
+              <MenubarItem onClick={onNewFolder} data-testid="header-file-new-folder">New Folder</MenubarItem>
+               <MenubarItem onClick={onUploadFolder} data-testid="header-file-upload-folder">
                 Upload Folder...
               </MenubarItem>
               <MenubarSeparator />
-              <MenubarItem onClick={onDownloadZip}>Download Project (.zip)</MenubarItem>
+              <MenubarItem onClick={onDownloadZip} data-testid="header-file-download-zip">Download Project (.zip)</MenubarItem>
               <MenubarSeparator />
-              <MenubarItem onClick={onCloseEditor}>Close Editor</MenubarItem>
+              <MenubarItem onClick={onCloseEditor} data-testid="header-file-close-editor">Close Editor</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
           <MenubarMenu>
-            <MenubarTrigger>Edit</MenubarTrigger>
+            <MenubarTrigger data-testid="header-edit-menu-trigger">Edit</MenubarTrigger>
             <MenubarContent>
-              <MenubarItem onClick={() => onTriggerAction('undo')}>
+              <MenubarItem onClick={() => onTriggerAction('undo')} data-testid="header-edit-undo">
                 Undo <MenubarShortcut>Ctrl+Z</MenubarShortcut>
               </MenubarItem>
-              <MenubarItem onClick={() => onTriggerAction('redo')}>
+              <MenubarItem onClick={() => onTriggerAction('redo')} data-testid="header-edit-redo">
                 Redo <MenubarShortcut>Ctrl+Y</MenubarShortcut>
               </MenubarItem>
               <MenubarSeparator />
-              <MenubarItem onClick={() => onTriggerAction('editor.action.clipboardCutAction')}>
+              <MenubarItem onClick={() => onTriggerAction('editor.action.clipboardCutAction')} data-testid="header-edit-cut">
                 Cut <MenubarShortcut>Ctrl+X</MenubarShortcut>
               </MenubarItem>
-              <MenubarItem onClick={() => onTriggerAction('editor.action.clipboardCopyAction')}>
+              <MenubarItem onClick={() => onTriggerAction('editor.action.clipboardCopyAction')} data-testid="header-edit-copy">
                 Copy <MenubarShortcut>Ctrl+C</MenubarShortcut>
               </MenubarItem>
-              <MenubarItem onClick={() => onTriggerAction('editor.action.clipboardPasteAction')}>
+              <MenubarItem onClick={() => onTriggerAction('editor.action.clipboardPasteAction')} data-testid="header-edit-paste">
                 Paste <MenubarShortcut>Ctrl+V</MenubarShortcut>
               </MenubarItem>
               <MenubarSeparator />
-              <MenubarItem onClick={onFormat}>
+              <MenubarItem onClick={onFormat} data-testid="header-edit-format">
                 Format Document <MenubarShortcut>Ctrl+Alt+F</MenubarShortcut>
               </MenubarItem>
             </MenubarContent>
           </MenubarMenu>
           <MenubarMenu>
-            <MenubarTrigger>View</MenubarTrigger>
+            <MenubarTrigger data-testid="header-view-menu-trigger">View</MenubarTrigger>
             <MenubarContent>
-                <MenubarItem onClick={onCommandPalette}>
+                <MenubarItem onClick={onCommandPalette} data-testid="header-view-command-palette">
                     Command Palette <MenubarShortcut>Ctrl+Shift+P</MenubarShortcut>
                 </MenubarItem>
                 <MenubarSeparator />
                 <MenubarCheckboxItem
                     checked={isMinimapVisible}
                     onCheckedChange={onToggleMinimap}
+                    data-testid="header-view-toggle-minimap"
                 >
                     Show Minimap
                 </MenubarCheckboxItem>
                  <MenubarCheckboxItem
                     checked={theme === 'dark'}
                     onCheckedChange={onToggleTheme}
+                    data-testid="header-view-toggle-theme"
                 >
                     Dark Mode
                 </MenubarCheckboxItem>
                 <MenubarSeparator />
-                <MenubarItem onClick={onToggleTerminal}>Terminal</MenubarItem>
+                <MenubarItem onClick={onToggleTerminal} data-testid="header-view-toggle-terminal">Terminal</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
           <MenubarMenu>
-            <MenubarTrigger>Run</MenubarTrigger>
+            <MenubarTrigger data-testid="header-run-menu-trigger">Run</MenubarTrigger>
             <MenubarContent>
-              <MenubarItem onClick={handleRun}>Run Code</MenubarItem>
+              <MenubarItem onClick={handleRun} data-testid="header-run-run-code">Run Code</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
           <MenubarMenu>
-            <MenubarTrigger>Terminal</MenubarTrigger>
+            <MenubarTrigger data-testid="header-terminal-menu-trigger">Terminal</MenubarTrigger>
             <MenubarContent>
-              <MenubarItem onClick={onNewTerminal}>New Terminal</MenubarItem>
+              <MenubarItem onClick={onNewTerminal} data-testid="header-terminal-new-terminal">New Terminal</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
           <MenubarMenu>
-            <MenubarTrigger>Help</MenubarTrigger>
+            <MenubarTrigger data-testid="header-help-menu-trigger">Help</MenubarTrigger>
             <MenubarContent>
-               <MenubarItem onClick={() => window.open('https://github.com/FirebaseExtended/firebase-studio', '_blank')}>
+               <MenubarItem onClick={() => window.open('https://github.com/FirebaseExtended/firebase-studio', '_blank')} data-testid="header-help-source-code">
                 Source Code
               </MenubarItem>
             </MenubarContent>
@@ -172,7 +174,7 @@ export function Header({
       <div className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
-             <Button variant="ghost" size="icon" onClick={onFormat} disabled={isFormatting} aria-label="Format Code">
+             <Button variant="ghost" size="icon" onClick={onFormat} disabled={isFormatting} aria-label="Format Code" data-testid="header-format-button">
               {isFormatting ? (
                 <LoaderCircle className="h-5 w-5 animate-spin" />
               ) : (
@@ -187,7 +189,7 @@ export function Header({
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={onSuggest} disabled={isSuggesting} aria-label="AI Code Suggestion">
+            <Button variant="ghost" size="icon" onClick={onSuggest} disabled={isSuggesting} aria-label="AI Code Suggestion" data-testid="header-suggest-button">
               {isSuggesting ? (
                 <LoaderCircle className="h-5 w-5 animate-spin" />
               ) : (
@@ -202,7 +204,7 @@ export function Header({
         </Tooltip>
         <Tooltip>
             <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={onCommandPalette} aria-label="Command Palette">
+                <Button variant="ghost" size="icon" onClick={onCommandPalette} aria-label="Command Palette" data-testid="header-command-palette-button">
                     <Command className="h-5 w-5" />
                 </Button>
             </TooltipTrigger>
@@ -213,7 +215,7 @@ export function Header({
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button size="icon" onClick={handleRun} className="bg-accent text-accent-foreground hover:bg-accent/90" aria-label="Run Code">
+            <Button size="icon" onClick={handleRun} className="bg-accent text-accent-foreground hover:bg-accent/90" aria-label="Run Code" data-testid="header-run-button">
               <Play className="h-5 w-5" />
             </Button>
           </TooltipTrigger>
@@ -221,7 +223,7 @@ export function Header({
             <p>Run Code</p>
           </TooltipContent>
         </Tooltip>
-         <Button variant="ghost" size="icon" title="Toggle Theme" onClick={onToggleTheme} aria-label="Toggle Theme">
+         <Button variant="ghost" size="icon" title="Toggle Theme" onClick={onToggleTheme} aria-label="Toggle Theme" data-testid="header-theme-toggle-button">
             <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
         </Button>
