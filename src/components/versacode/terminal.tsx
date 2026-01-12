@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useRef } from "react";
@@ -7,19 +8,27 @@ import { AlertTriangle, XCircle, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
+interface Problem {
+  severity: "error" | "warning";
+  message: string;
+  file: string;
+  line: number;
+}
+
 interface TerminalProps {
   output: string[];
   onClear: () => void;
+  onGoToProblem: (problem: Problem) => void;
 }
 
-const problems = [
-  { severity: "error", message: "Property 'lenght' does not exist on type 'string[]'. Did you mean 'length'?", file: "src/app.tsx", line: 15 },
-  { severity: "warning", message: "'Button' is declared but its value is never read.", file: "src/components/card.tsx", line: 8 },
-  { severity: "error", message: "Cannot find name 'React'.", file: "src/lib/utils.ts", line: 2 },
+const problems: Problem[] = [
+  { severity: "error", message: "Property 'lenght' does not exist on type 'string[]'. Did you mean 'length'?", file: "src/app.tsx", line: 2 },
+  { severity: "warning", message: "'Button' is declared but its value is never read.", file: "src/styles.css", line: 1 },
+  { severity: "error", message: "Cannot find name 'React'.", file: "package.json", line: 1 },
 ];
 
 
-export function Terminal({ output, onClear }: TerminalProps) {
+export function Terminal({ output, onClear, onGoToProblem }: TerminalProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,11 +80,11 @@ export function Terminal({ output, onClear }: TerminalProps) {
             <h3 className="text-sm font-semibold mb-2">Problems ({problems.length})</h3>
             <div className="space-y-2">
               {problems.map((problem, index) => (
-                <div key={index} className="flex items-start space-x-2 text-xs">
+                <div key={index} className="flex items-start space-x-2 text-xs cursor-pointer hover:bg-muted p-1 rounded-md" onClick={() => onGoToProblem(problem)}>
                   {problem.severity === 'error' ? (
-                    <XCircle className="w-4 h-4 text-red-500 mt-0.5" />
+                    <XCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                   ) : (
-                    <AlertTriangle className="w-4 h-4 text-yellow-500 mt-0.5" />
+                    <AlertTriangle className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
                   )}
                   <div>
                     <p className="text-foreground">{problem.message}</p>

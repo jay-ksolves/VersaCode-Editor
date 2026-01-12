@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
 import { CodeEditor } from "./code-editor";
@@ -15,9 +15,11 @@ import { useToast } from "@/hooks/use-toast";
 import { suggestCodeCompletion } from "@/ai/flows/ai-suggest-code-completion";
 import { useFileSystem } from "@/hooks/useFileSystem";
 import { TooltipProvider } from "../ui/tooltip";
+import type * as monaco from 'monaco-editor';
 
 
 type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "none";
+type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
 
 function IdeLayoutContent() {
   const [activePanel, setActivePanel] = useState<ActivePanel>("files");
@@ -26,6 +28,7 @@ function IdeLayoutContent() {
   const [editorSettings, setEditorSettings] = useState({
     minimap: true,
   });
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
   const { toast } = useToast();
 
@@ -46,6 +49,7 @@ function IdeLayoutContent() {
     openFileIds,
     closeFile,
     findNodeById,
+    findNodeByPath,
   } = useFileSystem();
   
   const clearTerminal = useCallback(() => {
@@ -108,6 +112,30 @@ function IdeLayoutContent() {
   const handleSettingsChange = (newSettings: Partial<typeof editorSettings>) => {
     setEditorSettings(prev => ({...prev, ...newSettings}));
   }
+
+  const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    editorRef.current = editor;
+  };
+
+  const handleGoToProblem = useCallback((problem: Problem) => {
+    const targetNode = findNodeByPath(problem.file);
+    if (targetNode && targetNode.type === 'file') {
+      openFile(targetNode.id);
+      
+      // We need a small delay to ensure the editor has switched to the correct file
+      setTimeout(() => {
+        editorRef.current?.revealLineInCenter(problem.line, monaco.editor.ScrollType.Smooth);
+        editorRef.current?.setPosition({ lineNumber: problem.line, column: 1 });
+        editorRef.current?.focus();
+      }, 100);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "File not found",
+        description: `Could not find the file: ${problem.file}`
+      })
+    }
+  }, [findNodeByPath, openFile, toast]);
 
   const getFileLanguage = (filename: string | undefined) => {
     if (!filename) return 'plaintext';
@@ -186,6 +214,7 @@ function IdeLayoutContent() {
                       isReadOnly={!activeFileId}
                       language={getFileLanguage(activeFile.name)}
                       options={{ minimap: {enabled: editorSettings.minimap}}}
+                      onMount={handleEditorMount}
                     />
                  ) : (
                   <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -194,7 +223,7 @@ function IdeLayoutContent() {
                  )}
               </div>
               <div className="h-1/3 border-t border-border flex flex-col">
-                <Terminal output={terminalOutput} onClear={clearTerminal} />
+                <Terminal output={terminalOutput} onClear={clearTerminal} onGoToProblem={handleGoToProblem} />
               </div>
             </div>
           </main>

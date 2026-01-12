@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import Editor from "@monaco-editor/react";
+import Editor, { OnMount } from "@monaco-editor/react";
 
 interface CodeEditorProps {
   value: string | undefined;
@@ -10,6 +10,7 @@ interface CodeEditorProps {
   isReadOnly: boolean;
   language?: string;
   options?: monaco.editor.IStandaloneEditorConstructionOptions;
+  onMount?: OnMount;
 }
 
 export function CodeEditor({
@@ -18,6 +19,7 @@ export function CodeEditor({
   isReadOnly,
   language = "typescript",
   options = {},
+  onMount
 }: CodeEditorProps) {
   // Hardcoding theme for now as next-themes is removed
   const monacoTheme = "vs-dark";
@@ -39,6 +41,7 @@ export function CodeEditor({
       onChange={onChange}
       theme={monacoTheme}
       options={{...defaultOptions, ...options}}
+      onMount={onMount}
     />
   );
 }

@@ -7,11 +7,13 @@ export type FileSystemNode = {
   name: string;
   content: string;
   type: 'file';
+  path: string;
 } | {
   id: string;
   name: string;
   type: 'folder';
   children: FileSystemNode[];
+  path: string;
 };
 
 const initialFileSystem: FileSystemNode[] = [
@@ -19,12 +21,13 @@ const initialFileSystem: FileSystemNode[] = [
     id: '1',
     name: 'src',
     type: 'folder',
+    path: 'src',
     children: [
-      { id: '2', name: 'app.tsx', type: 'file', content: 'console.log("Hello, World!");' },
-      { id: '3', name: 'styles.css', type: 'file', content: 'body { margin: 0; }' },
+      { id: '2', name: 'app.tsx', type: 'file', content: 'console.log("Hello, World!");', path: 'src/app.tsx' },
+      { id: '3', name: 'styles.css', type: 'file', content: 'body { margin: 0; }', path: 'src/styles.css' },
     ],
   },
-  { id: '4', name: 'package.json', type: 'file', content: '{ "name": "versacode-app" }' },
+  { id: '4', name: 'package.json', type: 'file', content: '{ "name": "versacode-app" }', path: 'package.json' },
 ];
 
 function findNodeById(nodes: FileSystemNode[], id: string): FileSystemNode | null {
@@ -32,6 +35,17 @@ function findNodeById(nodes: FileSystemNode[], id: string): FileSystemNode | nul
     if (node.id === id) return node;
     if (node.type === 'folder') {
       const found = findNodeById(node.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function findNodeByPath(nodes: FileSystemNode[], path: string): FileSystemNode | null {
+  for (const node of nodes) {
+    if (node.path === path) return node;
+    if (node.type === 'folder' && path.startsWith(node.path + '/')) {
+      const found = findNodeByPath(node.children, path);
       if (found) return found;
     }
   }
@@ -65,12 +79,23 @@ function updateNodeContentInTree(nodes: FileSystemNode[], id: string, content: s
   });
 }
 
+function updatePaths(nodes: FileSystemNode[], parentPath = ''): FileSystemNode[] {
+    return nodes.map(node => {
+        const currentPath = parentPath ? `${parentPath}/${node.name}` : node.name;
+        const updatedNode = { ...node, path: currentPath };
+        if (updatedNode.type === 'folder') {
+            updatedNode.children = updatePaths(updatedNode.children, currentPath);
+        }
+        return updatedNode;
+    });
+}
+
 function addNodeToTree(nodes: FileSystemNode[], parentId: string | null, newNode: FileSystemNode): FileSystemNode[] {
     if (!parentId) {
-        return [...nodes, newNode];
+        return updatePaths([...nodes, newNode]);
     }
 
-    return nodes.map(node => {
+    const tree = nodes.map(node => {
         if (node.id === parentId && node.type === 'folder') {
             return { ...node, children: [...node.children, newNode] };
         }
@@ -79,10 +104,11 @@ function addNodeToTree(nodes: FileSystemNode[], parentId: string | null, newNode
         }
         return node;
     });
+    return updatePaths(tree);
 }
 
 function renameNodeInTree(nodes: FileSystemNode[], id: string, newName: string): FileSystemNode[] {
-    return nodes.map(node => {
+    const tree = nodes.map(node => {
         if (node.id === id) {
             return { ...node, name: newName };
         }
@@ -91,15 +117,17 @@ function renameNodeInTree(nodes: FileSystemNode[], id: string, newName: string):
         }
         return node;
     });
+    return updatePaths(tree);
 }
 
 function deleteNodeFromTree(nodes: FileSystemNode[], id: string): FileSystemNode[] {
-    return nodes.filter(node => node.id !== id).map(node => {
+    const tree = nodes.filter(node => node.id !== id).map(node => {
         if (node.type === 'folder') {
             return { ...node, children: deleteNodeFromTree(node.children, id) };
         }
         return node;
     });
+    return updatePaths(tree);
 }
 
 
@@ -211,6 +239,7 @@ export function useFileSystem() {
         name,
         type: 'file',
         content: `// ${name}\n`,
+        path: '', // Path will be updated by addNodeToTree
     };
     setFiles(prevFiles => addNodeToTree(prevFiles, parentId, newFile));
     if (parentId) setExpandedFolders(prev => new Set(prev).add(parentId));
@@ -228,6 +257,7 @@ export function useFileSystem() {
         name,
         type: 'folder',
         children: [],
+        path: '', // Path will be updated by addNodeToTree
     };
     setFiles(prevFiles => addNodeToTree(prevFiles, parentId, newFolder));
     if (parentId) setExpandedFolders(prev => new Set(prev).add(parentId));
@@ -272,8 +302,20 @@ export function useFileSystem() {
     const nodeToDelete = findNodeById(files, id);
     if (!nodeToDelete) return;
     
+    // Recursively find all file IDs to close
+    const idsToClose = new Set<string>();
+    function findIds(node: FileSystemNode) {
+        if (node.type === 'file') {
+            idsToClose.add(node.id);
+        } else if (node.type === 'folder') {
+            node.children.forEach(findIds);
+        }
+    }
+    findIds(nodeToDelete);
+
     setFiles(prevFiles => deleteNodeFromTree(prevFiles, id));
-    closeFile(id);
+    idsToClose.forEach(fileId => closeFile(fileId));
+    
     toast({ title: "Deleted", description: `${nodeToDelete.name} was deleted.` });
   }, [files, toast, closeFile]);
 
@@ -323,5 +365,6 @@ export function useFileSystem() {
     openFileIds,
     closeFile,
     findNodeById: (id: string) => findNodeById(files, id),
+    findNodeByPath: (path: string) => findNodeByPath(files, path),
   };
 }
