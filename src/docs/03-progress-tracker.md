@@ -30,7 +30,7 @@ This document tracks the implementation status of core IDE features.
 - [x] Displays content of selected file
 - [x] Syntax Highlighting
 - [x] Show Minimap
-- [x] Code Formatting (via Prettier extension)
+- [x] Code Formatting (via AI)
 
 ## Terminal / Output Panel
 
