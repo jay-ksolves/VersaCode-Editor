@@ -22,14 +22,17 @@ import type * as monaco from 'monaco-editor';
 type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "none";
 type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
 
+const defaultEditorSettings = {
+  minimap: true,
+  fontSize: 14,
+};
+
 function IdeLayoutContent() {
   const [activePanel, setActivePanel] = useState<ActivePanel>("files");
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
   const [isFormatting, setIsFormatting] = useState<boolean>(false);
-  const [editorSettings, setEditorSettings] = useState({
-    minimap: true,
-  });
+  const [editorSettings, setEditorSettings] = useState(defaultEditorSettings);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
   const { toast } = useToast();
@@ -170,6 +173,14 @@ function IdeLayoutContent() {
     setEditorSettings(prev => ({...prev, ...newSettings}));
   }
 
+  const handleResetSettings = () => {
+    setEditorSettings(defaultEditorSettings);
+    toast({
+      title: "Settings Reset",
+      description: "Editor settings have been reset to their defaults."
+    });
+  };
+
   const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;
   };
@@ -212,7 +223,11 @@ function IdeLayoutContent() {
       case "extensions":
         return <ExtensionsPanel />;
       case "settings":
-        return <SettingsPanel settings={editorSettings} onSettingsChange={handleSettingsChange}/>;
+        return <SettingsPanel 
+          settings={editorSettings} 
+          onSettingsChange={handleSettingsChange}
+          onResetSettings={handleResetSettings}
+        />;
       case "tasks":
         return <TasksPanel />;
       default:
@@ -254,7 +269,10 @@ function IdeLayoutContent() {
                       onChange={handleCodeChange}
                       isReadOnly={!activeFileId}
                       language={getFileLanguage(activeFile.name)}
-                      options={{ minimap: {enabled: editorSettings.minimap}}}
+                      options={{ 
+                        minimap: {enabled: editorSettings.minimap},
+                        fontSize: editorSettings.fontSize,
+                      }}
                       onMount={handleEditorMount}
                     />
                  ) : (

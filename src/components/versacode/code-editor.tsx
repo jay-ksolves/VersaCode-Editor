@@ -3,6 +3,7 @@
 
 import React from "react";
 import Editor, { OnMount } from "@monaco-editor/react";
+import type * as monaco from 'monaco-editor';
 
 interface CodeEditorProps {
   value: string | undefined;
@@ -27,7 +28,6 @@ export function CodeEditor({
   const defaultOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
     readOnly: isReadOnly,
     wordWrap: "on",
-    fontSize: 14,
     fontFamily: "Source Code Pro, monospace",
     scrollBeyondLastLine: false,
     minimap: { enabled: true },

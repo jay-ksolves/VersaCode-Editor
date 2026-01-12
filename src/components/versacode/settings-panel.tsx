@@ -12,11 +12,13 @@ import { Button } from "../ui/button";
 interface SettingsPanelProps {
   settings: {
     minimap: boolean;
+    fontSize: number;
   },
-  onSettingsChange: (newSettings: Partial<{ minimap: boolean }>) => void;
+  onSettingsChange: (newSettings: Partial<{ minimap: boolean; fontSize: number; }>) => void;
+  onResetSettings: () => void;
 }
 
-export function SettingsPanel({ settings, onSettingsChange }: SettingsPanelProps) {
+export function SettingsPanel({ settings, onSettingsChange, onResetSettings }: SettingsPanelProps) {
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 border-b">
@@ -40,15 +42,18 @@ export function SettingsPanel({ settings, onSettingsChange }: SettingsPanelProps
             </div>
              <div className="flex items-center justify-between">
                 <Label htmlFor="font-size">Font Size</Label>
-                <Select defaultValue="14px">
+                <Select 
+                  value={String(settings.fontSize)} 
+                  onValueChange={(value) => onSettingsChange({ fontSize: Number(value) })}
+                >
                     <SelectTrigger className="w-[150px]">
                         <SelectValue placeholder="Select size" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="12px">12px</SelectItem>
-                        <SelectItem value="14px">14px</SelectItem>
-                        <SelectItem value="16px">16px</SelectItem>
-                        <SelectItem value="18px">18px</SelectItem>
+                        <SelectItem value="12">12px</SelectItem>
+                        <SelectItem value="14">14px</SelectItem>
+                        <SelectItem value="16">16px</SelectItem>
+                        <SelectItem value="18">18px</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -70,7 +75,7 @@ export function SettingsPanel({ settings, onSettingsChange }: SettingsPanelProps
         </div>
       </div>
        <div className="p-4 border-t">
-        <Button className="w-full">Reset to Defaults</Button>
+        <Button className="w-full" onClick={onResetSettings}>Reset to Defaults</Button>
       </div>
     </div>
   );

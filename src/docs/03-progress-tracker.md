@@ -51,7 +51,7 @@ This document tracks the implementation status of core IDE features.
 
 - [x] Mock UI for theme and editor settings
 - [x] Implement setting logic (e.g., change font size)
-- [ ] Reset settings to default
+- [x] Reset settings to default
 
 ## Tasks Panel (`tasks`)
 
