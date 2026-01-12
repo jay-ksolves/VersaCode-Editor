@@ -16,6 +16,13 @@ export type FileSystemNode = {
   path: string;
 };
 
+export interface SearchResult {
+    fileId: string;
+    filePath: string;
+    line: number;
+    lineContent: string;
+}
+
 const initialFileSystem: FileSystemNode[] = [
   {
     id: '1',
@@ -490,6 +497,33 @@ export function useFileSystem() {
     });
   }, []);
 
+  const searchFiles = useCallback((query: string): SearchResult[] => {
+    const results: SearchResult[] = [];
+    const lowerCaseQuery = query.toLowerCase();
+
+    function searchInNodes(nodes: FileSystemNode[]) {
+        for (const node of nodes) {
+            if (node.type === 'file') {
+                const lines = node.content.split('\n');
+                lines.forEach((lineContent, index) => {
+                    if (lineContent.toLowerCase().includes(lowerCaseQuery)) {
+                        results.push({
+                            fileId: node.id,
+                            filePath: node.path,
+                            line: index + 1,
+                            lineContent: lineContent.trim(),
+                        });
+                    }
+                });
+            } else if (node.type === 'folder') {
+                searchInNodes(node.children);
+            }
+        }
+    }
+    searchInNodes(files);
+    return results;
+  }, [files]);
+
 
   return {
     files,
@@ -519,5 +553,6 @@ export function useFileSystem() {
       return findNodeByIdInOriginal(source, id);
     },
     findNodeByPath: (path: string) => findNodeByPath(files, path),
+    searchFiles,
   };
 }

@@ -12,7 +12,7 @@ import { ExtensionsPanel } from "./extensions-panel";
 import { SettingsPanel } from "./settings-panel";
 import { useToast } from "@/hooks/use-toast";
 import { suggestCodeCompletion } from "@/ai/flows/ai-suggest-code-completion";
-import { useFileSystem } from "@/hooks/useFileSystem";
+import { useFileSystem, SearchResult } from "@/hooks/useFileSystem";
 import { TooltipProvider } from "../ui/tooltip";
 import type * as monaco from 'monaco-editor';
 import { Breadcrumbs } from "./breadcrumbs";
@@ -101,6 +101,7 @@ function IdeLayoutContent() {
     reorderOpenTabs,
     findNodeById,
     findNodeByPath,
+    searchFiles,
   } = useFileSystem();
 
   useHotkeys('ctrl+n, cmd+n', (e) => {
@@ -406,17 +407,17 @@ function IdeLayoutContent() {
     setBottomPanelSize(prev => prev > 5 ? 0 : 33);
   };
 
+  const goToLine = useCallback((line: number) => {
+    editorRef.current?.revealLineInCenter(line, monaco.editor.ScrollType.Smooth);
+    editorRef.current?.setPosition({ lineNumber: line, column: 1 });
+    editorRef.current?.focus();
+  }, []);
 
   const handleGoToProblem = useCallback((problem: Problem) => {
     const targetNode = findNodeByPath(problem.file);
     if (targetNode && targetNode.type === 'file') {
       openFile(targetNode.id);
-      
-      setTimeout(() => {
-        editorRef.current?.revealLineInCenter(problem.line, monaco.editor.ScrollType.Smooth);
-        editorRef.current?.setPosition({ lineNumber: problem.line, column: 1 });
-        editorRef.current?.focus();
-      }, 100);
+      setTimeout(() => goToLine(problem.line), 100);
     } else {
       toast({
         variant: "destructive",
@@ -424,7 +425,15 @@ function IdeLayoutContent() {
         description: `Could not find the file: ${problem.file}`
       })
     }
-  }, [findNodeByPath, openFile, toast]);
+  }, [findNodeByPath, openFile, toast, goToLine]);
+
+  const handleGoToSearchResult = useCallback((result: SearchResult) => {
+    const targetNode = findNodeById(result.fileId);
+    if (targetNode && targetNode.type === 'file') {
+      openFile(targetNode.id);
+      setTimeout(() => goToLine(result.line), 100);
+    }
+  }, [findNodeById, openFile, goToLine]);
 
   const handleBreadcrumbSelect = (path: string) => {
     const node = findNodeByPath(path);
@@ -497,7 +506,10 @@ function IdeLayoutContent() {
           onOpenFile={openFile}
         />;
       case "search":
-        return <SearchPanel />;
+        return <SearchPanel 
+          onSearch={searchFiles}
+          onGoToResult={handleGoToSearchResult}
+        />;
       case "extensions":
         return <ExtensionsPanel />;
       case "settings":

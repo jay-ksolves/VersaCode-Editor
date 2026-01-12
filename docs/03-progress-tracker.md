@@ -30,7 +30,9 @@ This document tracks the implementation status of core IDE features. All feature
 ## Search Panel (`search`)
 
 - [x] UI for global search
-- [ ] Implement search logic (deferred for future release)
+- [x] Implement search logic across all files
+- [x] Display search results with context
+- [x] Link search results to lines in the code editor
 
 ## Code Editor
 
