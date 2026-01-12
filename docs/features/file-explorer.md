@@ -46,5 +46,5 @@ The File Explorer provides a user-friendly, VS Code–like tree view of the proj
 - [x] Replace prompts with dialogs.
 - [x] Implement inline renaming.
 - [x] Drag-and-drop functionality for moving files and folders.
-- [x] Integrate with a real backend file system instead of `localStorage`.
-- [x] Show file-specific icons (e.g., a React icon for `.tsx` files).
+- [ ] Integrate with a real backend file system instead of `localStorage`.
+- [ ] Show file-specific icons (e.g., a React icon for `.tsx` files).

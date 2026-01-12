@@ -9,7 +9,7 @@ const features = [
     { id: "feat-file-tree", label: "Dynamic File Tree", checked: true },
     { id: "feat-file-state", label: "Persist file system state", checked: true },
     { id: "feat-file-ops", label: "CRUD File Operations", checked: true },
-    { id: "feat-file-dnd", label: "Drag-and-drop files", checked: false },
+    { id: "feat-file-dnd", label: "Drag-and-drop files", checked: true },
     { id: "feat-editor", label: "Code Editor with Syntax Highlighting", checked: true },
     { id: "feat-ai-suggest", label: "AI Code Suggestion", checked: true },
     { id: "feat-format", label: "Code Formatting", checked: true },
@@ -17,8 +17,9 @@ const features = [
     { id: "feat-terminal-mock", label: "Mock Code Execution in Terminal", checked: true },
     { id: "feat-terminal-clear", label: "Clear terminal output", checked: true },
     { id: "feat-problems-link", label: "Link problems to code", checked: true },
-    { id: "feat-webcontainers", label: "Implement WebContainers", checked: false },
+    { id: "feat-webcontainers", label: "Implement WebContainers", checked: true },
     { id: "feat-settings-logic", label: "Implement setting logic", checked: true },
+    { id: "feat-extensions", label: "Extension Marketplace", checked: true },
 ];
 
 const bugs = [
