@@ -32,8 +32,12 @@ function IdeLayoutContent() {
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
   const [editorSettings, setEditorSettings] = useState(defaultEditorSettings);
+  
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<typeof monaco | null>(null);
   const fileExplorerRef = useRef<FileExplorerRef>(null);
+  const modelsRef = useRef<Map<string, monaco.editor.ITextModel>>(new Map());
+
 
   const { toast } = useToast();
 
@@ -83,6 +87,89 @@ function IdeLayoutContent() {
     }
   };
 
+  useEffect(() => {
+    // When the active file ID changes, swap the model in the editor
+    if (editorRef.current && activeFileId) {
+      const model = modelsRef.current.get(activeFileId);
+      if (model && editorRef.current.getModel() !== model) {
+        editorRef.current.setModel(model);
+      }
+    } else if (editorRef.current) {
+        // If no file is active, clear the editor
+        editorRef.current.setModel(null);
+    }
+  }, [activeFileId, files]);
+
+
+  const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor, monacoInstance: typeof monaco) => {
+    editorRef.current = editor;
+    monacoRef.current = monacoInstance;
+
+    // Create models for already open files
+    openFileIds.forEach(fileId => {
+        const file = findNodeById(fileId);
+        if (file?.type === 'file' && !modelsRef.current.has(fileId)) {
+             const model = monacoInstance.editor.createModel(
+                file.content,
+                getFileLanguage(file.name),
+                monacoInstance.Uri.parse(`file:///${file.path}`)
+            );
+
+            // Listen for content changes in the model and update our file system state
+            model.onDidChangeContent(() => {
+                const currentContent = model.getValue();
+                updateFileContent(file.id, currentContent);
+            });
+
+            modelsRef.current.set(fileId, model);
+        }
+    });
+
+    // Set the initial model if there's an active file
+    if (activeFileId) {
+        const model = modelsRef.current.get(activeFileId);
+        if (model) {
+            editor.setModel(model);
+        }
+    }
+  };
+  
+    // Effect to handle model creation when a new file is opened
+  useEffect(() => {
+    const monaco = monacoRef.current;
+    if (!monaco) return;
+
+    openFileIds.forEach(fileId => {
+      if (!modelsRef.current.has(fileId)) {
+        const file = findNodeById(fileId);
+        if (file?.type === 'file') {
+          const model = monaco.editor.createModel(
+            file.content,
+            getFileLanguage(file.name),
+            monaco.Uri.parse(`file:///${file.path}`)
+          );
+          
+          model.onDidChangeContent(() => {
+            const newContent = model.getValue();
+            updateFileContent(fileId, newContent);
+          });
+          
+          modelsRef.current.set(fileId, model);
+        }
+      }
+    });
+
+    // Clean up models that are no longer open
+    const openFileIdSet = new Set(openFileIds);
+    modelsRef.current.forEach((model, fileId) => {
+      if (!openFileIdSet.has(fileId)) {
+        model.dispose();
+        modelsRef.current.delete(fileId);
+      }
+    });
+
+  }, [openFileIds, findNodeById, updateFileContent]);
+
   const handleRun = useCallback(() => {
     if (activeFile) {
       setTerminalOutput((prev) => [
@@ -98,7 +185,7 @@ function IdeLayoutContent() {
   }, [activeFile]);
 
   const handleSuggest = useCallback(async () => {
-    if (!activeFile) {
+    if (!activeFile || !editorRef.current) {
       toast({
         variant: "destructive",
         title: "No active file",
@@ -109,11 +196,20 @@ function IdeLayoutContent() {
 
     setIsSuggesting(true);
     try {
+      const currentModel = editorRef.current.getModel();
+      if (!currentModel) return;
+
       const result = await suggestCodeCompletion({
-        codeContext: activeFile.content,
+        codeContext: currentModel.getValue(),
         programmingLanguage: getFileLanguage(activeFile.name), 
       });
-      updateFileContent(activeFile.id, activeFile.content + result.suggestedCode);
+
+      // Apply the suggestion to the model
+      const range = editorRef.current.getSelection() || new monaco.Range(1,1,1,1);
+      const id = { major: 1, minor: 1 };
+      const op = {identifier: id, range: range, text: result.suggestedCode, forceMoveMarkers: true};
+      currentModel.pushEditOperations([], [op], () => null);
+
       toast({
         title: "AI Suggestion",
         description: "Code suggestion has been added.",
@@ -128,13 +224,7 @@ function IdeLayoutContent() {
     } finally {
       setIsSuggesting(false);
     }
-  }, [activeFile, toast, updateFileContent]);
-  
-  const handleCodeChange = (newCode: string | undefined) => {
-    if (activeFileId && newCode !== undefined) {
-      updateFileContent(activeFileId, newCode);
-    }
-  };
+  }, [activeFile, toast]);
   
   const handleSettingsChange = (newSettings: Partial<typeof editorSettings>) => {
     setEditorSettings(prev => ({...prev, ...newSettings}));
@@ -147,10 +237,6 @@ function IdeLayoutContent() {
       description: "Editor settings have been reset to their defaults."
     });
   };
-
-  const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
-    editorRef.current = editor;
-  };
   
   const handleNewFile = () => fileExplorerRef.current?.startCreate('create_file');
   const handleNewFolder = () => fileExplorerRef.current?.startCreate('create_folder');
@@ -160,7 +246,6 @@ function IdeLayoutContent() {
     if (targetNode && targetNode.type === 'file') {
       openFile(targetNode.id);
       
-      // We need a small delay to ensure the editor has switched to the correct file
       setTimeout(() => {
         editorRef.current?.revealLineInCenter(problem.line, monaco.editor.ScrollType.Smooth);
         editorRef.current?.setPosition({ lineNumber: problem.line, column: 1 });
@@ -181,7 +266,6 @@ function IdeLayoutContent() {
       if (node.type === 'file') {
         openFile(node.id);
       } else if (node.type === 'folder') {
-        // Just toggle the folder, don't change the active file
         toggleFolder(node.id, true);
       }
     }
@@ -254,15 +338,12 @@ function IdeLayoutContent() {
               <div className="flex-1 relative overflow-auto bg-card">
                  {openFileIds.length > 0 && activeFile ? (
                     <CodeEditor 
-                      key={activeFileId}
-                      value={activeFile.content} 
-                      onChange={handleCodeChange}
-                      language={getFileLanguage(activeFile.name)}
+                      key={activeFileId} // This is no longer strictly necessary for state, but fine for re-renders
+                      onMount={handleEditorMount}
                       options={{ 
                         minimap: {enabled: editorSettings.minimap},
                         fontSize: editorSettings.fontSize,
                       }}
-                      onMount={handleEditorMount}
                     />
                  ) : (
                   <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -297,3 +378,5 @@ export function IdeLayout() {
     </TooltipProvider>
   );
 }
+
+    
