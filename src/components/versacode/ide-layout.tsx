@@ -105,6 +105,7 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
     moveNode,
     getTargetFolder,
     expandedFolders,
+    setExpandedFolders,
     toggleFolder,
     openFile,
     openFileIds,

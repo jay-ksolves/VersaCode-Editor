@@ -514,6 +514,7 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
     moveNode,
     getTargetFolder,
     expandedFolders,
+    setExpandedFolders,
     toggleFolder,
     openFile,
     openFileIds,
