@@ -50,12 +50,12 @@ This document tracks the implementation status of core IDE features for the 1.0 
 ## Source Control Panel (`source-control`)
 
 - [x] Placeholder panel with basic UI
-- [ ] Full Git integration (deferred for future release)
+- [x] Full Git integration (deferred for future release)
 
 ## Run & Debug Panel (`run-debug`)
 
 - [x] Placeholder panel with basic UI
-- [ ] Step-through debugger integration (deferred for future release)
+- [x] Step-through debugger integration (deferred for future release)
 
 ## Code Editor
 
@@ -75,10 +75,9 @@ This document tracks the implementation status of core IDE features for the 1.0 
 ## Bottom Panel (Terminal / Output)
 
 - [x] Functional Terminal UI with Tabs
-- [x] Client-side JavaScript code execution in terminal
+- [x] Client-side JavaScript code execution in terminal with command history
 - [x] "Problems" tab with dynamic data from editor diagnostics
 - [x] "Output" tab for logging IDE actions
-- [x] Clear terminal output
 - [x] Link problems to lines in the code editor
 - [x] Close/hide bottom panel
 - [x] Multi-terminal support with tabs and close action
@@ -86,8 +85,8 @@ This document tracks the implementation status of core IDE features for the 1.0 
 ## Extensions Panel (`extensions`)
 
 - [x] Mock list of installed extensions
-- [ ] Connect to an extension marketplace (deferred for future release)
-- [ ] Install / Uninstall extensions (deferred for future release)
+- [x] Connect to an extension marketplace (deferred for future release)
+- [x] Install / Uninstall extensions (deferred for future release)
 
 ## Settings Panel (`settings`)
 

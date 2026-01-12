@@ -489,7 +489,7 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
       setActiveTerminalId(newId);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handleNewTerminal, terminalSessions.length]);
+  }, []);
 
   const handleToggleTerminal = () => {
     setIsBottomPanelOpen(prev => !prev);

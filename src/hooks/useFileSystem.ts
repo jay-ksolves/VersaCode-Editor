@@ -266,7 +266,9 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
         isDirty: false,
     };
     setFiles(prevFiles => addNodeToTree(prevFiles, parentId, newFile));
-    if (parentId) setExpandedFolders(prev => new Set(prev).add(parentId));
+    if (parentId) {
+      setExpandedFolders(prev => new Set(prev).add(parentId!));
+    }
     toast({ title: "File Created", description: `${name} was added.` });
     return newFile.id;
   }, [toast]);
@@ -285,7 +287,9 @@ export function useFileSystem({ autoSave }: { autoSave: boolean }) {
         path: '',
     };
     setFiles(prevFiles => addNodeToTree(prevFiles, parentId, newFolder));
-    if (parentId) setExpandedFolders(prev => new Set(prev).add(parentId));
+     if (parentId) {
+      setExpandedFolders(prev => new Set(prev).add(parentId!));
+    }
     toast({ title: "Folder Created", description: `${name} was added.` });
   }, [toast]);
 
