@@ -125,15 +125,17 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
         </div>
     );
      useEffect(() => {
-        if (!lines.some(l => (l as React.ReactElement)?.props?.contentEditable)) {
+        if (session.output.length === 0) {
              const welcomeMessage = (
                 <div className="whitespace-pre-wrap">
                     Welcome to the VersaCode client-side terminal! You can run JavaScript code here.
                 </div>
             );
-            setLines([welcomeMessage, createNewInputLine()]);
-            session.output = [welcomeMessage, createNewInputLine()];
+            const initialLine = createNewInputLine();
+            setLines([welcomeMessage, initialLine]);
+            session.output = [welcomeMessage, initialLine];
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
 
