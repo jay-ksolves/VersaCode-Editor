@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bug, Play, Pause, RefreshCw, StepOver, ArrowDownToLine } from "lucide-react";
+import { Bug, Play, Pause, RefreshCw, ArrowDownToLine } from "lucide-react";
 import { Button } from "../ui/button";
 
 export function RunDebugPanel() {
@@ -21,15 +21,6 @@ export function RunDebugPanel() {
                     </Button>
                      <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
                         <Pause className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
-                        <StepOver className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
-                        <ArrowDownToLine className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
-                        <ArrowDownToLine className="h-4 w-4 rotate-180" />
                     </Button>
                      <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
                         <RefreshCw className="h-4 w-4" />
