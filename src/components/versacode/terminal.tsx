@@ -4,13 +4,14 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, XCircle, Trash2, X, Split, Plus, ChevronUp, ChevronDown } from "lucide-react";
+import { AlertTriangle, XCircle, Trash2, X, Split, Plus, ChevronDown } from "lucide-react";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import type { Problem } from "./ide-layout";
 import { cn } from "@/lib/utils";
 
 interface TerminalProps {
+  output: string[];
   problems: Problem[];
   onGoToProblem: (problem: Problem) => void;
   onClosePanel: () => void;
@@ -54,7 +55,8 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
 
         let resultNode: React.ReactNode;
         try {
-            const result = eval(command);
+            // Use a safer eval
+            const result = new Function(`return ${command}`)();
             resultNode = <div className="text-muted-foreground whitespace-pre-wrap">{`<- ${JSON.stringify(result, null, 2)}`}</div>;
         } catch (error: any) {
             resultNode = <div className="text-destructive whitespace-pre-wrap">{error.toString()}</div>;
@@ -78,23 +80,33 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLSpanElement>) => {
-        const input = e.currentTarget.textContent || '';
+        const inputElement = e.currentTarget;
+        const command = inputElement.textContent || '';
+        
         if (e.key === 'Enter') {
             e.preventDefault();
-            e.currentTarget.contentEditable = 'false';
-            session.output[session.output.length - 1] = <div className="flex items-center" key={`line-${Date.now()}`}><span className="text-green-400">versa-code {'>'}</span><span className="flex-1 ml-2">{input}</span></div>
-            setLines(prev => [...prev, executeCommand(input)]);
+            inputElement.contentEditable = 'false';
+            // Replace the current input line with a static version
+            const staticInputLine = (
+                 <div className="flex items-center" key={`line-${Date.now()}`}>
+                    <span className="text-green-400">versa-code {'>'}</span>
+                    <span className="flex-1 ml-2">{command}</span>
+                </div>
+            );
+            session.output[session.output.length - 1] = staticInputLine;
+
+            setLines(prev => [...prev.slice(0, -1), staticInputLine, executeCommand(command)]);
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
             if (history.length > 0) {
                 const newIndex = Math.min(history.length - 1, historyIndex + 1);
                 setHistoryIndex(newIndex);
-                e.currentTarget.textContent = history[newIndex] || '';
-                 setTimeout(() => {
+                inputElement.textContent = history[newIndex] || '';
+                 setTimeout(() => { // Move cursor to end
                     const range = document.createRange();
                     const sel = window.getSelection();
-                    if (inputRef.current?.childNodes.length) {
-                       range.setStart(inputRef.current.childNodes[0], e.currentTarget.textContent?.length ?? 0);
+                    if (inputElement.childNodes.length > 0) {
+                       range.setStart(inputElement.childNodes[0], inputElement.textContent?.length ?? 0);
                        range.collapse(true);
                        sel?.removeAllRanges();
                        sel?.addRange(range);
@@ -104,9 +116,9 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
         } else if (e.key === 'ArrowDown') {
             e.preventDefault();
             if (historyIndex >= 0) {
-                const newIndex = Math.max(-1, historyIndex - 1);
+                const newIndex = historyIndex - 1;
                 setHistoryIndex(newIndex);
-                e.currentTarget.textContent = newIndex === -1 ? '' : history[newIndex] || '';
+                inputElement.textContent = newIndex >= 0 ? history[newIndex] || '' : '';
             }
         }
     };
@@ -124,16 +136,19 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
             ></span>
         </div>
     );
-     useEffect(() => {
-        if (session.output.length === 0) {
+
+    // This effect runs only once to set up the initial terminal state
+    useEffect(() => {
+        if (session.output.length <= 1) { // Only if not already populated
              const welcomeMessage = (
                 <div className="whitespace-pre-wrap">
                     Welcome to the VersaCode client-side terminal! You can run JavaScript code here.
                 </div>
             );
             const initialLine = createNewInputLine();
-            setLines([welcomeMessage, initialLine]);
-            session.output = [welcomeMessage, initialLine];
+            const initialOutput = [welcomeMessage, initialLine];
+            setLines(initialOutput);
+            session.output = initialOutput;
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -153,6 +168,7 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
 }
 
 export function Terminal({ 
+    output,
     problems, 
     onGoToProblem, 
     onClosePanel,
@@ -275,7 +291,9 @@ export function Terminal({
         <TabsContent value="output" className="h-full m-0">
             <ScrollArea className="h-full">
               <div className="p-4 whitespace-pre-wrap">
-                 <p className="text-sm text-muted-foreground text-center pt-4">No output yet.</p>
+                 {output.length > 0 ? output.map((line, i) => <p key={i} className="text-sm">{line}</p>) : (
+                    <p className="text-sm text-muted-foreground text-center pt-4">No output yet.</p>
+                 )}
               </div>
             </ScrollArea>
         </TabsContent>
@@ -286,3 +304,5 @@ export function Terminal({
     </Tabs>
   );
 }
+
+    

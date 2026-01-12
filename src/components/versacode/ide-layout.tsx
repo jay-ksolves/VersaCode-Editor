@@ -779,6 +779,7 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
                       className={cn(isBottomPanelOpen ? "block" : "hidden")}
                     >
                       <Terminal 
+                        output={output}
                         problems={problems} 
                         onGoToProblem={handleGoToProblem} 
                         onClosePanel={() => setIsBottomPanelOpen(false)}
@@ -819,3 +820,5 @@ export function IdeLayout(props: IdeLayoutProps) {
   
   return <IdeLayoutContent {...props} />;
 }
+
+    
