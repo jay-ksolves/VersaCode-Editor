@@ -10,7 +10,6 @@ import { Terminal } from "./terminal";
 import { FileExplorer, FileExplorerRef } from "./file-explorer";
 import { ExtensionsPanel } from "./extensions-panel";
 import { SettingsPanel } from "./settings-panel";
-import { TasksPanel } from "./tasks-panel";
 import { useToast } from "@/hooks/use-toast";
 import { suggestCodeCompletion } from "@/ai/flows/ai-suggest-code-completion";
 import { useFileSystem } from "@/hooks/useFileSystem";
@@ -24,7 +23,7 @@ import { formatCode } from "@/ai/flows/format-code";
 import { useHotkeys } from "react-hotkeys-hook";
 
 
-type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "search" | "none";
+type ActivePanel = "files" | "extensions" | "settings" | "search" | "none";
 type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
 
 const mockProblems: Problem[] = [
@@ -306,7 +305,7 @@ function IdeLayoutContent() {
   
   const handleSettingsChange = (newSettings: Partial<typeof editorSettings>) => {
     setEditorSettings(prev => ({...prev, ...newSettings}));
-  }
+  };
 
   const handleResetSettings = () => {
     setEditorSettings(defaultEditorSettings);
@@ -398,8 +397,6 @@ function IdeLayoutContent() {
           onSettingsChange={handleSettingsChange}
           onResetSettings={handleResetSettings}
         />;
-      case "tasks":
-        return <TasksPanel />;
       default:
         return null;
     }
