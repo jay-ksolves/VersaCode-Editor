@@ -23,17 +23,21 @@ declare global {
 
 export default function HomePage() {
   const { theme } = useTheme();
-  const [vantaEffect, setVantaEffect] = useState<any>(null);
   const vantaRef = useRef(null);
+  const vantaEffectRef = useRef<any>(null);
   const { toast } = useToast();
   const { readDirectory, isLoaded } = useOPFS();
 
-  const startVanta = useCallback(() => {
-    if (!window.VANTA || !vantaRef.current) {
-        return null;
+  useEffect(() => {
+    if (!window.VANTA || !vantaRef.current) return;
+
+    // Destroy the previous instance if it exists
+    if (vantaEffectRef.current) {
+        vantaEffectRef.current.destroy();
     }
-    
-    return window.VANTA.RINGS({
+
+    // Create a new instance
+    vantaEffectRef.current = window.VANTA.RINGS({
         el: vantaRef.current,
         mouseControls: true,
         touchControls: true,
@@ -42,38 +46,17 @@ export default function HomePage() {
         minWidth: 200.00,
         scale: 1.00,
         scaleMobile: 1.00,
-        color: 0xA020F0, // Vibrant Purple
-        backgroundColor: theme === 'dark' ? 0x242438 : 0xE6E6FA, // Darker Lavender / Lavender
+        color: 0xA020F0,
+        backgroundColor: theme === 'dark' ? 0x242438 : 0xE6E6FA,
     });
-  }, [theme]);
 
-
-  useEffect(() => {
-    let effect: any = null;
-
-    const tryToStart = () => {
-      effect = startVanta();
-      if (effect) {
-          setVantaEffect(effect);
-      } else {
-          // Retry if VANTA is not ready yet
-          setTimeout(tryToStart, 500);
-      }
-    };
-    
-    if (vantaEffect) {
-        vantaEffect.destroy();
-        setVantaEffect(null);
-    }
-    
-    tryToStart();
-
+    // Cleanup function to destroy the instance on component unmount
     return () => {
-        if (effect) {
-            effect.destroy();
+        if (vantaEffectRef.current) {
+            vantaEffectRef.current.destroy();
         }
     };
-  }, [theme, startVanta, vantaEffect]);
+  }, [theme]);
 
 
     const handleDownloadZip = useCallback(async () => {
