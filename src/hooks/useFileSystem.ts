@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
 
 export type FileSystemNode = {
@@ -474,5 +474,3 @@ export function useFileSystem() {
     findNodeByPath: (path: string) => findNodeByPath(files, path),
   };
 }
-
-    
