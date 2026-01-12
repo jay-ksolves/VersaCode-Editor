@@ -20,20 +20,21 @@ interface SourceControlPanelProps {
     onOpenFile: (fileId: string) => void;
 }
 
-const ChangeItem = ({ file, onAction, actionIcon: ActionIcon, actionTitle }: {
+const ChangeItem = ({ file, onAction, onOpenFile, actionIcon: ActionIcon, actionTitle }: {
     file: FileSystemNode & { type: 'file' };
     onAction: (fileId: string) => void;
+    onOpenFile: (fileId: string) => void;
     actionIcon: React.ElementType;
     actionTitle: string;
 }) => (
     <div className="flex items-center group p-1 rounded-md hover:bg-muted">
-        <div className="flex items-center gap-2 flex-1 cursor-pointer" onClick={() => onAction(file.id)}>
+        <div className="flex items-center gap-2 flex-1 cursor-pointer" onClick={() => onOpenFile(file.id)}>
             <FileIconComponent filename={file.name} />
             <span className="text-sm truncate">{file.name}</span>
             <span className="text-xs text-muted-foreground truncate">{file.path.substring(0, file.path.lastIndexOf('/'))}</span>
         </div>
         <div className="flex items-center opacity-0 group-hover:opacity-100">
-            <Button variant="ghost" size="icon" className="h-7 w-7" title="Open File" onClick={() => onAction(file.id)}>
+            <Button variant="ghost" size="icon" className="h-7 w-7" title="Open File" onClick={() => onOpenFile(file.id)}>
                 <Eye className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="icon" className="h-7 w-7" title={actionTitle} onClick={(e) => { e.stopPropagation(); onAction(file.id); }}>
@@ -66,7 +67,7 @@ export function SourceControlPanel({ changedFiles, stagedFiles, onStageFile, onU
             <div className="p-4 border-b flex items-center justify-between">
                 <h2 className="text-lg font-semibold tracking-tight">Source Control</h2>
                 <div className="flex items-center gap-1">
-                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCommit}>
+                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCommit} title="Commit">
                         <Check className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
@@ -94,7 +95,7 @@ export function SourceControlPanel({ changedFiles, stagedFiles, onStageFile, onU
                         <CollapsibleTrigger className="w-full text-left p-2 font-semibold text-sm">Staged Changes ({stagedFiles.length})</CollapsibleTrigger>
                         <CollapsibleContent className="p-2 space-y-1">
                             {stagedFiles.map(file => 
-                                <ChangeItem key={`staged-${file.id}`} file={file} onAction={() => onUnstageFile(file.id)} actionIcon={Minus} actionTitle="Unstage Changes" />
+                                <ChangeItem key={`staged-${file.id}`} file={file} onAction={() => onUnstageFile(file.id)} onOpenFile={onOpenFile} actionIcon={Minus} actionTitle="Unstage Changes" />
                             )}
                         </CollapsibleContent>
                     </Collapsible>
@@ -104,7 +105,7 @@ export function SourceControlPanel({ changedFiles, stagedFiles, onStageFile, onU
                         <CollapsibleTrigger className="w-full text-left p-2 font-semibold text-sm">Changes ({changedFiles.length})</CollapsibleTrigger>
                         <CollapsibleContent className="p-2 space-y-1">
                              {changedFiles.map(file => 
-                                <ChangeItem key={`changed-${file.id}`} file={file} onAction={() => onStageFile(file.id)} actionIcon={Plus} actionTitle="Stage Changes" />
+                                <ChangeItem key={`changed-${file.id}`} file={file} onAction={() => onStageFile(file.id)} onOpenFile={onOpenFile} actionIcon={Plus} actionTitle="Stage Changes" />
                             )}
                         </CollapsibleContent>
                     </Collapsible>

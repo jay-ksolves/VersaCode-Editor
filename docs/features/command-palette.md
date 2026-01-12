@@ -18,7 +18,7 @@ The Command Palette provides a fast, keyboard-driven way for users to access and
   - Selecting "Command Palette" from the "View" menu in the header.
 - **Components:**
   - **`CommandPalette.tsx`**: A dialog component built using `cmdk`. It contains a search input and a list of available commands grouped by category.
-  - **`IdeLayout.tsx`**: The main layout component that manages the open/closed state of the command palette and provides a central `handleCommand` function to execute actions based on the selected command's ID.
+  - **`IdeLayout.tsx`**: The main layout component that manages the open/closed state of the command palette and provides a central `handleCommand` function to execute actions based on the selected command's unique ID.
   - **`Header.tsx`**: Contains a button in the top-right and a menu item in the "View" menu to open the palette.
 - **Visual Flow:**
   - When triggered, a dialog box appears at the top-center of the screen.
