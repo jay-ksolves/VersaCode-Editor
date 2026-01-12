@@ -41,6 +41,8 @@ A clear and concise description of what actually happened. Include screenshots o
 
 ## Current Bugs
 
+All known bugs for the 1.0 release have been resolved.
+
 ### Terminal does not clear
 
 - **ID:** `BUG-001`
@@ -49,17 +51,7 @@ A clear and concise description of what actually happened. Include screenshots o
 - **Assignee:** `N/A`
 
 **Description:**
-The terminal accumulates output from multiple "Run" commands but there is no way for the user to clear it.
-
-**Steps to Reproduce:**
-1. Click the "Run" button multiple times.
-2. Observe that the terminal output grows with each click.
-
-**Expected Behavior:**
-There should be a button or command (e.g., `clear`) to wipe the terminal history.
-
-**Actual Behavior:**
-The output persists until the page is reloaded.
+The terminal accumulates output from multiple "Run" commands but there is no way for the user to clear it. A "Clear" button has been added.
 
 ### Theme toggle is not persisted
 
@@ -69,14 +61,14 @@ The output persists until the page is reloaded.
 - **Assignee:** `N/A`
 
 **Description:**
-The light/dark theme selection is reset every time the page is refreshed.
+The light/dark theme selection was reset on every page refresh. This is now persisted in `localStorage`.
 
-**Steps to Reproduce:**
-1. Click the theme toggle button in the sidebar to switch to the non-default theme.
-2. Refresh the browser page.
+### File/Folder Creation Bugs
 
-**Expected Behavior:**
-The selected theme should be saved (e.g., in `localStorage`) and reapplied on page load.
+- **ID:** `BUG-003`
+- **Severity:** `P1`
+- **Status:** `Resolved`
+- **Assignee:** `N/A`
 
-**Actual Behavior:**
-The IDE reverts to the default system theme.
+**Description:**
+Creating new files or folders in nested directories was unreliable. The logic for determining the parent folder and updating the UI has been completely overhauled and fixed.

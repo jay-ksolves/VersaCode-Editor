@@ -38,4 +38,4 @@ To get a local instance of VersaCode running for development:
     npm run dev
     ```
 
-The application will be available at `http://localhost:9002`.
+The application will be available at `http://localhost:9002`. The IDE itself is located at the `/editor` route.
