@@ -41,6 +41,9 @@ The project follows a standard Next.js `src` directory structure:
 |   `-- /versacode      # IDE-specific composite components
 |-- /hooks              # Custom React hooks (useFileSystem, useToast)
 |-- /lib                # Utility functions and libraries
+|   |-- /extensions.ts  # The central extension registry
+|   `-- /extensions-api.ts # The extension API definition
+|-- /extensions         # Individual extension modules
 `-- /docs               # Project documentation
 ```
 
@@ -51,3 +54,13 @@ All generative AI functionality is handled through **Genkit flows**, located in 
 - **Flow Definition:** Each flow is a server-side function defined with `ai.defineFlow`. It specifies input/output schemas (using Zod) and orchestrates calls to the Gemini LLM.
 - **Client-Side Invocation:** Client components, such as `IdeLayout` and `FileExplorer`, call these flows as if they were standard async functions. Next.js server actions handle the communication between the client and the server-side flow.
 - **Example:** The "Generate Code" feature in `FileExplorer.tsx` calls the `generateCodeFromPrompt` flow, passing a natural language prompt and receiving a generated code snippet.
+
+## 5. Extensibility and Command System
+
+VersaCode is designed to be modular through a simple extension system, mirroring the architecture of modern IDEs like VS Code.
+
+- **Extension API (`src/lib/extensions-api.ts`):** This file defines the `VersaCodeExtension` interface, which is the contract for all extensions. The most important part of this interface is the `activate` method.
+- **Extension Registry (`src/lib/extensions.ts`):** This acts as a central manifest, importing all individual extension modules (from `src/extensions/`) and exporting them as a single array.
+- **Activation on Startup:** When the `IdeLayout` component mounts, it iterates through the extension registry and calls the `activate` method for each one.
+- **Command Registration:** The `activate` method receives an `ExtensionContext` object, which includes a `registerCommand` function. Extensions use this function to register commands with the IDE, providing a unique command ID and a callback function to be executed.
+- **Command Palette Integration:** The `CommandPalette` component is the primary user interface for commands. When a user selects a command, the `IdeLayout` looks up the command ID in its registry and executes the corresponding callback provided by the extension, making the system fully functional and extensible.

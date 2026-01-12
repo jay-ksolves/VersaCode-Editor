@@ -3,12 +3,12 @@
 
 **ID:** `feature-command-palette`
 **Status:** `Completed`
-**Core Components:** `CommandPalette.tsx`, `IdeLayout.tsx`, `Header.tsx`
+**Core Components:** `CommandPalette.tsx`, `IdeLayout.tsx`, `Header.tsx`, `extensions/core-features.ts`
 **AI Integration:** `No`
 
 ## 1. Description
 
-The Command Palette provides a fast, keyboard-driven way for users to access and execute common IDE commands. It is a central search bar, similar to the one in VS Code, that can be opened with a keyboard shortcut (`Ctrl+Shift+P`). This feature significantly improves workflow efficiency by allowing users to keep their hands on the keyboard.
+The Command Palette provides a fast, keyboard-driven way for users to access and execute common IDE commands. It is a central search bar, similar to the one in VS Code, that can be opened with a keyboard shortcut (`Ctrl+Shift+P`). This feature significantly improves workflow efficiency by allowing users to keep their hands on the keyboard and serves as the primary integration point for functionality contributed by extensions.
 
 ## 2. UI/UX Breakdown
 
@@ -18,24 +18,25 @@ The Command Palette provides a fast, keyboard-driven way for users to access and
   - Selecting "Command Palette" from the "View" menu in the header.
 - **Components:**
   - **`CommandPalette.tsx`**: A dialog component built using `cmdk`. It contains a search input and a list of available commands grouped by category.
-  - **`IdeLayout.tsx`**: The main layout component that manages the open/closed state of the command palette and provides a central `handleCommand` function to execute actions based on the selected command's unique ID.
-  - **`Header.tsx`**: Contains a button in the top-right and a menu item in the "View" menu to open the palette.
+  - **`IdeLayout.tsx`**: The main layout component that manages the open/closed state of the command palette and provides a central `handleCommand` function to execute actions based on the selected command's unique ID. It also serves as the registry for commands provided by extensions.
 - **Visual Flow:**
   - When triggered, a dialog box appears at the top-center of the screen.
   - The user can type to filter the list of available commands.
   - Pressing `Enter` or clicking on a command executes the associated action and closes the palette.
 
-## 3. State Management
+## 3. State Management & Extensibility
 
 - **State Variables:**
   - `const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);` // Located in `IdeLayout.tsx`
-- **Data Flow:**
+- **Data Flow & Command Execution:**
   - The `isCommandPaletteOpen` state and `setIsCommandPaletteOpen` setter are passed from `IdeLayout` to the `CommandPalette` component and the `Header`.
   - When a user selects a command, the `CommandPalette` calls the `onCommand` prop with the command's unique ID (e.g., `'file:new'`).
-  - The `handleCommand` function in `IdeLayout` uses a `switch` statement to determine which action to execute (e.g., calling `handleNewFile()`).
+  - The `handleCommand` function in `IdeLayout` first checks a central command registry (`Map`) for the given ID.
+  - **Extension Integration:** Extensions register their commands by calling `context.registerCommand(id, callback)` during their activation phase. This populates the command registry in `IdeLayout`.
+  - If a command from an extension is found, its registered callback is executed. Otherwise, it falls back to built-in IDE actions. This makes the command system fully extensible.
 
 ## 4. Future Improvements
 
-- [ ] Add more commands (e.g., Git commands, theme toggling).
+- [ ] Add more commands (e.g., Git commands).
 - [ ] Implement a "recently used" section.
-- [ ] Allow extensions to register their own commands.
+- [ ] Allow extensions to dynamically add or remove their commands after activation.

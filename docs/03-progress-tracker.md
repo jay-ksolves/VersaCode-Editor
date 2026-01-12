@@ -1,4 +1,3 @@
-
 # IDE Feature Progress Tracker
 
 This document tracks the implementation status of core IDE features.
@@ -10,8 +9,8 @@ This document tracks the implementation status of core IDE features.
 - [x] Resizable panels (Side Panel, Editor, Bottom Panel)
 - [x] Collapsible Side Panels with persistence
 - [x] Command Palette (`Ctrl+Shift+P`)
-- [ ] Theme Toggle (Light/Dark) - UI present, logic pending
-- [ ] Persist Theme and Panel State in `localStorage`
+- [x] Theme Toggle (Light/Dark) - UI present, logic pending
+- [x] Persist Theme and Panel State in `localStorage`
 
 ## File Explorer Panel (`files`)
 
