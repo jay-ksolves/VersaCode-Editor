@@ -2,10 +2,10 @@ import Link from 'next/link';
 
 export default function BlogPage() {
   return (
-    <div className="prose dark:prose-invert max-w-none">
-      <h1>VersaCode Blog</h1>
+    <div className="prose dark:prose-invert max-w-none animate-fade-in">
+      <h1 className="text-4xl font-bold tracking-tight animate-slide-up" style={{ animationDelay: '0.2s' }}>VersaCode Blog</h1>
       
-      <article className="mb-12">
+      <article className="mb-12 animate-slide-up" style={{ animationDelay: '0.3s' }}>
         <h2 className="mb-2">The Vision for VersaCode: An AI-Native IDE</h2>
         <p className="text-sm text-muted-foreground"><em>Posted on: 2024-07-26</em></p>
         <p>
@@ -17,7 +17,7 @@ export default function BlogPage() {
         <Link href="#" className="text-primary hover:underline">Read more...</Link>
       </article>
       
-      <article>
+      <article className="animate-slide-up" style={{ animationDelay: '0.4s' }}>
         <h2 className="mb-2">Under the Hood: Building a Web IDE with Next.js and Monaco</h2>
         <p className="text-sm text-muted-foreground"><em>Posted on: 2024-07-20</em></p>
         <p>

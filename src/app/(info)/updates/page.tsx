@@ -1,9 +1,9 @@
 export default function UpdatesPage() {
   return (
-    <div className="prose dark:prose-invert max-w-none">
-      <h1>What's New in VersaCode</h1>
+    <div className="prose dark:prose-invert max-w-none animate-fade-in">
+      <h1 className="text-4xl font-bold tracking-tight animate-slide-up" style={{ animationDelay: '0.2s' }}>What's New in VersaCode</h1>
 
-      <article>
+      <article className="animate-slide-up" style={{ animationDelay: '0.3s' }}>
         <h2>Version 1.0.0</h2>
         <p><em>Published: 2024-07-26</em></p>
         

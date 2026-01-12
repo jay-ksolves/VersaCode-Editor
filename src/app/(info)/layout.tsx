@@ -69,7 +69,14 @@ export default function InfoLayout({
           </div>
         </div>
       </header>
-      <main className="container mx-auto px-4 py-16 flex-1">{children}</main>
+      <main className="flex-1">
+        <div className="relative isolate overflow-hidden">
+          <div className="aurora-background"></div>
+          <div className="container mx-auto px-4 py-16">
+            {children}
+          </div>
+        </div>
+      </main>
       <footer className="border-t">
         <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 py-12">
             <div>
