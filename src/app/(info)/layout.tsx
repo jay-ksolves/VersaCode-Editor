@@ -4,7 +4,8 @@
 import { Button } from '@/components/ui/button';
 import { Download, Github, Moon, Rss, Sun, Twitter, Youtube } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { IdeLayout } from '@/components/versacode/ide-layout';
 
 interface InfoLayoutProps {
   children: React.ReactNode;
@@ -17,6 +18,12 @@ export default function InfoLayout({
   theme,
   setTheme,
 }: InfoLayoutProps) {
+  const pathname = usePathname();
+
+  if (pathname === '/editor') {
+    return <IdeLayout theme={theme} setTheme={setTheme} />;
+  }
+  
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
@@ -85,7 +92,7 @@ export default function InfoLayout({
           </div>
         </div>
       </header>
-      <main className="flex-1">
+      <main className="container mx-auto flex-1 px-4 py-8">
         {children}
       </main>
       <footer className="border-t">
