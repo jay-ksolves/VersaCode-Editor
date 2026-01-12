@@ -22,6 +22,7 @@ function FileNode({
   onToggleFolder,
   onRename,
   onSetOperation,
+  expandedFolders,
 }: { 
   node: FileSystemNode; 
   level?: number; 
@@ -31,6 +32,7 @@ function FileNode({
   onToggleFolder: (folderId: string) => void;
   onRename: (nodeId: string, newName: string) => void;
   onSetOperation: (operation: Operation) => void;
+  expandedFolders: Set<string>;
 }) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(node.name);
@@ -132,6 +134,7 @@ function FileNode({
               onToggleFolder={onToggleFolder}
               onRename={onRename}
               onSetOperation={onSetOperation}
+              expandedFolders={expandedFolders}
             />
           )) : (
             <div style={{ paddingLeft: `${(level + 1) * 1.25 + 0.5}rem` }} className="text-xs text-muted-foreground py-1 px-2 italic">
@@ -228,6 +231,7 @@ export function FileExplorer({ files, activeFileId, onSelectFile, onCreateFile, 
                 onToggleFolder={onToggleFolder}
                 onRename={onRename}
                 onSetOperation={setOperation}
+                expandedFolders={expandedFolders}
               />
             ))}
           </div>
