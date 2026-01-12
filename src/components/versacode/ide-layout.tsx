@@ -69,7 +69,7 @@ interface IdeLayoutProps {
 
 function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
   const [activePanel, setActivePanel] = useState<ActivePanel>("files");
-  const [output, setOutput] = useState<string[]>([]);
+  const [output, setOutput] = useState<React.ReactNode[]>([]);
   const [problems, setProblems] = useState<Problem[]>([]);
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
   const [isFormatting, setIsFormatting] = useState<boolean>(false);
@@ -792,6 +792,7 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
                       className={cn(isBottomPanelOpen ? "block" : "hidden")}
                     >
                       <Terminal 
+                        output={output}
                         problems={problems} 
                         onGoToProblem={handleGoToProblem} 
                         onClosePanel={() => setIsBottomPanelOpen(false)}

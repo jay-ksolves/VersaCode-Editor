@@ -10,8 +10,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import type { Problem } from "./ide-layout";
 import { cn } from "@/lib/utils";
 
+export type TerminalSession = {
+    id: string;
+    name: string;
+    output: React.ReactNode[];
+    history: string[];
+};
+
 interface TerminalProps {
-  output: string[];
+  output: React.ReactNode[];
   problems: Problem[];
   onGoToProblem: (problem: Problem) => void;
   onClosePanel: () => void;
@@ -21,14 +28,6 @@ interface TerminalProps {
   activeTerminalId: string | null;
   setActiveTerminalId: (id: string) => void;
 }
-
-export type TerminalSession = {
-    id: string;
-    name: string;
-    output: React.ReactNode[];
-    history: string[];
-};
-
 
 const TerminalInstance = ({ session }: { session: TerminalSession }) => {
     const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -47,8 +46,23 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
     }, []);
 
     useEffect(scrollToBottom, [lines, scrollToBottom]);
+    
+    const createNewInputLine = useCallback(() => (
+         <div className="flex items-center" key={`line-${Date.now()}-${Math.random()}`}>
+            <span className="text-green-400">versa-code {'>'}</span>
+            <span
+                ref={inputRef}
+                className="flex-1 ml-2 bg-transparent outline-none"
+                contentEditable="true"
+                autoFocus
+                onKeyDown={handleKeyDown}
+                suppressContentEditableWarning
+            ></span>
+        </div>
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    ), []);
 
-    const executeCommand = (command: string) => {
+    const executeCommand = useCallback((command: string) => {
         if (!command.trim()) {
             return createNewInputLine();
         }
@@ -81,9 +95,9 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
         );
         session.output.push(resultNode, createNewInputLine());
         return newOutput;
-    };
+    }, [createNewInputLine, session]);
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLSpanElement>) => {
+    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLSpanElement>) => {
         const inputElement = e.currentTarget;
         const command = inputElement.textContent || '';
         
@@ -128,21 +142,7 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
                 inputElement.textContent = '';
             }
         }
-    };
-    
-    const createNewInputLine = () => (
-         <div className="flex items-center" key={`line-${Date.now()}-${Math.random()}`}>
-            <span className="text-green-400">versa-code {'>'}</span>
-            <span
-                ref={inputRef}
-                className="flex-1 ml-2 bg-transparent outline-none"
-                contentEditable="true"
-                autoFocus
-                onKeyDown={handleKeyDown}
-                suppressContentEditableWarning
-            ></span>
-        </div>
-    );
+    }, [executeCommand, history, historyIndex, session.output]);
 
     // This effect runs only once to set up the initial terminal state
     useEffect(() => {
