@@ -100,7 +100,7 @@ export default function HomePage({ theme, setTheme }: HomePageProps) {
       </header>
 
       <main className="flex-1">
-        <div className="relative isolate overflow-hidden">
+        <div id="vanta-target" className="relative isolate overflow-hidden">
              <div className="vanta-background"></div>
              <div className="container mx-auto px-4 py-24 text-center">
               <div className="mx-auto max-w-4xl animate-fade-in">
