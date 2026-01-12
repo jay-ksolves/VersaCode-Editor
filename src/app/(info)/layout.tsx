@@ -178,7 +178,7 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
                     <h3 className="font-semibold mb-2">VersaCode</h3>
                     <p className="text-sm text-primary-foreground/80">The AI-Native Web IDE.</p>
                      <div className="flex items-center gap-4 text-primary-foreground/80 mt-4">
-                      <a href="#" className="hover:text-primary-foreground" title="GitHub" aria-label="GitHub"><Github className="h-5 w-5" /></a>
+                      <a href="https://github.com/jay-ksolves/VersaCode-Editor" target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground" title="GitHub" aria-label="GitHub"><Github className="h-5 w-5" /></a>
                       <a href="#" className="hover:text-primary-foreground" title="Twitter" aria-label="Twitter"><Twitter className="h-5 w-5" /></a>
                       <a href="#" className="hover:text-primary-foreground" title="YouTube" aria-label="YouTube"><Youtube className="h-5 w-5" /></a>
                       <a href="#" className="hover:text-primary-foreground" title="RSS Feed" aria-label="RSS Feed"><Rss className="h-5 w-5" /></a>
@@ -195,7 +195,7 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
                    <div>
                     <h3 className="font-semibold mb-2">Community</h3>
                     <nav className="flex flex-col gap-2 text-sm">
-                        <Link href="#" className="text-primary-foreground/80 hover:text-primary-foreground">GitHub</Link>
+                        <Link href="https://github.com/jay-ksolves/VersaCode-Editor" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/80 hover:text-primary-foreground">GitHub</Link>
                         <Link href="#" className="text-primary-foreground/80 hover:text-primary-foreground">Contributors</Link>
                         <Link href="/blog" className="text-primary-foreground/80 hover:text-primary-foreground">Blog</Link>
                     </nav>

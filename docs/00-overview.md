@@ -23,11 +23,11 @@ To get a local instance of VersaCode running for development:
 
 1.  **Clone the repository:**
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/jay-ksolves/VersaCode-Editor.git
     ```
 2.  **Navigate to the project directory:**
     ```bash
-    cd versacode
+    cd VersaCode-Editor
     ```
 3.  **Install dependencies:**
     ```bash

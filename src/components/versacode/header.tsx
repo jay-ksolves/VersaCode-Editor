@@ -164,7 +164,7 @@ export function Header({
           <MenubarMenu>
             <MenubarTrigger data-testid="header-help-menu-trigger">Help</MenubarTrigger>
             <MenubarContent>
-               <MenubarItem onClick={() => window.open('https://github.com/FirebaseExtended/firebase-studio', '_blank')} data-testid="header-help-source-code">
+               <MenubarItem onClick={() => window.open('https://github.com/jay-ksolves/VersaCode-Editor', '_blank')} data-testid="header-help-source-code">
                 Source Code
               </MenubarItem>
             </MenubarContent>

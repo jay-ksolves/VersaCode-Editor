@@ -24,7 +24,7 @@ export default function SupportPage() {
           <li>What actually happened (including screenshots or console errors if possible).</li>
         </ul>
         <p>
-          <a href="#" className="text-primary hover:underline">Report a Bug on GitHub</a>
+          <a href="https://github.com/jay-ksolves/VersaCode-Editor/issues" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Report a Bug on GitHub</a>
         </p>
 
         <h2 className="text-2xl font-semibold tracking-tight">Feature Requests</h2>
@@ -32,7 +32,7 @@ export default function SupportPage() {
           Have an idea for a new feature? We'd love to hear it! Please open an issue on GitHub with the "feature request" label. Describe the feature and why you think it would be a valuable addition to VersaCode.
         </p>
         <p>
-          <a href="#" className="text-primary hover:underline">Request a Feature on GitHub</a>
+          <a href="https://github.com/jay-ksolves/VersaCode-Editor/issues" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Request a Feature on GitHub</a>
         </p>
         
         <h2 className="text-2xl font-semibold tracking-tight">Community & Contributions</h2>

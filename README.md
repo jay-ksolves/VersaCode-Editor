@@ -1,6 +1,8 @@
 
 # VersaCode - The AI-Native Web IDE
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-▲-black?style=for-the-badge&logo=vercel)](https://versa-code-editor.vercel.app/)
+
 VersaCode is a free, open-source, and feature-rich web-based Integrated Development Environment (IDE) designed for the modern developer. It combines the power and familiar interface of desktop editors like VS Code with the accessibility of a web app and the intelligence of generative AI.
 
 ![VersaCode IDE Screenshot](https://storage.googleapis.com/firebase-studio-v2-assets/versacode-screenshot.png)
@@ -32,11 +34,11 @@ To get a local instance of VersaCode running for development:
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/FirebaseExtended/firebase-studio.git
+    git clone https://github.com/jay-ksolves/VersaCode-Editor.git
     ```
 2.  **Navigate to the project directory:**
     ```bash
-    cd firebase-studio/versacode-editor
+    cd VersaCode-Editor
     ```
 3.  **Install dependencies:**
     ```bash

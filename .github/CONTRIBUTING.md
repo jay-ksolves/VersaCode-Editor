@@ -7,8 +7,8 @@ This project is in active development, and we welcome all contributions. Whether
 ## Getting Started
 
 1.  **Fork the repository** on GitHub.
-2.  **Clone your fork** locally: `git clone https://github.com/your-username/versacode.git`
-3.  **Navigate to the project directory**: `cd versacode`
+2.  **Clone your fork** locally: `git clone https://github.com/your-username/VersaCode-Editor.git`
+3.  **Navigate to the project directory**: `cd VersaCode-Editor`
 4.  **Install dependencies**: `npm install`
 5.  **Run the development server**: `npm run dev`
 
