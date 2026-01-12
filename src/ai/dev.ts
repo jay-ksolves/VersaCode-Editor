@@ -1,4 +1,5 @@
-import { config } from 'dotenv';
+'use server';
+import {config} from 'dotenv';
 config();
 
 import '@/ai/flows/generate-code-from-prompt.ts';

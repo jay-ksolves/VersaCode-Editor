@@ -1,6 +1,6 @@
 "use client";
 
-import { Folder, File as FileIcon, ChevronRight, ChevronDown, FolderPlus, FilePlus, MoreVertical, Edit, Trash2 } from "lucide-react";
+import { Folder, File as FileIcon, ChevronRight, ChevronDown, FolderPlus, FilePlus, MoreVertical, Edit, Trash2, Wand2 } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import type { FileSystemNode } from "@/hooks/useFileSystem";
@@ -10,8 +10,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { generateCodeFromPrompt } from "@/ai/flows/generate-code-from-prompt";
+import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "../ui/textarea";
 
-type Operation = { type: 'create_file', parentId: string | null } | { type: 'create_folder', parentId: string | null } | { type: 'delete', nodeId: string, nodeName: string } | null;
+type Operation = { type: 'create_file', parentId: string | null } | { type: 'create_folder', parentId: string | null } | { type: 'delete', nodeId: string, nodeName: string } | { type: 'generate_code', parentId: string | null } | null;
 
 function FileNode({ 
   node, 
@@ -147,9 +150,13 @@ function FileNode({
   );
 }
 
-export function FileExplorer({ files, activeFileId, onSelectFile, onCreateFile, onCreateFolder, expandedFolders, onToggleFolder, onRename, onDeleteNode, getTargetFolder }) {
+export function FileExplorer({ files, activeFileId, onSelectFile, onCreateFile, onCreateFolder, expandedFolders, onToggleFolder, onRename, onDeleteNode, getTargetFolder, onOpenFile }) {
   const [operation, setOperation] = useState<Operation>(null);
   const [newNodeName, setNewNodeName] = useState('');
+  const [generatePrompt, setGeneratePrompt] = useState('');
+  const [generateFileName, setGenerateFileName] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const { toast } = useToast();
 
   const handleCreate = () => {
     if (!operation || (operation.type !== 'create_file' && operation.type !== 'create_folder')) return;
@@ -161,6 +168,37 @@ export function FileExplorer({ files, activeFileId, onSelectFile, onCreateFile, 
     }
     setOperation(null);
     setNewNodeName('');
+  };
+
+  const handleGenerate = async () => {
+    if (!operation || operation.type !== 'generate_code' || !generatePrompt || !generateFileName) return;
+    
+    setIsGenerating(true);
+    try {
+      const result = await generateCodeFromPrompt({
+        prompt: generatePrompt,
+        language: generateFileName.split('.').pop() || 'typescript',
+      });
+      const newFileId = onCreateFile(generateFileName, operation.parentId, result.code);
+
+      if (newFileId) {
+        onOpenFile(newFileId);
+        toast({ title: "File Generated", description: `${generateFileName} was created.` });
+      }
+
+    } catch (error) {
+      console.error("AI code generation failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to generate code from prompt.",
+      });
+    } finally {
+      setIsGenerating(false);
+      setOperation(null);
+      setGeneratePrompt('');
+      setGenerateFileName('');
+    }
   };
   
   const handleDelete = () => {
@@ -178,10 +216,11 @@ export function FileExplorer({ files, activeFileId, onSelectFile, onCreateFile, 
     }
   }
   
-  const getCreateDialogTitle = () => {
+  const getDialogTitle = () => {
       if (!operation) return '';
       const target = getTargetFolder(operation.parentId);
       const targetName = target ? target.name : 'root';
+      if (operation.type === 'generate_code') return `Generate Code in '${targetName}'`;
       const type = operation.type === 'create_file' ? 'File' : 'Folder';
       return `Create New ${type} in '${targetName}'`;
   }
@@ -194,6 +233,8 @@ export function FileExplorer({ files, activeFileId, onSelectFile, onCreateFile, 
       </Button>
     </div>
   );
+  
+  const parentIdForNewNode = getTargetFolder(activeFileId)?.id ?? null;
 
   return (
     <div className="h-full flex flex-col">
@@ -202,7 +243,15 @@ export function FileExplorer({ files, activeFileId, onSelectFile, onCreateFile, 
         <div className="flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setOperation({type: 'create_file', parentId: getTargetFolder(activeFileId)?.id ?? null })}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setOperation({type: 'generate_code', parentId: parentIdForNewNode })}>
+                <Wand2 className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Generate Code</p></TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setOperation({type: 'create_file', parentId: parentIdForNewNode })}>
                 <FilePlus className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -210,7 +259,7 @@ export function FileExplorer({ files, activeFileId, onSelectFile, onCreateFile, 
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setOperation({type: 'create_folder', parentId: getTargetFolder(activeFileId)?.id ?? null })}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setOperation({type: 'create_folder', parentId: parentIdForNewNode })}>
                 <FolderPlus className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -242,7 +291,7 @@ export function FileExplorer({ files, activeFileId, onSelectFile, onCreateFile, 
       <Dialog open={operation?.type === 'create_file' || operation?.type === 'create_folder'} onOpenChange={() => { setOperation(null); setNewNodeName('')}}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{getCreateDialogTitle()}</DialogTitle>
+            <DialogTitle>{getDialogTitle()}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
@@ -252,6 +301,33 @@ export function FileExplorer({ files, activeFileId, onSelectFile, onCreateFile, 
           </div>
           <DialogFooter>
             <Button type="submit" onClick={handleCreate}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Generate Code Dialog */}
+      <Dialog open={operation?.type === 'generate_code'} onOpenChange={() => { setOperation(null); setGeneratePrompt(''); setGenerateFileName(''); }}>
+        <DialogContent className="sm:max-w-[625px]">
+          <DialogHeader>
+            <DialogTitle>{getDialogTitle()}</DialogTitle>
+            <DialogDescription>
+              Describe the code you want to generate. Be specific for the best results.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="filename" className="text-right">File Name</Label>
+              <Input id="filename" value={generateFileName} onChange={(e) => setGenerateFileName(e.target.value)} className="col-span-3" placeholder="e.g., button.tsx" />
+            </div>
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="prompt" className="text-right pt-2">Prompt</Label>
+              <Textarea id="prompt" value={generatePrompt} onChange={(e) => setGeneratePrompt(e.target.value)} className="col-span-3" rows={8} placeholder="e.g., a React button component with primary and secondary variants using Tailwind CSS" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" onClick={handleGenerate} disabled={isGenerating}>
+              {isGenerating ? 'Generating...' : 'Generate Code'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

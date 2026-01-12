@@ -228,22 +228,23 @@ export function useFileSystem() {
     return null;
   }
 
-  const createFile = useCallback((name: string, parentId: string | null) => {
+  const createFile = useCallback((name: string, parentId: string | null, content: string = '') => {
     const validationError = validateName(name, parentId);
     if (validationError) {
         toast({ variant: 'destructive', title: "Invalid Name", description: validationError });
-        return;
+        return null;
     }
     const newFile: FileSystemNode = {
         id: Date.now().toString(),
         name,
         type: 'file',
-        content: `// ${name}\n`,
+        content: content || `// ${name}\n`,
         path: '', // Path will be updated by addNodeToTree
     };
     setFiles(prevFiles => addNodeToTree(prevFiles, parentId, newFile));
     if (parentId) setExpandedFolders(prev => new Set(prev).add(parentId));
     toast({ title: "File Created", description: `${name} was added.` });
+    return newFile.id;
   }, [files, toast]);
 
   const createFolder = useCallback((name: string, parentId: string | null) => {

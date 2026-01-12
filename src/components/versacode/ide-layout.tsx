@@ -184,6 +184,7 @@ function IdeLayoutContent() {
           getTargetFolder={getTargetFolder}
           expandedFolders={expandedFolders}
           onToggleFolder={toggleFolder}
+          onOpenFile={openFile}
         />;
       case "extensions":
         return <ExtensionsPanel />;

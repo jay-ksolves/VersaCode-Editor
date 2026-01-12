@@ -21,7 +21,7 @@ This document tracks the implementation status of core IDE features.
 - [x] Prevent duplicate names
 - [x] Persist folder expansion state
 - [x] Empty state for file explorer
-- [ ] Drag-and-drop files and folders
+- [x] Drag-and-drop files and folders
 
 ## Code Editor
 
@@ -31,6 +31,7 @@ This document tracks the implementation status of core IDE features.
 - [x] Syntax Highlighting
 - [x] Show Minimap
 - [x] Code Formatting (via AI)
+- [x] AI Code Generation from Prompt
 
 ## Terminal / Output Panel
 
@@ -39,13 +40,13 @@ This document tracks the implementation status of core IDE features.
 - [x] "Problems" tab with mock data
 - [x] Clear terminal output
 - [x] Link problems to lines in the code editor
-- [ ] Implement actual code execution environment (e.g., using WebContainers)
+- [x] Implement actual code execution environment (e.g., using WebContainers)
 
 ## Extensions Panel (`extensions`)
 
 - [x] Mock list of installed extensions
-- [ ] Connect to an extension marketplace
-- [ ] Install / Uninstall extensions
+- [x] Connect to an extension marketplace
+- [x] Install / Uninstall extensions
 
 ## Settings Panel (`settings`)
 
@@ -56,4 +57,4 @@ This document tracks the implementation status of core IDE features.
 ## Tasks Panel (`tasks`)
 
 - [x] Initial UI with mock feature/bug lists
-- [ ] Link tasks to progress/bug tracker docs
+- [x] Link tasks to progress/bug tracker docs
