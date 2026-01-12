@@ -369,6 +369,21 @@ function IdeLayoutContent() {
   const handleNewFile = () => fileExplorerRef.current?.startCreate('create_file');
   const handleNewFolder = () => fileExplorerRef.current?.startCreate('create_folder');
   
+  const handleNewUntitledFile = useCallback(() => {
+    let i = 1;
+    let newName = `Untitled-${i}`;
+    // This is a simple way to find the next available name.
+    // A more robust solution would parse numbers, but this is fine for now.
+    while (findNodeByPath(files, newName)) {
+      i++;
+      newName = `Untitled-${i}`;
+    }
+    const newFileId = createFile(newName, null, '');
+    if (newFileId) {
+      openFile(newFileId);
+    }
+  }, [files, createFile, openFile, findNodeByPath]);
+
   const handleNewTerminal = useCallback(() => {
     if (bottomPanelSize <= 5) {
       setBottomPanelSize(33); // Or a default size
@@ -526,6 +541,7 @@ function IdeLayoutContent() {
                             onCloseTab={handleCloseTab}
                             findNodeById={findNodeById}
                             dirtyFileIds={dirtyFiles}
+                            onNewUntitled={handleNewUntitledFile}
                         />
                         <Breadcrumbs
                           activeFile={activeFile}

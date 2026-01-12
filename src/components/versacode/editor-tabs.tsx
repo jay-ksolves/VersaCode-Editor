@@ -15,6 +15,7 @@ interface EditorTabsProps {
   onCloseTab: (id: string, force?: boolean) => void;
   findNodeById: (id:string) => FileSystemNode | null;
   dirtyFileIds: Set<string>;
+  onNewUntitled: () => void;
 }
 
 export function EditorTabs({
@@ -24,12 +25,9 @@ export function EditorTabs({
   onCloseTab,
   findNodeById,
   dirtyFileIds,
+  onNewUntitled,
 }: EditorTabsProps) {
 
-  if (openFileIds.length === 0) {
-    return <div className="h-[41px] border-b bg-card" />; // Maintain layout consistency
-  }
-  
   const handleClose = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     onCloseTab(id);
@@ -44,8 +42,8 @@ export function EditorTabs({
   }
 
   return (
-    <ScrollArea className="w-full whitespace-nowrap bg-card border-b">
-      <div className="flex">
+    <ScrollArea className="w-full whitespace-nowrap bg-card border-b" onDoubleClick={onNewUntitled}>
+      <div className="flex h-full">
         {openFileIds.map((id) => {
           const file = findNodeById(id);
           if (!file || file.type !== 'file') return null;
@@ -59,7 +57,7 @@ export function EditorTabs({
               onClick={() => onSelectTab(id)}
               onAuxClick={(e) => handleAuxClick(e, id)}
               className={cn(
-                'flex items-center gap-2 pl-4 pr-2 py-2 border-r cursor-pointer text-sm group relative min-w-max',
+                'flex items-center gap-2 pl-4 pr-2 border-r cursor-pointer text-sm group relative min-w-max',
                 isActive ? 'bg-background text-foreground' : 'bg-card text-muted-foreground hover:bg-muted',
               )}
               title={file.path}
@@ -82,6 +80,8 @@ export function EditorTabs({
             </div>
           );
         })}
+         {/* This empty div acts as the double-click target when no files are open or to the right of tabs */}
+        <div className="flex-grow h-full" onDoubleClick={onNewUntitled} />
       </div>
       <ScrollBar orientation="horizontal" />
     </ScrollArea>
