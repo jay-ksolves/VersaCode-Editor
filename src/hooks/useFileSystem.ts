@@ -205,10 +205,15 @@ export function useFileSystem() {
     }
   }, []);
 
+  const hasUnsavedChanges = useRef(false);
+
   useEffect(() => {
     if (files.length > 0) {
         try {
-            localStorage.setItem(FS_LOCAL_STORAGE_KEY, JSON.stringify(files));
+            if (hasUnsavedChanges.current) {
+                localStorage.setItem(FS_LOCAL_STORAGE_KEY, JSON.stringify(files));
+                hasUnsavedChanges.current = false;
+            }
             localStorage.setItem(EXPANDED_FOLDERS_LOCAL_STORAGE_KEY, JSON.stringify(Array.from(expandedFolders)));
             localStorage.setItem(OPEN_FILES_LOCAL_STORAGE_KEY, JSON.stringify(openFileIds));
             if (activeFileId) {
@@ -224,8 +229,11 @@ export function useFileSystem() {
 
   const activeFile = activeFileId ? findNodeById(files, activeFileId) : null;
 
-  const updateFileContent = useCallback((id: string, content: string) => {
+  const updateFileContent = useCallback((id: string, content: string, fromEditor = false) => {
     setFiles(prevFiles => updateNodeContentInTree(prevFiles, id, content));
+    if (!fromEditor) {
+        originalFiles = updateNodeContentInTree(originalFiles, id, content);
+    }
   }, []);
   
   const getTargetFolder = useCallback((selectedNodeId: string | null) => {
@@ -269,7 +277,12 @@ export function useFileSystem() {
         content: content || `// ${name}\n`,
         path: '', // Path will be updated by addNodeToTree
     };
-    setFiles(prevFiles => addNodeToTree(prevFiles, parentId, newFile));
+    setFiles(prevFiles => {
+        const newTree = addNodeToTree(prevFiles, parentId, newFile);
+        hasUnsavedChanges.current = true;
+        originalFiles = JSON.parse(JSON.stringify(newTree));
+        return newTree;
+    });
     if (parentId) setExpandedFolders(prev => new Set(prev).add(parentId));
     toast({ title: "File Created", description: `${name} was added.` });
     return newFile.id;
@@ -288,7 +301,12 @@ export function useFileSystem() {
         children: [],
         path: '', // Path will be updated by addNodeToTree
     };
-    setFiles(prevFiles => addNodeToTree(prevFiles, parentId, newFolder));
+    setFiles(prevFiles => {
+        const newTree = addNodeToTree(prevFiles, parentId, newFolder);
+        hasUnsavedChanges.current = true;
+        originalFiles = JSON.parse(JSON.stringify(newTree));
+        return newTree;
+    });
     if (parentId) setExpandedFolders(prev => new Set(prev).add(parentId));
     toast({ title: "Folder Created", description: `${name} was added.` });
   }, [files, toast]);
@@ -305,7 +323,12 @@ export function useFileSystem() {
         return;
     }
     
-    setFiles(prevFiles => renameNodeInTree(prevFiles, id, newName));
+    setFiles(prevFiles => {
+        const newTree = renameNodeInTree(prevFiles, id, newName);
+        hasUnsavedChanges.current = true;
+        originalFiles = JSON.parse(JSON.stringify(newTree));
+        return newTree;
+    });
     toast({ title: "Renamed", description: `Renamed to ${newName}.` });
   }, [files, toast]);
 
@@ -330,6 +353,10 @@ export function useFileSystem() {
     setFiles(prevFiles => {
       const { tree, removedNode } = removeNodeFromTree(prevFiles, id);
       nodeToDelete = removedNode;
+      if (removedNode) {
+          hasUnsavedChanges.current = true;
+          originalFiles = JSON.parse(JSON.stringify(tree));
+      }
       return tree;
     });
 
@@ -375,16 +402,17 @@ export function useFileSystem() {
         }
     }
     
-    let newFiles: FileSystemNode[] = files;
     let movedNode: FileSystemNode | null = null;
 
     setFiles(currentFiles => {
         const { tree, removedNode } = removeNodeFromTree(currentFiles, draggedNodeId);
         movedNode = removedNode;
-        newFiles = tree;
+        let newFiles = tree;
 
         if (movedNode) {
             newFiles = addNodeToTree(newFiles, dropTargetId, movedNode);
+            hasUnsavedChanges.current = true;
+            originalFiles = JSON.parse(JSON.stringify(newFiles));
         }
         return newFiles;
     });
@@ -446,3 +474,5 @@ export function useFileSystem() {
     findNodeByPath: (path: string) => findNodeByPath(files, path),
   };
 }
+
+    

@@ -4,7 +4,7 @@
 import React, { useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, XCircle, Trash2 } from "lucide-react";
+import { AlertTriangle, XCircle, Trash2, X, ChevronUp, ChevronsUp, Maximize } from "lucide-react";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
@@ -20,9 +20,10 @@ interface TerminalProps {
   problems: Problem[];
   onClear: () => void;
   onGoToProblem: (problem: Problem) => void;
+  onClose: () => void;
 }
 
-export function Terminal({ output, problems, onClear, onGoToProblem }: TerminalProps) {
+export function Terminal({ output, problems, onClear, onGoToProblem, onClose }: TerminalProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -43,16 +44,28 @@ export function Terminal({ output, problems, onClear, onGoToProblem }: TerminalP
           <TabsTrigger value="output">OUTPUT</TabsTrigger>
           <TabsTrigger value="debug">DEBUG CONSOLE</TabsTrigger>
         </TabsList>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClear} title="Clear Terminal">
-              <Trash2 className="h-4 w-4"/>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            <p>Clear Terminal</p>
-          </TooltipContent>
-        </Tooltip>
+        <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClear} title="Clear Terminal">
+                <Trash2 className="h-4 w-4"/>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>Clear Terminal</p>
+            </TooltipContent>
+          </Tooltip>
+           <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose} title="Close Panel">
+                <X className="h-4 w-4"/>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>Close Panel</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </div>
       <div className="flex-1 bg-background font-code text-sm overflow-hidden">
         <TabsContent value="terminal" className="h-full m-0">
@@ -99,3 +112,5 @@ export function Terminal({ output, problems, onClear, onGoToProblem }: TerminalP
     </Tabs>
   );
 }
+
+    

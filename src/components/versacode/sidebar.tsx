@@ -4,10 +4,10 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { FileCode, Puzzle, Settings, Code, CheckSquare } from "lucide-react";
+import { FileCode, Puzzle, Settings, Code, CheckSquare, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "none";
+type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "search" | "none";
 
 interface SidebarProps {
   activePanel: ActivePanel;
@@ -16,6 +16,7 @@ interface SidebarProps {
 
 const navItems = [
   { id: "files", icon: FileCode, label: "File Explorer" },
+  { id: "search", icon: Search, label: "Search" },
   { id: "extensions", icon: Puzzle, label: "Extensions" },
   { id: "tasks", icon: CheckSquare, label: "Tasks" },
   { id: "settings", icon: Settings, label: "Settings" },
@@ -66,3 +67,5 @@ export function Sidebar({ activePanel, onSelectPanel }: SidebarProps) {
     </aside>
   );
 }
+
+    

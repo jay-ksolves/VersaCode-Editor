@@ -17,9 +17,12 @@ import { useFileSystem } from "@/hooks/useFileSystem";
 import { TooltipProvider } from "../ui/tooltip";
 import type * as monaco from 'monaco-editor';
 import { Breadcrumbs } from "./breadcrumbs";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { SearchPanel } from "./search-panel";
+import { cn } from "@/lib/utils";
 
 
-type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "none";
+type ActivePanel = "files" | "extensions" | "settings" | "tasks" | "search" | "none";
 type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
 
 const mockProblems: Problem[] = [
@@ -40,6 +43,7 @@ function IdeLayoutContent() {
   const [isSuggesting, setIsSuggesting] = useState<boolean>(false);
   const [editorSettings, setEditorSettings] = useState(defaultEditorSettings);
   const [dirtyFiles, setDirtyFiles] = useState<Set<string>>(new Set());
+  const [bottomPanelSize, setBottomPanelSize] = useState(33);
   
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);
@@ -122,7 +126,7 @@ function IdeLayoutContent() {
             
             // Sync content with the main state
             if (currentContent !== savedContent) {
-              updateFileContent(fileId, currentContent);
+              updateFileContent(fileId, currentContent, true); // Pass true to indicate it's from editor
             }
             
             // Update dirty status
@@ -146,12 +150,15 @@ function IdeLayoutContent() {
 
     // Clean up models for closed files
     return () => {
+        openFilesSet.forEach(fileId => {
+            const disposable = disposables.get(fileId);
+            disposable?.dispose();
+        });
+
         modelsRef.current.forEach((model, fileId) => {
             if (!openFilesSet.has(fileId)) {
                 model.dispose();
                 modelsRef.current.delete(fileId);
-                disposables.get(fileId)?.dispose();
-                disposables.delete(fileId);
                 setDirtyFiles(prev => {
                   const newDirty = new Set(prev);
                   newDirty.delete(fileId);
@@ -315,6 +322,8 @@ function IdeLayoutContent() {
           onToggleFolder={toggleFolder}
           onOpenFile={openFile}
         />;
+      case "search":
+        return <SearchPanel />;
       case "extensions":
         return <ExtensionsPanel />;
       case "settings":
@@ -345,43 +354,65 @@ function IdeLayoutContent() {
             onToggleMinimap={(checked) => handleSettingsChange({ minimap: checked })}
           />
           <main className="flex-1 flex overflow-hidden">
-            {activePanel !== "none" && (
-              <div className="w-64 bg-card border-r border-border flex-shrink-0 overflow-y-auto">
+            <ResizablePanelGroup direction="horizontal">
+              <ResizablePanel defaultSize={20} minSize={15} maxSize={30} id="side-panel" order={1} className={cn(activePanel === 'none' && "hidden")}>
                 {renderPanel()}
-              </div>
-            )}
-            <div className="flex-1 flex flex-col min-w-0">
-               <Breadcrumbs
-                activeFile={activeFile}
-                onSelectPath={handleBreadcrumbSelect}
-              />
-              <EditorTabs
-                  openFileIds={openFileIds}
-                  activeFileId={activeFileId}
-                  onSelectTab={setActiveFileId}
-                  onCloseTab={handleCloseTab}
-                  findNodeById={findNodeById}
-                  dirtyFileIds={dirtyFiles}
-              />
-              <div className="flex-1 relative overflow-auto bg-card">
-                 {openFileIds.length > 0 && activeFile ? (
-                    <CodeEditor 
-                      onMount={handleEditorMount}
-                      options={{ 
-                        minimap: {enabled: editorSettings.minimap},
-                        fontSize: editorSettings.fontSize,
-                      }}
-                    />
-                 ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    <p>Select a file to begin editing or create a new one.</p>
-                  </div>
-                 )}
-              </div>
-              <div className="h-1/3 border-t border-border flex flex-col">
-                <Terminal output={terminalOutput} problems={mockProblems} onClear={clearTerminal} onGoToProblem={handleGoToProblem} />
-              </div>
-            </div>
+              </ResizablePanel>
+              {activePanel !== 'none' && <ResizableHandle withHandle />}
+              <ResizablePanel id="main-panel" order={2}>
+                 <ResizablePanelGroup direction="vertical">
+                    <ResizablePanel defaultSize={100 - bottomPanelSize} order={1}>
+                       <div className="flex-1 flex flex-col min-w-0 h-full">
+                        <Breadcrumbs
+                          activeFile={activeFile}
+                          onSelectPath={handleBreadcrumbSelect}
+                        />
+                        <EditorTabs
+                            openFileIds={openFileIds}
+                            activeFileId={activeFileId}
+                            onSelectTab={setActiveFileId}
+                            onCloseTab={handleCloseTab}
+                            findNodeById={findNodeById}
+                            dirtyFileIds={dirtyFiles}
+                        />
+                        <div className="flex-1 relative overflow-auto bg-card">
+                          {openFileIds.length > 0 && activeFile ? (
+                              <CodeEditor 
+                                onMount={handleEditorMount}
+                                options={{ 
+                                  minimap: {enabled: editorSettings.minimap},
+                                  fontSize: editorSettings.fontSize,
+                                }}
+                              />
+                          ) : (
+                            <div className="flex items-center justify-center h-full text-muted-foreground">
+                              <p>Select a file to begin editing or create a new one.</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </ResizablePanel>
+                    {bottomPanelSize > 5 && <ResizableHandle withHandle />}
+                    <ResizablePanel 
+                      defaultSize={bottomPanelSize} 
+                      minSize={5} 
+                      maxSize={80} 
+                      id="bottom-panel" 
+                      order={2}
+                      onResize={setBottomPanelSize}
+                      className={cn(bottomPanelSize <= 5 && "hidden")}
+                    >
+                      <Terminal 
+                        output={terminalOutput} 
+                        problems={mockProblems} 
+                        onClear={clearTerminal} 
+                        onGoToProblem={handleGoToProblem} 
+                        onClose={() => setBottomPanelSize(0)}
+                      />
+                    </ResizablePanel>
+                  </ResizablePanelGroup>
+              </ResizablePanel>
+            </ResizablePanelGroup>
           </main>
         </div>
       </div>
@@ -405,3 +436,5 @@ export function IdeLayout() {
     </TooltipProvider>
   );
 }
+
+    
