@@ -79,16 +79,16 @@ export default function InfoLayout({
             <a href="#" className="hover:text-foreground" title="RSS Feed"><Rss className="h-5 w-5" /></a>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link href="#" className="hover:text-primary">
+            <Link href="/support" className="hover:text-primary">
               Support
             </Link>
-            <Link href="#" className="hover:text-primary">
+            <Link href="/privacy" className="hover:text-primary">
               Privacy
             </Link>
-            <Link href="#" className="hover:text-primary">
+            <Link href="/terms" className="hover:text-primary">
               Terms of Use
             </Link>
-            <Link href="#" className="hover:text-primary">
+            <Link href="/license" className="hover:text-primary">
               License
             </Link>
           </div>

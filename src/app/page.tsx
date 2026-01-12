@@ -180,10 +180,10 @@ export default function HomePage() {
                 <a href="#" className="hover:text-foreground" title="RSS Feed"><Rss className="h-5 w-5" /></a>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-4">
-                <Link href="#" className="hover:text-primary">Support</Link>
-                <Link href="#" className="hover:text-primary">Privacy</Link>
-                <Link href="#" className="hover:text-primary">Terms of Use</Link>
-                <Link href="#" className="hover:text-primary">License</Link>
+                <Link href="/support" className="hover:text-primary">Support</Link>
+                <Link href="/privacy" className="hover:text-primary">Privacy</Link>
+                <Link href="/terms" className="hover:text-primary">Terms of Use</Link>
+                <Link href="/license" className="hover:text-primary">License</Link>
             </div>
         </div>
       </footer>
