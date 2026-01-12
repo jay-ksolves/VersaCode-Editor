@@ -68,10 +68,10 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
         setHistoryIndex(-1);
         
         const newOutput = (
-            <>
+            <React.Fragment>
                 {resultNode}
                 {createNewInputLine()}
-            </>
+            </React.Fragment>
         );
         session.output.push(resultNode, createNewInputLine());
         return newOutput;
@@ -142,7 +142,11 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
     return (
         <ScrollArea className="h-full" ref={scrollAreaRef} onClick={() => inputRef.current?.focus()}>
             <div className="p-4">
-                {lines}
+                {lines.map((line, index) => (
+                    <React.Fragment key={index}>
+                        {line}
+                    </React.Fragment>
+                ))}
             </div>
         </ScrollArea>
     );
