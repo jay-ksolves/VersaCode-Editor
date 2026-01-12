@@ -4,11 +4,19 @@
 import { Button } from '@/components/ui/button';
 import { Download, Github, Moon, Rss, Sun, Twitter, Youtube } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import Script from 'next/script';
 
 interface InfoLayoutProps {
   children: React.ReactNode;
   theme: string;
   setTheme: (theme: string) => void;
+}
+
+declare global {
+    interface Window {
+        VANTA: any;
+    }
 }
 
 export default function InfoLayout({
@@ -22,8 +30,37 @@ export default function InfoLayout({
     localStorage.setItem('versacode-theme', newTheme);
   };
   
+  const [vantaEffect, setVantaEffect] = useState<any>(null);
+  
+  useEffect(() => {
+    let effect: any;
+    if (window.VANTA && theme === 'dark') {
+      effect = window.VANTA.RINGS({
+        el: "#vanta-target",
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.00,
+        minWidth: 200.00,
+        scale: 1.00,
+        scaleMobile: 1.00,
+        color: 0x88ff00,
+        backgroundColor: 0x202428,
+      });
+      setVantaEffect(effect);
+    }
+
+    return () => {
+      if (effect) {
+        effect.destroy();
+      }
+    };
+  }, [theme]);
+  
   return (
     <div className="bg-background text-foreground flex flex-col min-h-screen">
+       <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" strategy="beforeInteractive" />
+       <Script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.rings.min.js" strategy="beforeInteractive" />
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-8">
@@ -85,12 +122,7 @@ export default function InfoLayout({
         </div>
       </header>
       <main className="flex-1">
-        <div className="relative isolate overflow-hidden">
-          <div className="vanta-background"></div>
-          <div className="container mx-auto px-4 py-16">
-            {children}
-          </div>
-        </div>
+        {children}
       </main>
       <footer className="border-t">
         <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 py-12">
