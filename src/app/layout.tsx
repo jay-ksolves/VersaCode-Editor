@@ -24,7 +24,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="h-full">
       <head>
         <title>VersaCode - The AI-Native Web IDE</title>
         <meta name="description" content="A free, open-source, and AI-native web-based IDE for the modern developer. Built with Next.js and Monaco." />
@@ -49,3 +49,5 @@ export default function RootLayout({
     </html>
   )
 }
+
+    
