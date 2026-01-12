@@ -488,6 +488,7 @@ function IdeLayoutContent({ theme, setTheme }: IdeLayoutProps) {
       const newId = handleNewTerminal();
       setActiveTerminalId(newId);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handleNewTerminal, terminalSessions.length]);
 
   const handleToggleTerminal = () => {
