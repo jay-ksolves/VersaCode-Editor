@@ -19,7 +19,7 @@ interface EditorTabsProps {
   onCloseToTheRight: (id: string, force?: boolean) => void;
   onCloseToTheLeft: (id: string, force?: boolean) => void;
   onReorderTabs: (draggedId: string, targetId: string) => void;
-  findNodeById: (id: string) => FileSystemNode | null;
+  findNodeById: (id:string) => FileSystemNode | null;
   dirtyFileIds: Set<string>;
 }
 
@@ -125,7 +125,7 @@ export function EditorTabs({
                     {isDirty ? (
                       <div className="group-hover:hidden w-2 h-2 rounded-full bg-foreground/50" />
                     ) : (
-                      <X className="h-4 w-4 opacity-0 group-hover:opacity-100" />
+                      <div className="w-4 h-4 opacity-0 group-hover:opacity-100" />
                     )}
                     <X className="h-4 w-4 hidden group-hover:block" />
                   </Button>
