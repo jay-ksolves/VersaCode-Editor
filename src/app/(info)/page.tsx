@@ -10,8 +10,10 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import Script from 'next/script';
 import JSZip from 'jszip';
 import { useToast } from '@/hooks/use-toast';
-import { useFileSystem } from '@/hooks/useFileSystem';
+import { useOPFS } from '@/hooks/useOPFS';
 import { useTheme } from '@/context/theme-context';
+import type { FileSystemNode } from '@/hooks/useFileSystem';
+
 
 declare global {
     interface Window {
@@ -24,7 +26,7 @@ export default function HomePage() {
   const [vantaEffect, setVantaEffect] = useState<any>(null);
   const vantaRef = useRef(null);
   const { toast } = useToast();
-  const { files } = useFileSystem();
+  const { readDirectory, isLoaded } = useOPFS();
 
   const startVanta = useCallback(() => {
     if (!window.VANTA || !vantaRef.current) {
@@ -71,10 +73,15 @@ export default function HomePage() {
             effect.destroy();
         }
     };
-  }, [theme, startVanta]);
+  }, [theme, startVanta, vantaEffect]);
 
 
     const handleDownloadZip = useCallback(async () => {
+    if (!isLoaded) {
+      toast({ variant: 'destructive', title: 'File system not ready', description: 'Please wait a moment and try again.' });
+      return;
+    }
+    const files = await readDirectory('');
     if (files.length === 0) {
         toast({ variant: 'destructive', title: 'Empty Project', description: 'There are no files to download.' });
         return;
@@ -82,7 +89,7 @@ export default function HomePage() {
     toast({ title: 'Zipping project...', description: 'Please wait while we prepare your download.' });
     const zip = new JSZip();
 
-    async function addFilesToZip(zipFolder: JSZip, nodes: any[]) {
+    async function addFilesToZip(zipFolder: JSZip, nodes: FileSystemNode[]) {
       for (const node of nodes) {
         if (node.type === 'file') {
           zipFolder.file(node.name, node.content);
@@ -111,7 +118,7 @@ export default function HomePage() {
       console.error('Failed to create zip file', error);
       toast({ variant: 'destructive', title: 'Error', description: 'Could not create the zip file.' });
     }
-  }, [files, toast]);
+  }, [isLoaded, readDirectory, toast]);
   
   return (
     <>

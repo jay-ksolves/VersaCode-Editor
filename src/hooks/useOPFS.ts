@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 // Debounce saving dirty map to avoid excessive localStorage writes
 function debounce<T extends (...args: any[]) => void>(func: T, wait: number): T {
@@ -18,7 +18,7 @@ const DIRTY_MAP_STORAGE_KEY = 'versacode_opfs_dirty_map';
 export function useOPFS() {
     const [isLoaded, setIsLoaded] = useState(false);
     const [isDirtyMap, setIsDirtyMap] = useState<Map<string, boolean>>(new Map());
-    const rootRef = useRef<FileSystemDirectoryHandle | null>(null);
+    const [rootHandle, setRootHandle] = useState<FileSystemDirectoryHandle | null>(null);
 
     const saveDirtyMap = useCallback(debounce((map: Map<string, boolean>) => {
         try {
@@ -50,7 +50,9 @@ export function useOPFS() {
     useEffect(() => {
         async function init() {
             try {
-                rootRef.current = await navigator.storage.getDirectory();
+                const root = await navigator.storage.getDirectory();
+                setRootHandle(root);
+
                 const storedDirty = localStorage.getItem(DIRTY_MAP_STORAGE_KEY);
                 if (storedDirty) {
                     setIsDirtyMap(new Map(JSON.parse(storedDirty)));
@@ -58,7 +60,7 @@ export function useOPFS() {
 
                 // Check if the file system is empty, if so, add a welcome file.
                 let hasEntries = false;
-                for await (const _ of rootRef.current.keys()) {
+                for await (const _ of root.keys()) {
                     hasEntries = true;
                     break;
                 }
@@ -77,7 +79,7 @@ This is a sample markdown file in your personal, browser-based file system.
 
 Enjoy coding!
 `;
-                    const fileHandle = await rootRef.current.getFileHandle('welcome.md', { create: true });
+                    const fileHandle = await root.getFileHandle('welcome.md', { create: true });
                     const writable = await fileHandle.createWritable();
                     await writable.write(welcomeContent);
                     await writable.close();
@@ -93,9 +95,9 @@ Enjoy coding!
     }, []);
 
     const getHandle = useCallback(async (path: string, create: boolean = false, type: 'file' | 'directory' = 'file') => {
-        if (!rootRef.current) throw new Error("File system not initialized");
+        if (!rootHandle) throw new Error("File system not initialized");
         const parts = path.split('/').filter(p => p);
-        let currentHandle: FileSystemDirectoryHandle = rootRef.current;
+        let currentHandle: FileSystemDirectoryHandle = rootHandle;
 
         for (let i = 0; i < parts.length; i++) {
             const part = parts[i];
@@ -108,10 +110,10 @@ Enjoy coding!
             }
         }
         return currentHandle;
-    }, []);
+    }, [rootHandle]);
 
     const readDirectory = useCallback(async (path: string): Promise<any[]> => {
-        const dirHandle = path ? await getHandle(path, false, 'directory') as FileSystemDirectoryHandle : rootRef.current;
+        const dirHandle = path ? await getHandle(path, false, 'directory') as FileSystemDirectoryHandle : rootHandle;
         if (!dirHandle) return [];
 
         const entries = [];
@@ -141,7 +143,7 @@ Enjoy coding!
             if (a.type === 'file' && b.type === 'folder') return 1;
             return a.name.localeCompare(b.name);
         });
-    }, [getHandle, isDirtyMap]);
+    }, [getHandle, isDirtyMap, rootHandle]);
     
     const readFile = useCallback(async (path: string): Promise<string> => {
         const fileHandle = await getHandle(path, false, 'file') as FileSystemFileHandle;
@@ -165,21 +167,21 @@ Enjoy coding!
         const parts = path.split('/');
         const name = parts.pop()!;
         const parentPath = parts.join('/');
-        const dirHandle = parentPath ? await getHandle(parentPath, false, 'directory') as FileSystemDirectoryHandle : rootRef.current;
+        const dirHandle = parentPath ? await getHandle(parentPath, false, 'directory') as FileSystemDirectoryHandle : rootHandle;
         if (dirHandle) {
            await dirHandle.removeEntry(name);
         }
-    }, [getHandle]);
+    }, [getHandle, rootHandle]);
 
     const deleteDirectory = useCallback(async (path: string): Promise<void> => {
         const parts = path.split('/');
         const name = parts.pop()!;
         const parentPath = parts.join('/');
-        const dirHandle = parentPath ? await getHandle(parentPath, false, 'directory') as FileSystemDirectoryHandle : rootRef.current;
+        const dirHandle = parentPath ? await getHandle(parentPath, false, 'directory') as FileSystemDirectoryHandle : rootHandle;
         if (dirHandle) {
            await dirHandle.removeEntry(name, { recursive: true });
         }
-    }, [getHandle]);
+    }, [getHandle, rootHandle]);
 
     const rename = useCallback(async (oldPath: string, newPathOrName: string): Promise<void> => {
         // This is a simplified rename. In a real OPFS scenario, this would involve moving files.
@@ -215,7 +217,7 @@ Enjoy coding!
         }
         
         const localDirHandle = await window.showDirectoryPicker();
-        if (!rootRef.current) return;
+        if (!rootHandle) return;
         
         await resetAll();
 
@@ -240,13 +242,13 @@ Enjoy coding!
     };
 
     const resetAll = async () => {
-        if (!rootRef.current) return;
-        for await (const name of rootRef.current.keys()) {
-            const handle = await rootRef.current.getDirectoryHandle(name).catch(() => rootRef.current!.getFileHandle(name));
+        if (!rootHandle) return;
+        for await (const name of rootHandle.keys()) {
+            const handle = await rootHandle.getDirectoryHandle(name).catch(() => rootHandle!.getFileHandle(name));
             if (handle.kind === 'directory') {
-                await rootRef.current.removeEntry(name, { recursive: true });
+                await rootHandle.removeEntry(name, { recursive: true });
             } else {
-                await rootRef.current.removeEntry(name);
+                await rootHandle.removeEntry(name);
             }
         }
         setIsDirtyMap(new Map());
