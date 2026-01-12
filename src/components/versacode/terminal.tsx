@@ -47,7 +47,7 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
 
     useEffect(scrollToBottom, [lines, scrollToBottom]);
     
-    const createNewInputLine = useCallback(() => (
+    const createNewInputLine = () => (
          <div className="flex items-center" key={`line-${Date.now()}-${Math.random()}`}>
             <span className="text-green-400">versa-code {'>'}</span>
             <span
@@ -60,8 +60,7 @@ const TerminalInstance = ({ session }: { session: TerminalSession }) => {
                 data-testid={`terminal-input-${session.id}`}
             ></span>
         </div>
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    ), []);
+    );
 
     const executeCommand = useCallback((command: string) => {
         if (!command.trim()) {
@@ -212,7 +211,7 @@ export function Terminal({
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7" title="Split Terminal" disabled data-testid="bottom-panel-split-terminal-button">
+              <Button variant="ghost" size="icon" className="h-7 w-7" title="Split Terminal" data-testid="bottom-panel-split-terminal-button">
                 <Split className="h-4 w-4"/>
               </Button>
             </TooltipTrigger>

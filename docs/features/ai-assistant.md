@@ -18,7 +18,7 @@ This feature is designed to be scalable and secure by allowing users to provide 
   - **`AiAssistantPanel.tsx`**: The main UI for the feature. It contains all the necessary inputs and outputs for interacting with the AI.
   - **`IdeLayout.tsx`**: Manages the visibility and state of the AI Assistant panel.
 - **Visual Flow:**
-  - The user first enters their Google AI API key, which is saved to `localStorage`.
+  - The user first enters their Google AI API key, which is saved to `localStorage` for convenience.
   - The user can then select one or more files from a file tree within the panel to provide as context.
   - They write a detailed prompt in the textarea (e.g., "Refactor the `useFileSystem` hook to be more performant").
   - Clicking "Generate" sends the request to the AI. A loading indicator is shown.

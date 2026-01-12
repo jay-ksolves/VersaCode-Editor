@@ -69,10 +69,11 @@ export default function HomePage() {
     tryToStart();
 
     return () => {
-        if (vantaEffect) vantaEffect.destroy();
-        if (effect) effect.destroy();
+        if (effect) {
+            effect.destroy();
+        }
     };
-  }, [theme, startVanta, vantaEffect]);
+  }, [theme, startVanta]);
 
 
     const handleDownloadZip = useCallback(async () => {
