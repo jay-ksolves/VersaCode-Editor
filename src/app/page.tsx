@@ -92,10 +92,10 @@ export default function HomePage() {
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button size="lg" className="w-full bg-blue-600 hover:bg-blue-700 sm:w-auto">
+            <Button size="lg" className="w-full sm:w-auto">
               <Download className="mr-2 h-5 w-5" />
               Download for Windows
-              <span className="ml-2 text-xs text-blue-200">
+              <span className="ml-2 text-xs text-primary-foreground/50">
                 Stable Build
               </span>
             </Button>
@@ -109,16 +109,16 @@ export default function HomePage() {
               <h3 className="font-semibold">Windows</h3>
               <p className="text-sm text-muted-foreground">Windows 10, 11</p>
               <div className="mt-4 flex flex-wrap gap-2 text-sm">
-                <Link href="#" className="text-blue-500 hover:underline">
+                <Link href="#" className="text-primary hover:underline">
                   User Installer
                 </Link>
-                <Link href="#" className="text-blue-500 hover:underline">
+                <Link href="#" className="text-primary hover:underline">
                   System Installer
                 </Link>
-                <Link href="#" className="text-blue-500 hover:underline">
+                <Link href="#" className="text-primary hover:underline">
                   .zip
                 </Link>
-                <Link href="#" className="text-blue-500 hover:underline">
+                <Link href="#" className="text-primary hover:underline">
                   CLI
                 </Link>
               </div>
@@ -127,19 +127,19 @@ export default function HomePage() {
               <h3 className="font-semibold">Linux</h3>
               <p className="text-sm text-muted-foreground">Debian, Ubuntu, Red Hat, Fedora, SUSE</p>
               <div className="mt-4 flex flex-wrap gap-2 text-sm">
-                <Link href="#" className="text-blue-500 hover:underline">
+                <Link href="#" className="text-primary hover:underline">
                   .deb
                 </Link>
-                <Link href="#" className="text-blue-500 hover:underline">
+                <Link href="#" className="text-primary hover:underline">
                   .rpm
                 </Link>
-                <Link href="#" className="text-blue-500 hover:underline">
+                <Link href="#" className="text-primary hover:underline">
                   .tar.gz
                 </Link>
-                <Link href="#" className="text-blue-500 hover:underline">
+                <Link href="#" className="text-primary hover:underline">
                   Snap Store
                 </Link>
-                 <Link href="#" className="text-blue-500 hover:underline">
+                 <Link href="#" className="text-primary hover:underline">
                   CLI
                 </Link>
               </div>
@@ -148,16 +148,16 @@ export default function HomePage() {
               <h3 className="font-semibold">Mac</h3>
               <p className="text-sm text-muted-foreground">macOS 11.0+</p>
                <div className="mt-4 flex flex-wrap gap-2 text-sm">
-                <Link href="#" className="text-blue-500 hover:underline">
+                <Link href="#" className="text-primary hover:underline">
                   Intel chip
                 </Link>
-                <Link href="#" className="text-blue-500 hover:underline">
+                <Link href="#" className="text-primary hover:underline">
                   Apple silicon
                 </Link>
-                 <Link href="#" className="text-blue-500 hover:underline">
+                 <Link href="#" className="text-primary hover:underline">
                   Universal
                 </Link>
-                <Link href="#" className="text-blue-500 hover:underline">
+                <Link href="#" className="text-primary hover:underline">
                   CLI
                 </Link>
               </div>
