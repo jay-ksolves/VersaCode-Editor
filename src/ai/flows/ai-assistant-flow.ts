@@ -65,6 +65,7 @@ const aiAssistantFlow = ai.defineFlow(
   },
   async (input) => {
     // Create a temporary Genkit instance with the user's API key for security and scalability.
+    // Fall back to the environment variable if no key is provided by the user.
     const userAi = genkit({
       plugins: [
         googleAI({
