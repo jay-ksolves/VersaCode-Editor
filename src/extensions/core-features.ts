@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Core Features Extension for VersaCode.
  * This extension registers fundamental commands that are essential for the IDE's
@@ -16,22 +17,60 @@ export const coreFeaturesExtension: VersaCodeExtension = {
     activate: (context: ExtensionContext) => {
         console.log("Activating VersaCode Core Features...");
 
-        // In a real implementation, the callbacks would be more complex
-        // and would likely call methods on a more abstract `ide` API
-        // rather than being deeply coupled to the IdeLayout component.
-        // For now, these are placeholder implementations.
-        
-        context.registerCommand('file:new', () => {
-            // This command is handled by a ref in IdeLayout for now.
-            // In a more robust system, this would call an API like:
-            // context.ide.workspace.newFile();
-            console.log("file:new command executed via extension");
-        });
-        
-        context.registerCommand('theme:toggle', () => {
-             // This command is handled by a function in IdeLayout for now.
-             console.log("theme:toggle command executed via extension");
-        });
+        const disposables = [
+            context.registerCommand({
+                id: 'file:new',
+                label: 'New File',
+                context: 'palette',
+                callback: () => context.ide.createFile(),
+            }),
+            context.registerCommand({
+                id: 'theme:toggle',
+                label: 'Toggle Theme',
+                context: 'palette',
+                callback: () => context.ide.toggleTheme(),
+            }),
+            context.registerCommand({
+                id: 'tab:close',
+                label: 'Close',
+                context: 'editor/tab/context',
+                callback: ({ fileId }) => context.ide.closeFile(fileId),
+            }),
+             context.registerCommand({
+                id: 'tab:close-others',
+                label: 'Close Others',
+                context: 'editor/tab/context',
+                callback: ({ fileId }) => context.ide.closeOtherFiles(fileId),
+            }),
+            context.registerCommand({
+                id: 'tab:close-all',
+                label: 'Close All',
+                context: 'editor/tab/context',
+                callback: () => context.ide.closeAllFiles(),
+            }),
+             context.registerCommand({
+                id: 'separator',
+                label: '',
+                context: 'editor/tab/context',
+                callback: () => {},
+            }),
+             context.registerCommand({
+                id: 'tab:copy-path',
+                label: 'Copy Path',
+                context: 'editor/tab/context',
+                callback: ({ fileId }) => {
+                    // In a real app, we'd use the fileId to get the path
+                    // from the file system state and copy it to the clipboard.
+                    console.log('Copying path for file:', fileId);
+                },
+            }),
+        ];
+
+        return {
+            dispose: () => {
+                disposables.forEach(d => d.dispose());
+            }
+        };
     },
 
     deactivate: () => {

@@ -27,7 +27,7 @@ import { SourceControlPanel } from "./source-control-panel";
 import { RunDebugPanel } from "./run-debug-panel";
 import { useTheme } from "@/context/theme-context";
 import JSZip from "jszip";
-import type { ExtensionContext } from "@/lib/extensions-api";
+import type { ExtensionContext, IdeCommand } from "@/lib/extensions-api";
 import { extensions } from "@/lib/extensions";
 
 export type Problem = { severity: 'error' | 'warning'; message: string; file: string; line: number; };
@@ -87,7 +87,7 @@ function IdeLayoutContent({}: IdeLayoutProps) {
   const modelsRef = useRef<Map<string, monaco.editor.ITextModel>>(new Map());
   const mainPanelGroupRef = useRef<any>(null);
   const sidePanelGroupRef = useRef<any>(null);
-  const commandRegistryRef = useRef<Map<string, () => void>>(new Map());
+  const commandRegistryRef = useRef<Map<string, IdeCommand>>(new Map());
 
 
   const { toast } = useToast();
@@ -161,24 +161,36 @@ function IdeLayoutContent({}: IdeLayoutProps) {
   // Activate extensions on mount
   useEffect(() => {
     const extensionContext: ExtensionContext = {
-      registerCommand: (commandId, callback) => {
-        console.log(`Registering command: ${commandId}`);
-        commandRegistryRef.current.set(commandId, callback);
+      registerCommand: (command) => {
+        console.log(`Registering command: ${command.id}`);
+        commandRegistryRef.current.set(command.id, command);
         return {
           dispose: () => {
-            commandRegistryRef.current.delete(commandId);
+            commandRegistryRef.current.delete(command.id);
           }
         };
       },
-      ide: null, // This would be a more fleshed-out API object in a real scenario
+      // In a real app, this would be a proxy to a safe API surface
+      get ide() {
+        return {
+          getActiveFile: () => activeFile,
+          closeFile: (id: string) => closeFileFromHook(id),
+          closeAllFiles: () => handleCloseAllTabs(),
+          closeOtherFiles: (id: string) => handleCloseOtherTabs(id),
+          getOpenFileIds: () => openFileIds,
+          theme: theme,
+          toggleTheme: handleToggleTheme,
+          createFile: () => handleNewFile(),
+        }
+      }
     };
 
     const disposables: (() => void)[] = [];
     extensions.forEach(extension => {
       try {
-        extension.activate(extensionContext);
-        if (extension.deactivate) {
-          disposables.push(extension.deactivate);
+        const disposable = extension.activate(extensionContext);
+        if (disposable) {
+          disposables.push(disposable.dispose);
         }
       } catch (error) {
         console.error(`Failed to activate extension "${extension.id}":`, error);
@@ -188,7 +200,8 @@ function IdeLayoutContent({}: IdeLayoutProps) {
     return () => {
       disposables.forEach(dispose => dispose());
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [files, activeFileId, openFileIds, theme]);
 
   // Hotkeys
   useHotkeys('ctrl+n, cmd+n', (e) => { e.preventDefault(); handleNewFile(); }, { preventDefault: true });
@@ -545,12 +558,12 @@ function IdeLayoutContent({}: IdeLayoutProps) {
     editorRef.current?.trigger('source', actionId, null);
   };
 
-  const handleCommand = (commandId: string) => {
-      const commandCallback = commandRegistryRef.current.get(commandId);
-      if (commandCallback) {
-          commandCallback();
+  const handleCommand = (commandId: string, context?: any) => {
+      const command = commandRegistryRef.current.get(commandId);
+      if (command && command.callback) {
+          command.callback(context);
       } else {
-        // Fallback for built-in editor actions
+        // Fallback for built-in editor actions that might not be registered as commands
         switch (commandId) {
             case 'editor:format':
                 handleFormatCode();
@@ -560,6 +573,16 @@ function IdeLayoutContent({}: IdeLayoutProps) {
               break;
         }
       }
+  };
+  
+  const getCommandsForContext = (context: string) => {
+    const commands: IdeCommand[] = [];
+    commandRegistryRef.current.forEach(cmd => {
+      if (cmd.context === context) {
+        commands.push(cmd);
+      }
+    });
+    return commands;
   };
   
   const handleDownloadZip = useCallback(async () => {
@@ -721,12 +744,11 @@ function IdeLayoutContent({}: IdeLayoutProps) {
                             openFileIds={openFileIds}
                             activeFileId={activeFileId}
                             onSelectTab={setActiveFileId}
-                            onCloseTab={handleCloseTab}
-                            onCloseAllTabs={handleCloseAllTabs}
-                            onCloseOtherTabs={handleCloseOtherTabs}
                             onReorderTabs={setOpenFileIds}
                             findNodeById={findNodeById}
                             onNewUntitled={handleNewUntitledFile}
+                            getCommandsForContext={getCommandsForContext}
+                            onCommand={handleCommand}
                         />
                         <Breadcrumbs
                           activeFile={activeFile}

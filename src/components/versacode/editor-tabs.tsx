@@ -14,29 +14,28 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { FileIconComponent } from './file-explorer';
+import type { IdeCommand } from '@/lib/extensions-api';
 
 interface EditorTabsProps {
   openFileIds: string[];
   activeFileId: string | null;
   onSelectTab: (id: string) => void;
-  onCloseTab: (id: string) => void;
-  onCloseAllTabs: () => void;
-  onCloseOtherTabs: (id: string) => void;
   onReorderTabs: (reorderedIds: string[]) => void;
   findNodeById: (id: string) => FileSystemNode | null;
   onNewUntitled: () => void;
+  getCommandsForContext: (context: string) => IdeCommand[];
+  onCommand: (commandId: string, context?: any) => void;
 }
 
 export function EditorTabs({
   openFileIds,
   activeFileId,
   onSelectTab,
-  onCloseTab,
-  onCloseAllTabs,
-  onCloseOtherTabs,
   onReorderTabs,
   findNodeById,
   onNewUntitled,
+  getCommandsForContext,
+  onCommand,
 }: EditorTabsProps) {
   const dragTabId = useRef<string | null>(null);
 
@@ -66,15 +65,17 @@ export function EditorTabs({
 
   const handleClose = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    onCloseTab(id);
+    onCommand('tab:close', { fileId: id });
   };
-
+  
   const handleAuxClick = (e: React.MouseEvent, id: string) => {
     if (e.button === 1) { // Middle mouse button
       e.preventDefault();
-      onCloseTab(id);
+      onCommand('tab:close', { fileId: id });
     }
   };
+
+  const tabContextMenuCommands = getCommandsForContext('editor/tab/context');
 
   return (
     <ScrollArea className="w-full whitespace-nowrap bg-card border-b" onDoubleClick={onNewUntitled} data-testid="editor-tabs-container">
@@ -119,17 +120,20 @@ export function EditorTabs({
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => onCloseTab(id)} data-testid={`editor-tab-context-menu-close-${file.path}`}>
-                  Close
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onCloseOtherTabs(id)} data-testid={`editor-tab-context-menu-close-others-${file.path}`}>
-                  Close Others
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onCloseAllTabs} data-testid={`editor-tab-context-menu-close-all-${file.path}`}>
-                  Close All
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem disabled>Copy Path</DropdownMenuItem>
+                {tabContextMenuCommands.map((command, index) => {
+                  if (command.id === 'separator') {
+                    return <DropdownMenuSeparator key={`sep-${index}`} />;
+                  }
+                  return (
+                    <DropdownMenuItem 
+                      key={command.id}
+                      onClick={() => onCommand(command.id, { fileId: id })}
+                      data-testid={`editor-tab-context-menu-${command.id.replace(/:/g, '-')}-${file.path}`}
+                    >
+                      {command.label}
+                    </DropdownMenuItem>
+                  );
+                })}
               </DropdownMenuContent>
             </DropdownMenu>
           );
