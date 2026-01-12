@@ -20,6 +20,8 @@ interface HeaderProps {
   onNewFolder: () => void;
   onToggleMinimap: (checked: boolean) => void;
   isMinimapVisible: boolean;
+  onNewTerminal: () => void;
+  onToggleTerminal: () => void;
 }
 
 export function Header({
@@ -30,6 +32,8 @@ export function Header({
   onNewFolder,
   onToggleMinimap,
   isMinimapVisible,
+  onNewTerminal,
+  onToggleTerminal,
 }: HeaderProps) {
   return (
     <header className="flex items-center justify-between h-16 px-4 border-b bg-card">
@@ -71,7 +75,7 @@ export function Header({
               </MenubarCheckboxItem>
               <MenubarSeparator />
               <MenubarItem disabled>Explorer</MenubarItem>
-              <MenubarItem disabled>Terminal</MenubarItem>
+              <MenubarItem onClick={onToggleTerminal}>Terminal</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
           <MenubarMenu>
@@ -79,6 +83,12 @@ export function Header({
             <MenubarContent>
               <MenubarItem onClick={onRun}>Run Code</MenubarItem>
               <MenubarItem disabled>Run With Debugger</MenubarItem>
+            </MenubarContent>
+          </MenubarMenu>
+          <MenubarMenu>
+            <MenubarTrigger>Terminal</MenubarTrigger>
+            <MenubarContent>
+              <MenubarItem onClick={onNewTerminal}>New Terminal</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
           <MenubarMenu>

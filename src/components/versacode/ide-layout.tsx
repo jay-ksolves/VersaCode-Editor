@@ -259,6 +259,18 @@ function IdeLayoutContent() {
   
   const handleNewFile = () => fileExplorerRef.current?.startCreate('create_file');
   const handleNewFolder = () => fileExplorerRef.current?.startCreate('create_folder');
+  
+  const handleNewTerminal = () => {
+    if (bottomPanelSize <= 5) {
+      setBottomPanelSize(33); // Or a default size
+    }
+    // Logic to focus terminal or create a new tab can be added here
+  };
+
+  const handleToggleTerminal = () => {
+    setBottomPanelSize(prev => prev > 5 ? 0 : 33);
+  };
+
 
   const handleGoToProblem = useCallback((problem: Problem) => {
     const targetNode = findNodeByPath(problem.file);
@@ -347,6 +359,8 @@ function IdeLayoutContent() {
             onNewFolder={handleNewFolder}
             isMinimapVisible={editorSettings.minimap}
             onToggleMinimap={(checked) => handleSettingsChange({ minimap: checked })}
+            onNewTerminal={handleNewTerminal}
+            onToggleTerminal={handleToggleTerminal}
           />
           <main className="flex-1 flex overflow-hidden">
             <ResizablePanelGroup direction="horizontal">
