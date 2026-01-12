@@ -79,13 +79,13 @@ function FileNode({
     <span className="truncate text-sm select-none" onDoubleClick={handleDoubleClick}>{node.name}</span>
   );
   
-  const FolderIcon = isExpanded ? FolderOpen : Folder;
+  const FolderIconComponent = isExpanded ? FolderOpen : Folder;
 
   return (
     <div
       draggable
       onDragStart={(e) => onDragStart(e, node.id)}
-      className={cn("flex items-center space-x-2 py-1.5 px-2 rounded-md hover:bg-muted group cursor-pointer", {
+      className={cn("flex items-center space-x-2 py-1.5 px-2 rounded-md hover:bg-muted group cursor-pointer relative", {
         "bg-muted": isActive,
         "opacity-50": isBeingDragged,
         "bg-accent/20 border-2 border-dashed border-accent": isDropTarget && isFolder,
@@ -105,13 +105,13 @@ function FileNode({
       )}
       {!isFolder && <div className="w-4 h-4" />} {/* Spacer */}
 
-      {isFolder ? <FolderIcon className="w-4 h-4 text-accent" /> : <FileIcon className="w-4 h-4 text-muted-foreground" />}
+      {isFolder ? <FolderIconComponent className="w-4 h-4 text-accent" /> : <FileIcon className="w-4 h-4 text-muted-foreground" />}
       
       {renderNodeName()}
 
       <Popover>
           <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto opacity-0 group-hover:opacity-100" onClick={e => e.stopPropagation()} title={`Actions for ${node.name}`}>
+              <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto opacity-0 group-hover:opacity-100 absolute right-1 top-1/2 -translate-y-1/2" onClick={e => e.stopPropagation()} title={`Actions for ${node.name}`}>
                   <MoreVertical className="h-4 w-4" />
               </Button>
           </PopoverTrigger>

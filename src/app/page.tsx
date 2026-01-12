@@ -171,11 +171,11 @@ export default function HomePage() {
       
       <footer className="border-t">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-8 text-sm md:flex-row">
-            <div className="flex items-center gap-4">
-                <Github className="h-5 w-5" />
-                <Twitter className="h-5 w-5" />
-                <Youtube className="h-5 w-5" />
-                <Rss className="h-5 w-5" />
+            <div className="flex items-center gap-4 text-muted-foreground">
+                <a href="#" className="hover:text-foreground"><Github className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-foreground"><Twitter className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-foreground"><Youtube className="h-5 w-5" /></a>
+                <a href="#" className="hover:text-foreground"><Rss className="h-5 w-5" /></a>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-4">
                 <Link href="#" className="hover:text-primary">Support</Link>
