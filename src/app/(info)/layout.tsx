@@ -155,51 +155,68 @@ export default function InfoLayout({ children }: InfoLayoutProps) {
             </div>
           )}
         </main>
+        
+        <div className="relative z-10">
+            <div className="wave-container">
+                <svg className="waves" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink"
+                viewBox="0 24 150 28" preserveAspectRatio="none" shapeRendering="auto">
+                <defs>
+                <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+                </defs>
+                <g className="parallax">
+                <use xlinkHref="#gentle-wave" x="48" y="0" fill="hsla(var(--primary) / 0.7)" />
+                <use xlinkHref="#gentle-wave" x="48" y="3" fill="hsla(var(--primary) / 0.5)" />
+                <use xlinkHref="#gentle-wave" x="48" y="5" fill="hsla(var(--primary) / 0.3)" />
+                <use xlinkHref="#gentle-wave" x="48" y="7" fill="hsl(var(--primary))" />
+                </g>
+                </svg>
+            </div>
 
-        <footer className="border-t z-10 bg-background">
-          <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 py-12">
-              <div>
-                <h3 className="font-semibold mb-2">VersaCode</h3>
-                <p className="text-sm text-muted-foreground">The AI-Native Web IDE.</p>
-                 <div className="flex items-center gap-4 text-muted-foreground mt-4">
-                  <a href="#" className="hover:text-foreground" title="GitHub" aria-label="GitHub"><Github className="h-5 w-5" /></a>
-                  <a href="#" className="hover:text-foreground" title="Twitter" aria-label="Twitter"><Twitter className="h-5 w-5" /></a>
-                  <a href="#" className="hover:text-foreground" title="YouTube" aria-label="YouTube"><Youtube className="h-5 w-5" /></a>
-                  <a href="#" className="hover:text-foreground" title="RSS Feed" aria-label="RSS Feed"><Rss className="h-5 w-5" /></a>
+            <footer className="bg-primary z-10 text-primary-foreground">
+              <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 py-12">
+                  <div>
+                    <h3 className="font-semibold mb-2">VersaCode</h3>
+                    <p className="text-sm text-primary-foreground/80">The AI-Native Web IDE.</p>
+                     <div className="flex items-center gap-4 text-primary-foreground/80 mt-4">
+                      <a href="#" className="hover:text-primary-foreground" title="GitHub" aria-label="GitHub"><Github className="h-5 w-5" /></a>
+                      <a href="#" className="hover:text-primary-foreground" title="Twitter" aria-label="Twitter"><Twitter className="h-5 w-5" /></a>
+                      <a href="#" className="hover:text-primary-foreground" title="YouTube" aria-label="YouTube"><Youtube className="h-5 w-5" /></a>
+                      <a href="#" className="hover:text-primary-foreground" title="RSS Feed" aria-label="RSS Feed"><Rss className="h-5 w-5" /></a>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Product</h3>
+                    <nav className="flex flex-col gap-2 text-sm">
+                        <Link href="/updates" className="text-primary-foreground/80 hover:text-primary-foreground">Updates</Link>
+                        <Link href="/docs" className="text-primary-foreground/80 hover:text-primary-foreground">Docs</Link>
+                         <Link href="/editor" className="text-primary-foreground/80 hover:text-primary-foreground">Editor</Link>
+                    </nav>
+                  </div>
+                   <div>
+                    <h3 className="font-semibold mb-2">Community</h3>
+                    <nav className="flex flex-col gap-2 text-sm">
+                        <Link href="#" className="text-primary-foreground/80 hover:text-primary-foreground">GitHub</Link>
+                        <Link href="#" className="text-primary-foreground/80 hover:text-primary-foreground">Contributors</Link>
+                        <Link href="/blog" className="text-primary-foreground/80 hover:text-primary-foreground">Blog</Link>
+                    </nav>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Legal</h3>
+                    <nav className="flex flex-col gap-2 text-sm">
+                      <Link href="/support" className="text-primary-foreground/80 hover:text-primary-foreground">Support</Link>
+                      <Link href="/privacy" className="text-primary-foreground/80 hover:text-primary-foreground">Privacy</Link>
+                      <Link href="/terms" className="text-primary-foreground/80 hover:text-primary-foreground">Terms of Use</Link>
+                      <Link href="/license" className="text-primary-foreground/80 hover:text-primary-foreground">License</Link>
+                    </nav>
+                  </div>
+              </div>
+               <div className="border-t border-primary-foreground/20">
+                <div className="container mx-auto px-4 py-4 text-center text-sm text-primary-foreground/80">
+                  &copy; {new Date().getFullYear()} VersaCode. All rights reserved.
                 </div>
               </div>
-              <div>
-                <h3 className="font-semibold mb-2">Product</h3>
-                <nav className="flex flex-col gap-2 text-sm">
-                    <Link href="/updates" className="text-muted-foreground hover:text-primary">Updates</Link>
-                    <Link href="/docs" className="text-muted-foreground hover:text-primary">Docs</Link>
-                     <Link href="/editor" className="text-muted-foreground hover:text-primary">Editor</Link>
-                </nav>
-              </div>
-               <div>
-                <h3 className="font-semibold mb-2">Community</h3>
-                <nav className="flex flex-col gap-2 text-sm">
-                    <Link href="#" className="text-muted-foreground hover:text-primary">GitHub</Link>
-                    <Link href="#" className="text-muted-foreground hover:text-primary">Contributors</Link>
-                    <Link href="/blog" className="text-muted-foreground hover:text-primary">Blog</Link>
-                </nav>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-2">Legal</h3>
-                <nav className="flex flex-col gap-2 text-sm">
-                  <Link href="/support" className="text-muted-foreground hover:text-primary">Support</Link>
-                  <Link href="/privacy" className="text-muted-foreground hover:text-primary">Privacy</Link>
-                  <Link href="/terms" className="text-muted-foreground hover:text-primary">Terms of Use</Link>
-                  <Link href="/license" className="text-muted-foreground hover:text-primary">License</Link>
-                </nav>
-              </div>
-          </div>
-           <div className="border-t">
-            <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} VersaCode. All rights reserved.
-            </div>
-          </div>
-        </footer>
+            </footer>
+        </div>
       </div>
     </>
   );
