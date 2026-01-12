@@ -1,116 +1,167 @@
 
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, XCircle, Trash2, X, Split } from "lucide-react";
+import { AlertTriangle, XCircle, Trash2, X, Split, Plus } from "lucide-react";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import type { Problem } from "./ide-layout";
+import { cn } from "@/lib/utils";
 
 interface TerminalProps {
-  output: string[];
   problems: Problem[];
   onGoToProblem: (problem: Problem) => void;
-  onClose: () => void;
+  onClosePanel: () => void;
+  onNewTerminal: () => string;
+  initialTerminals: TerminalSession[];
+  onCloseTerminal: (id: string) => void;
+  activeTerminalId: string | null;
+  setActiveTerminalId: (id: string) => void;
 }
 
-export function Terminal({ output: initialOutput, problems, onGoToProblem, onClose }: TerminalProps) {
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const [terminalLines, setTerminalLines] = useState<React.ReactNode[]>([]);
-  const [history, setHistory] = useState<string[]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
+export type TerminalSession = {
+    id: string;
+    name: string;
+    output: React.ReactNode[];
+    history: string[];
+};
 
-  const scrollToBottom = () => {
-     if (scrollAreaRef.current) {
-        const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-        if (viewport) {
-            viewport.scrollTop = viewport.scrollHeight;
+
+const TerminalInstance = ({ session }: { session: TerminalSession }) => {
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
+    const [lines, setLines] = useState<React.ReactNode[]>(session.output);
+    const [history, setHistory] = useState<string[]>(session.history);
+    const [historyIndex, setHistoryIndex] = useState(-1);
+    const inputRef = useRef<HTMLSpanElement>(null);
+
+    const scrollToBottom = useCallback(() => {
+        if (scrollAreaRef.current) {
+            const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+            if (viewport) {
+                viewport.scrollTop = viewport.scrollHeight;
+            }
         }
-    }
-  }
+    }, []);
 
-  useEffect(() => {
-    const welcomeMessage = (
-      <div className="whitespace-pre-wrap">
-        Welcome to the VersaCode client-side terminal! You can run JavaScript code here.
-      </div>
+    useEffect(scrollToBottom, [lines, scrollToBottom]);
+
+    const executeCommand = (command: string) => {
+        if (!command.trim()) {
+            return createNewInputLine();
+        }
+
+        let resultNode: React.ReactNode;
+        try {
+            const result = eval(command);
+            resultNode = <div className="text-muted-foreground whitespace-pre-wrap">{`<- ${JSON.stringify(result, null, 2)}`}</div>;
+        } catch (error: any) {
+            resultNode = <div className="text-destructive whitespace-pre-wrap">{error.toString()}</div>;
+        }
+
+        setHistory(prev => {
+            const newHistory = [command, ...prev].slice(0, 50);
+            session.history = newHistory;
+            return newHistory;
+        });
+        setHistoryIndex(-1);
+        
+        const newOutput = (
+            <>
+                {resultNode}
+                {createNewInputLine()}
+            </>
+        );
+        session.output.push(resultNode, createNewInputLine());
+        return newOutput;
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLSpanElement>) => {
+        const input = e.currentTarget.textContent || '';
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            e.currentTarget.contentEditable = 'false';
+            session.output[session.output.length - 1] = <div className="flex items-center" key={`line-${Date.now()}`}><span className="text-green-400">versa-code {'>'}</span><span className="flex-1 ml-2">{input}</span></div>
+            setLines(prev => [...prev, executeCommand(input)]);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (history.length > 0) {
+                const newIndex = Math.min(history.length - 1, historyIndex + 1);
+                setHistoryIndex(newIndex);
+                e.currentTarget.textContent = history[newIndex] || '';
+                // Move cursor to end
+                 setTimeout(() => {
+                    const range = document.createRange();
+                    const sel = window.getSelection();
+                    if (inputRef.current?.childNodes.length) {
+                       range.setStart(inputRef.current.childNodes[0], e.currentTarget.textContent?.length ?? 0);
+                       range.collapse(true);
+                       sel?.removeAllRanges();
+                       sel?.addRange(range);
+                    }
+                }, 0);
+            }
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (historyIndex >= 0) {
+                const newIndex = Math.max(-1, historyIndex - 1);
+                setHistoryIndex(newIndex);
+                e.currentTarget.textContent = newIndex === -1 ? '' : history[newIndex] || '';
+            }
+        }
+    };
+    
+    const createNewInputLine = () => (
+         <div className="flex items-center" key={`line-${Date.now()}-${Math.random()}`}>
+            <span className="text-green-400">versa-code {'>'}</span>
+            <span
+                ref={inputRef}
+                className="flex-1 ml-2 bg-transparent outline-none"
+                contentEditable="true"
+                autoFocus
+                onKeyDown={handleKeyDown}
+                suppressContentEditableWarning
+            ></span>
+        </div>
     );
-    setTerminalLines([welcomeMessage, createNewInputLine()]);
-  }, []);
+     useEffect(() => {
+        if (!lines.some(l => (l as React.ReactElement)?.props?.contentEditable)) {
+             const welcomeMessage = (
+                <div className="whitespace-pre-wrap">
+                    Welcome to the VersaCode client-side terminal! You can run JavaScript code here.
+                </div>
+            );
+            setLines([welcomeMessage, createNewInputLine()]);
+            session.output = [welcomeMessage, createNewInputLine()];
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-  useEffect(scrollToBottom, [terminalLines]);
-
-  const executeCommand = (command: string) => {
-    if (!command.trim()) {
-        return createNewInputLine();
-    }
-
-    let resultNode: React.ReactNode;
-    try {
-        // Using eval can be risky, but for a client-side toy terminal it's acceptable.
-        // A safer alternative would be to use a library like `jailed`.
-        const result = eval(command);
-        resultNode = <div className="text-muted-foreground whitespace-pre-wrap">{`<- ${JSON.stringify(result, null, 2)}`}</div>;
-    } catch (error: any) {
-        resultNode = <div className="text-destructive whitespace-pre-wrap">{error.toString()}</div>;
-    }
-
-    setHistory(prev => [command, ...prev].slice(0, 50));
-    setHistoryIndex(-1);
 
     return (
-        <>
-            {resultNode}
-            {createNewInputLine()}
-        </>
+        <ScrollArea className="h-full" ref={scrollAreaRef} onClick={() => inputRef.current?.focus()}>
+            <div className="p-4">
+                {lines}
+            </div>
+        </ScrollArea>
     );
-  };
+}
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLSpanElement>) => {
-    const input = e.currentTarget.textContent || '';
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      e.currentTarget.contentEditable = 'false';
-      setTerminalLines(prev => [...prev, executeCommand(input)]);
-    } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        if (history.length > 0) {
-            const newIndex = Math.min(history.length - 1, historyIndex + 1);
-            setHistoryIndex(newIndex);
-            e.currentTarget.textContent = history[newIndex] || '';
-        }
-    } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        if (historyIndex >= 0) {
-            const newIndex = Math.max(-1, historyIndex - 1);
-            setHistoryIndex(newIndex);
-            e.currentTarget.textContent = newIndex === -1 ? '' : history[newIndex] || '';
-        }
-    }
-  };
-
-  const createNewInputLine = () => (
-     <div className="flex items-center" key={`line-${Date.now()}`}>
-        <span className="text-green-400">versa-code {'>'}</span>
-        <span
-            className="flex-1 ml-2 bg-transparent outline-none"
-            contentEditable="true"
-            autoFocus
-            onKeyDown={handleKeyDown}
-            suppressContentEditableWarning
-        ></span>
-    </div>
-  );
-
+export function Terminal({ 
+    problems, 
+    onGoToProblem, 
+    onClosePanel,
+    onNewTerminal,
+    initialTerminals,
+    onCloseTerminal,
+    activeTerminalId,
+    setActiveTerminalId,
+}: TerminalProps) {
+  
   const handleClearTerminal = () => {
-    setTerminalLines([createNewInputLine()]);
-  }
-
-  const handleClearOutput = () => {
-    // This is handled in the parent component, but we can provide a dummy implementation if needed
-  }
+    // This is now handled within the TerminalInstance
+  };
 
   return (
     <Tabs defaultValue="terminal" className="h-full flex flex-col">
@@ -122,7 +173,17 @@ export function Terminal({ output: initialOutput, problems, onGoToProblem, onClo
           <TabsTrigger value="debug">DEBUG CONSOLE</TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-1">
-           <Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onNewTerminal} title="New Terminal">
+                <Plus className="h-4 w-4"/>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>New Terminal</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" className="h-7 w-7" title="Split Terminal" disabled>
                 <Split className="h-4 w-4"/>
@@ -134,17 +195,17 @@ export function Terminal({ output: initialOutput, problems, onGoToProblem, onClo
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleClearTerminal} title="Clear Terminal">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => activeTerminalId && onCloseTerminal(activeTerminalId)} title="Kill Terminal">
                 <Trash2 className="h-4 w-4"/>
               </Button>
             </TooltipTrigger>
             <TooltipContent side="top">
-              <p>Clear</p>
+              <p>Kill Terminal</p>
             </TooltipContent>
           </Tooltip>
            <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose} title="Close Panel">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClosePanel} title="Close Panel">
                 <X className="h-4 w-4"/>
               </Button>
             </TooltipTrigger>
@@ -155,15 +216,24 @@ export function Terminal({ output: initialOutput, problems, onGoToProblem, onClo
         </div>
       </div>
       <div className="flex-1 bg-[#1e1e1e] font-code text-sm overflow-hidden">
-        <TabsContent value="terminal" className="h-full m-0">
-            <ScrollArea className="h-full" ref={scrollAreaRef} onClick={() => {
-                const lastLine = scrollAreaRef.current?.querySelector('span[contenteditable=true]') as HTMLSpanElement;
-                lastLine?.focus();
-            }}>
-                 <div className="p-4">
-                    {terminalLines}
-                </div>
-            </ScrollArea>
+        <TabsContent value="terminal" className="h-full m-0 flex flex-col">
+          {initialTerminals.length > 1 && (
+            <Tabs value={activeTerminalId ?? ''} onValueChange={setActiveTerminalId} className="border-b">
+                <TabsList className="bg-transparent p-0 rounded-none h-auto">
+                    {initialTerminals.map((term, i) => (
+                        <TabsTrigger key={term.id} value={term.id} className="text-xs rounded-none border-r data-[state=active]:bg-background/20 data-[state=active]:shadow-none py-1.5 px-3 relative group">
+                           {i+1}: {term.name}
+                           <button onClick={(e) => { e.stopPropagation(); onCloseTerminal(term.id)}} className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-0.5 rounded-full hover:bg-muted/50"><X className="h-3 w-3"/></button>
+                        </TabsTrigger>
+                    ))}
+                </TabsList>
+            </Tabs>
+          )}
+           {initialTerminals.map(term => (
+            <div key={term.id} className={cn("flex-1", activeTerminalId !== term.id && "hidden")}>
+                <TerminalInstance session={term} />
+            </div>
+           ))}
         </TabsContent>
         <TabsContent value="problems" className="h-full m-0 font-body">
             <ScrollArea className="h-full">
@@ -195,7 +265,7 @@ export function Terminal({ output: initialOutput, problems, onGoToProblem, onClo
         <TabsContent value="output" className="h-full m-0">
             <ScrollArea className="h-full">
               <div className="p-4 whitespace-pre-wrap">
-                {initialOutput.length > 0 ? initialOutput.join('\n') : <p className="text-sm text-muted-foreground text-center pt-4">No output yet.</p>}
+                 <p className="text-sm text-muted-foreground text-center pt-4">No output yet.</p>
               </div>
             </ScrollArea>
         </TabsContent>
@@ -206,5 +276,3 @@ export function Terminal({ output: initialOutput, problems, onGoToProblem, onClo
     </Tabs>
   );
 }
-
-    

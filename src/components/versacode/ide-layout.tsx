@@ -6,7 +6,7 @@ import { Sidebar } from "./sidebar";
 import { Header } from "./header";
 import { CodeEditor } from "./code-editor";
 import { EditorTabs } from "./editor-tabs";
-import { Terminal } from "./terminal";
+import { Terminal, TerminalSession } from "./terminal";
 import { FileExplorer, FileExplorerRef } from "./file-explorer";
 import { ExtensionsPanel } from "./extensions-panel";
 import { SettingsPanel } from "./settings-panel";
@@ -31,6 +31,32 @@ const defaultEditorSettings = {
   fontSize: 14,
 };
 
+function createNewTerminalSession(): TerminalSession {
+    const welcomeMessage = (
+        <div className="whitespace-pre-wrap">
+            Welcome to the VersaCode client-side terminal! You can run JavaScript code here.
+        </div>
+    );
+     const createNewInputLine = () => (
+         <div className="flex items-center" key={`line-${Date.now()}-${Math.random()}`}>
+            <span className="text-green-400">versa-code {'>'}</span>
+            <span
+                className="flex-1 ml-2 bg-transparent outline-none"
+                contentEditable="true"
+                autoFocus
+                suppressContentEditableWarning
+            ></span>
+        </div>
+    );
+    return {
+        id: `term_${Date.now()}`,
+        name: 'zsh',
+        output: [welcomeMessage, createNewInputLine()],
+        history: [],
+    };
+}
+
+
 function IdeLayoutContent() {
   const [activePanel, setActivePanel] = useState<ActivePanel>("files");
   const [output, setOutput] = useState<string[]>([]);
@@ -40,6 +66,8 @@ function IdeLayoutContent() {
   const [editorSettings, setEditorSettings] = useState(defaultEditorSettings);
   const [dirtyFiles, setDirtyFiles] = useState<Set<string>>(new Set());
   const [bottomPanelSize, setBottomPanelSize] = useState(33);
+  const [terminalSessions, setTerminalSessions] = useState<TerminalSession[]>([]);
+  const [activeTerminalId, setActiveTerminalId] = useState<string | null>(null);
   
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof monaco | null>(null);
@@ -343,12 +371,34 @@ function IdeLayoutContent() {
   const handleNewFile = () => fileExplorerRef.current?.startCreate('create_file');
   const handleNewFolder = () => fileExplorerRef.current?.startCreate('create_folder');
   
-  const handleNewTerminal = () => {
+  const handleNewTerminal = useCallback(() => {
     if (bottomPanelSize <= 5) {
       setBottomPanelSize(33); // Or a default size
     }
-    // Logic to focus terminal or create a new tab can be added here
-  };
+    const newSession = createNewTerminalSession();
+    setTerminalSessions(prev => [...prev, newSession]);
+    setActiveTerminalId(newSession.id);
+    return newSession.id;
+  }, [bottomPanelSize]);
+
+  const handleCloseTerminal = useCallback((id: string) => {
+    setTerminalSessions(prev => {
+        const newSessions = prev.filter(s => s.id !== id);
+        if (activeTerminalId === id) {
+            setActiveTerminalId(newSessions[newSessions.length - 1]?.id ?? null);
+        }
+        return newSessions;
+    });
+  }, [activeTerminalId]);
+
+
+  useEffect(() => {
+    if (terminalSessions.length === 0) {
+      const newId = handleNewTerminal();
+      setActiveTerminalId(newId);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handleNewTerminal]);
 
   const handleToggleTerminal = () => {
     setBottomPanelSize(prev => prev > 5 ? 0 : 33);
@@ -522,10 +572,14 @@ function IdeLayoutContent() {
                       className={cn(bottomPanelSize <= 5 && "hidden")}
                     >
                       <Terminal 
-                        output={output} 
                         problems={problems} 
                         onGoToProblem={handleGoToProblem} 
-                        onClose={() => setBottomPanelSize(0)}
+                        onClosePanel={() => setBottomPanelSize(0)}
+                        onNewTerminal={handleNewTerminal}
+                        initialTerminals={terminalSessions}
+                        onCloseTerminal={handleCloseTerminal}
+                        activeTerminalId={activeTerminalId}
+                        setActiveTerminalId={setActiveTerminalId}
                       />
                     </ResizablePanel>
                   </ResizablePanelGroup>
@@ -554,5 +608,3 @@ export function IdeLayout() {
     </TooltipProvider>
   );
 }
-
-    
