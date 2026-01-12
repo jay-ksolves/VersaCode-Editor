@@ -94,11 +94,6 @@ function IdeLayoutContent() {
     openFile,
     openFileIds,
     closeFile: closeFileFromHook,
-    closeAllFiles,
-    closeOtherFiles,
-    closeToTheRight,
-    closeToTheLeft,
-    reorderOpenTabs,
     findNodeById,
     findNodeByPath,
     searchFiles,
@@ -458,33 +453,6 @@ function IdeLayoutContent() {
     if (!confirmClose([fileId])) return;
     closeFileFromHook(fileId);
   }
-  
-  const handleCloseAllTabs = () => {
-    if (!confirmClose(openFileIds)) return;
-    closeAllFiles();
-  }
-
-  const handleCloseOtherTabs = (fileId: string) => {
-    const otherFileIds = openFileIds.filter(id => id !== fileId);
-    if (!confirmClose(otherFileIds)) return;
-    closeOtherFiles(fileId);
-  }
-  
-  const handleCloseToTheRight = (fileId: string) => {
-    const fileIndex = openFileIds.indexOf(fileId);
-    if (fileIndex === -1) return;
-    const filesToTheRight = openFileIds.slice(fileIndex + 1);
-    if (!confirmClose(filesToTheRight)) return;
-    closeToTheRight(fileId);
-  }
-
-  const handleCloseToTheLeft = (fileId: string) => {
-    const fileIndex = openFileIds.indexOf(fileId);
-    if (fileIndex === -1) return;
-    const filesToTheLeft = openFileIds.slice(0, fileIndex);
-    if (!confirmClose(filesToTheLeft)) return;
-    closeToTheLeft(fileId);
-  }
 
 
   const renderPanel = () => {
@@ -556,11 +524,6 @@ function IdeLayoutContent() {
                             activeFileId={activeFileId}
                             onSelectTab={setActiveFileId}
                             onCloseTab={handleCloseTab}
-                            onCloseAllTabs={handleCloseAllTabs}
-                            onCloseOtherTabs={handleCloseOtherTabs}
-                            onCloseToTheRight={handleCloseToTheRight}
-                            onCloseToTheLeft={handleCloseToTheLeft}
-                            onReorderTabs={reorderOpenTabs}
                             findNodeById={findNodeById}
                             dirtyFileIds={dirtyFiles}
                         />
